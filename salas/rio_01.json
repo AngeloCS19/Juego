@@ -1,0 +1,21 @@
+{
+	"nombre": "El primer reflejo",
+	"mapa": [
+		"#########",
+		"#...E...#",
+		"#vvvvvvv#",
+		"#vvvvvvv#",
+		"~~~~=~~~~",
+		"#.......#",
+		"#.......#",
+		"#...S...#",
+		"#########"
+	],
+	"jugador": [2, 6],
+	"plano_espiritual": { "tipo": "reflexion", "eje": "horizontal", "valor": 4 },
+	"piedras": [
+		{ "pos": [4, 5], "fija": true },
+		{ "pos": [4, 6], "fija": true }
+	],
+	"solucion": "DRRURUUUUU"
+}
