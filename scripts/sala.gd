@@ -159,10 +159,19 @@ func _draw() -> void:
 		if espiritual:
 			draw_circle(_centro(p["pos"]), TAM * 0.35, Color(CELESTE, 0.2))
 			draw_circle(_centro(transformacion.aplicar(p["pos"])), TAM * 0.4, Color(CELESTE, 0.85))
+		elif p["fija"]:
+			_dibujar_piedra_fija(p["pos"])
 		else:
-			var color := COLOR_PIEDRA_FIJA if p["fija"] else COLOR_PIEDRA
-			draw_circle(_centro(p["pos"]), TAM * (0.45 if p["flota"] else 0.38), color)
+			draw_circle(_centro(p["pos"]), TAM * (0.45 if p["flota"] else 0.38), COLOR_PIEDRA)
 	draw_circle(_centro(jugador), TAM * 0.3, Color.WHITE if espiritual else COLOR_JUGADOR)
+
+
+## Las piedras fijas son bloques cuadrados con raíces, para que no se confundan con las que se empujan.
+func _dibujar_piedra_fija(c: Vector2i) -> void:
+	var centro := _centro(c)
+	for esquina in [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]:
+		draw_line(centro, centro + esquina * TAM * 0.46, COLOR_PIEDRA_FIJA, 3.0)
+	draw_rect(Rect2(centro - Vector2.ONE * TAM * 0.3, Vector2.ONE * TAM * 0.6), COLOR_PIEDRA_FIJA)
 
 
 ## En el plano espiritual el piso se desvanece y solo queda la cuadrícula.
