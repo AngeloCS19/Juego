@@ -52,7 +52,7 @@ La sala no aparece en el árbol porque `main.gd` la crea por código (`Sala.new(
 
 ### Las reglas de la sala (`sala.gd`)
 
-- En el **plano normal**, las piedras son obstáculos. Las verdes claras se pueden empujar; las oscuras están fijas. Una piedra empujada al agua queda flotando y se puede pisar.
+- En el **plano normal**, las piedras son obstáculos. Las redondas verde claro se pueden empujar; los bloques cuadrados con raíces están fijos. Una piedra empujada al agua queda flotando y se puede pisar.
 - En el **plano espiritual**, el piso se desvanece y queda la cuadrícula. Las piedras originales se vuelven fantasmas que se pueden atravesar, y sus reflejos aparecen como plataformas celestes sólidas, incluso sobre el vacío.
 - La función `imagen_en(c)` es el corazón matemático: pregunta si alguna piedra, al aplicarle la transformación, cae en la casilla `c`.
 
