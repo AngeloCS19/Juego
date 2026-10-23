@@ -104,8 +104,19 @@ La tabla sigue el orden del juego, que lo decide la lista `SALAS` de `main.gd` y
 | El rincón | `rio_09.json` | Sala en L con río antidiagonal: `(x, y)` → `(10 − y, 10 − x)`. Empujar en dos direcciones. (Boceto de Angelo.) |
 | Dos ríos | `rio_10.json` | Dos ejes: cada piedra marcada tiene un reflejo por cada río. (Boceto de Angelo.) |
 | La lava | `rio_11.json` | Sin plano espiritual: la lava solo se cruza empujando una piedra para hacer un puente. (Boceto de Angelo.) |
+| Narciso (jefe) | `rio_jefe.json` | El jefe del templo: hay que hacer que el reflejo de sus propias piedras caiga donde él está. Tres fases: alinear la columna, ajustar la distancia al eje y un eje vertical. |
 
 Siguiente paso: más salas que combinen lo anterior (eje vertical o diagonal con empujar, eje antidiagonal). "Elegir qué marcar" todavía no funciona como puzzle: marcar una piedra de más nunca estorba, así que marcar todas siempre sirve. Ideas aplazadas para cuando el juego esté más pulido: elegir el eje con estacas y limitar los cambios de plano por sala.
+
+## El jefe: Narciso (`sala_jefe.gd`)
+
+Narciso flota en el plano espiritual, del otro lado del río, y lanza piedras a la mitad del jugador (una sombra avisa dónde caen; si caen encima, quitan un corazón). Para golpearlo hay que marcar una de esas piedras y **traspasar** cuando su reflejo cae justo donde está él: se ve a sí mismo, se paraliza y pierde pétalos de su corona. El diseño completo está en el [documento del jefe](https://claude.ai/artifact/3weD4Fmp1SKHYEJssgtUGg).
+
+- `SalaJefe` **extiende** `Sala`: hereda las reglas (moverse, empujar, marcar, traspasar) y solo agrega lo del jefe. `Sala.desde_archivo()` elige la clase según `"tipo": "jefe"` en el JSON.
+- **Turnos.** Cada acción del jugador llama a `_accion()`, que corre un `_turno()`. En las salas de puzzle `_turno()` no hace nada; en el jefe, Narciso avanza por su `camino` y lanza piedras. Así, en dificultad **normal** el mundo espera al jugador.
+- **Dificultad difícil.** `usar_tiempo_real()` crea un `Timer` (un nodo de Godot que avisa cada cierto tiempo) que llama a `_turno()` cada `RITMO_DIFICIL` segundos aunque el jugador no se mueva. El botón Normal/Difícil solo aparece en el jefe; tras 5 derrotas seguidas en difícil se sugiere normal.
+- **Fases.** El JSON trae una lista `fases`; cada una tiene su mapa, eje, `camino`, `cada` (turnos por paso), `lanzamientos`, `cada_lanzamiento` y `golpes`. Reiniciar repite solo la fase actual.
+- Solo puede haber **dos piedras marcadas** a la vez en el jefe, para que no baste con marcar todas y traspasar al azar.
 
 ## Crear una sala nueva sin programar
 

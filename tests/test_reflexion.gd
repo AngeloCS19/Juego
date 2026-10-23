@@ -41,6 +41,21 @@ func _init() -> void:
 	_igual(_jugar("rio_05.json", "UURRDEFUPUUUUU").completada, false, "sin la prenda la salida no se abre")
 	var con_prenda := _jugar("rio_05.json", "RRRULEEULDEFUPUUUUU")
 	_igual(con_prenda.sala.prenda_tomada, true, "la prenda se recoge en el plano espiritual")
+	# Jefe: una piedra que cae encima quita un corazón, y solo hay dos piedras marcadas a la vez.
+	var jefe: SalaJefe = Sala.desde_archivo("res://salas/rio_jefe.json")
+	jefe.sombras.append({"pos": jefe.jugador, "turnos": 1})
+	jefe.mover(Vector2i.DOWN)  # contra el muro: solo gira, pero cuenta como turno
+	_igual(jefe.corazones, 2, "una piedra que cae encima quita un corazón")
+	for x in [5, 6, 8]:
+		jefe.piedras.append({"pos": Vector2i(x, 7), "fija": false, "flota": false, "marcada": false})
+	jefe.jugador = Vector2i(6, 8)
+	for x in [5, 6, 8]:
+		jefe.jugador = Vector2i(x, 8)
+		jefe.mirando = Vector2i.UP
+		jefe.marcar_enfrente()
+	_igual(jefe.piedras.filter(func(p): return p["marcada"]).size(), 2, "el jefe solo permite dos piedras marcadas")
+	_igual(jefe.piedras[jefe.piedra_en(Vector2i(6, 7))]["marcada"] and jefe.piedras[jefe.piedra_en(Vector2i(8, 7))]["marcada"], true, "al marcar una tercera se desmarca la más vieja")
+	creados.append(jefe)
 	# Marcar dos veces la desmarca.
 	_igual(_jugar("rio_01.json", "RRUFFPUUUU").completada, false, "Reflejo dos veces desmarca la piedra")
 	# En la sala 1 Reflejo no está disponible.
@@ -87,8 +102,7 @@ func _init() -> void:
 ## E empuja la piedra de enfrente, P usa Traspasar, F usa Reflejo.
 ## Usa la barra de habilidades real, así que respeta qué habilidades tiene la sala.
 func _jugar(ruta: String, secuencia: String) -> Dictionary:
-	var sala := Sala.new()
-	sala.cargar("res://salas/" + ruta)
+	var sala := Sala.desde_archivo("res://salas/" + ruta)
 	var lista: Array[Habilidad] = [Traspasar.new(), Reflejo.new()]
 	var barra := BarraHabilidades.new(lista)
 	barra.configurar(sala.datos.get("habilidades", ["traspasar", "reflejo"]))
