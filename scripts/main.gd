@@ -27,7 +27,8 @@ const SALAS := [
 	"res://salas/rio_huida_3.json",
 	"res://salas/rio_altar.json",
 ]
-const FONDO_NORMAL := Color(0.1, 0.09, 0.08)
+const FONDO_NORMAL := Color(0.11, 0.08, 0.06)
+const PERSONAJES := ["Niño", "Niña", "Espíritu"]  # mismo orden que Sala.TEX_PERSONAJES
 const FONDO_ESPIRITUAL := Color(0.03, 0.06, 0.12)
 const UMBRAL_DESLIZAR := 30.0  # píxeles: un toque que se mueve menos que esto no es deslizar
 const TIEMPO_EMPUJE := 0.3  # segundos que hay que sostener la dirección para empujar una piedra
@@ -339,6 +340,7 @@ func _menu_inicio() -> void:
 	else:
 		opciones.append(["Jugar", func(): _empezada = true; _seguir()])
 	opciones.append([_texto_dificultad(), _cambiar_dificultad.bind(_menu_inicio)])
+	opciones.append(["Personaje: " + PERSONAJES[Sala.personaje], _cambiar_personaje])
 	_abrir("Templo del Río", "", opciones)
 
 
@@ -365,6 +367,13 @@ func _nueva_partida() -> void:
 	set_process_unhandled_input(true)  # por si ya se había terminado el templo
 	_cargar_sala()
 	_seguir()
+
+
+## Pasa al siguiente personaje (niño, niña, espíritu) y redibuja la sala y el menú.
+func _cambiar_personaje() -> void:
+	Sala.personaje = (Sala.personaje + 1) % PERSONAJES.size()
+	sala.queue_redraw()
+	_menu_inicio()
 
 
 func _texto_dificultad() -> String:

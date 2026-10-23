@@ -27,7 +27,12 @@ const TEX_CASILLA := {
 }
 const TEX_PIEDRA := preload("res://assets/sprites/piedra.svg")
 const TEX_PIEDRA_FIJA := preload("res://assets/sprites/piedra_fija.svg")
-const TEX_JUGADOR := preload("res://assets/sprites/jugador.svg")
+## Los tres personajes que se eligen en el menú inicial: niño, niña y espíritu.
+const TEX_PERSONAJES := [
+	preload("res://assets/sprites/jugador_nino.svg"),
+	preload("res://assets/sprites/jugador_nina.svg"),
+	preload("res://assets/sprites/jugador_espiritu.svg"),
+]
 const TEX_PASTO := preload("res://assets/sprites/pasto.svg")  # el piso de las salas con "exterior": true
 const TEX_PRENDA := {
 	"sandalias": preload("res://assets/sprites/prenda_sandalias.svg"),
@@ -51,6 +56,7 @@ var piedras: Array[Dictionary] = []  # cada una: {"pos": Vector2i, "fija": bool,
 var mirando := Vector2i.UP  # hacia dónde mira el jugador (la casilla que apuntan las habilidades)
 var espiritual := false
 var prenda_tomada := true  # false mientras la sala tenga una prenda de Narciso sin recoger (es opcional)
+static var personaje := 0  # índice en TEX_PERSONAJES; static: lo comparten todas las salas
 var tiempo_real := false  # dificultad difícil en el jefe: los turnos pasan solos
 var _reloj: Timer
 static var _siluetas := {}  # sprite -> su silueta blanca, se calcula una vez
@@ -322,7 +328,9 @@ func _draw() -> void:
 	# El sprite del jugador apunta hacia arriba: se gira hacia donde mira.
 	draw_set_transform(_centro(jugador), Vector2(mirando).angle() + PI / 2)
 	var lado_j := TAM * 0.9
-	var tex_jugador := _silueta(TEX_JUGADOR) if espiritual else TEX_JUGADOR
+	var tex_jugador: Texture2D = TEX_PERSONAJES[personaje]
+	if espiritual:
+		tex_jugador = _silueta(tex_jugador)
 	draw_texture_rect(tex_jugador, Rect2(-Vector2.ONE * lado_j * 0.5, Vector2.ONE * lado_j), false)
 	draw_set_transform(Vector2.ZERO)
 

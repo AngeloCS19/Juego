@@ -22,7 +22,7 @@ Todos son SVG de 64×64 (una casilla; en el juego se escalan a 48 px).
 | `salida.svg` | Salida dorada (`E`) | plano normal |
 | `piedra.svg` | Piedra redonda empujable | plano normal |
 | `piedra_fija.svg` | Bloque cuadrado con raíces | plano normal |
-| `jugador.svg` | Personaje visto desde arriba, **apuntando hacia arriba** (el juego lo rota según `mirando`) | ambos planos |
+| `jugador_nino.svg`, `jugador_nina.svg`, `jugador_espiritu.svg` | Los tres personajes que se eligen en el menú inicial, vistos desde arriba y **apuntando hacia arriba** (el juego los rota según `mirando`) | ambos planos |
 | `anillo_reflejo.svg` | Anillo celeste de una piedra marcada con Reflejo | encima de la piedra |
 | `icono_traspasar.svg` | Icono de la habilidad Traspasar | barra de habilidades |
 | `icono_reflejo.svg` | Icono de la habilidad Reflejo | barra de habilidades |
@@ -34,12 +34,12 @@ Todos son SVG de 64×64 (una casilla; en el juego se escalan a 48 px).
 1. **Lectura en pantalla pequeña (celular horizontal).** Cada casilla mide 48 px: formas grandes y simples, contorno oscuro grueso, sin detalles finos que se pierdan al reducir. (Principio de silueta: cada objeto debe distinguirse solo por su forma.)
 2. **Forma + color, nunca solo color.** Una persona con daltonismo (o un celular con poco brillo) debe poder diferenciar piedra empujable (redonda) de piedra fija (cuadrada con raíces), y agua de vacío (ondas vs. oscuridad plana). Ya lo hace el código actual; los sprites lo conservan.
 3. **Contraste de valor.** Piso medio, muro oscuro, personaje y piedra más claros/saturados que el fondo, para que lo interactivo destaque sobre lo estático.
-4. **Paleta corta y consistente**, tomada de las constantes de `sala.gd` (piso `#8c8066`, muro `#383330`, agua `#3373b3`, madera `#73523a`, vacío `#0a0a0f`, salida `#d9b34d`, piedra `#73b366`, piedra fija `#336633`, jugador `#f28c33`, celeste `#8cd9ff`). Así el cambio visual es coherente con lo que ya se juega. Angelo dijo que la paleta definitiva viene después: cambiarla es editar colores en los SVG.
+4. **Paleta corta y consistente**: tierra cálida, ver `docs/arte.md`. Cambiarla es editar colores en los SVG.
 5. **Celeste reservado.** El celeste solo significa "plano espiritual / reflejo". Ningún sprite del plano normal lo usa, excepto el anillo de Reflejo, que es justamente el puente entre planos.
 6. **Mosaico sin costuras.** Los tiles (piso, agua, muro, vacío, puente) llenan los 64×64 completos y su borde no tiene marcos que formen una rejilla fea al repetirse.
 7. **Vista cenital pura.** Sin perspectiva ni sombras proyectadas hacia un lado: la cámara puede girar 90°, así que ningún sprite tiene "arriba" salvo el jugador, cuya orientación se rota por código.
 8. **Aprendizaje implícito, sin texto en los sprites.** Nada de números ni letras dibujadas; los iconos de habilidad se entienden por forma (Traspasar: dos planos/círculos que se cruzan; Reflejo: figura y su espejo con eje).
-9. **Básico a propósito.** Formas geométricas simples hechas a mano en SVG (vectorial: nítido a cualquier pantalla, pesa pocos KB, se edita con un editor de texto). El arte elaborado queda para después.
+9. **Vectorial pulido.** SVG con degradados suaves y contorno café oscuro (`#2b1a14`), sin sombras hacia un lado (la cámara gira). Detalles en `docs/arte.md`.
 
 Referencias generales de práctica en juegos 2D cenitales: legibilidad y silueta por encima del detalle, paleta limitada, contraste de valor para separar capas jugables, y no depender solo del color (accesibilidad).
 
@@ -49,4 +49,4 @@ El anillo `anillo_reflejo.svg` lleva un eje punteado con dos triángulos enfrent
 
 ## Personaje
 
-Queda neutro hasta definir el lore (¿persona o figura?): un disco naranja con una punta dorada que marca hacia dónde mira. El sprite apunta hacia arriba y el juego lo rota según `mirando`.
+Se elige en el menú inicial: niño, niña o espíritu sin sexo aparente (`Sala.personaje`, un índice en `TEX_PERSONAJES`). Vistos desde arriba: el pelo (o la capucha) cubre la nuca y la cara asoma hacia adelante, así se sabe hacia dónde miran sin flecha. La niña lleva una trenza que cuelga hacia atrás.

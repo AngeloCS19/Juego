@@ -26,7 +26,7 @@ El juego se diseña para PC y para celular, así que todo se puede hacer con tec
 
 ### Menús (`menu.gd`)
 
-Una sola ventana, `Menu`, sirve para tres cosas: el **menú inicial** (Jugar o Continuar, Empezar de nuevo, Dificultad), la **pausa** (Esc o el botón Menú) y la **derrota**. Perder (caer al vacío o al agua, o que Narciso te venza) siempre muestra la ventana de derrota, con **Reintentar** (la sala, la fase o el tramo ya volvió a empezar: ese es el punto de control) y **Menú inicial**.
+Una sola ventana, `Menu`, sirve para tres cosas: el **menú inicial** (Jugar o Continuar, Empezar de nuevo, Dificultad, Personaje: niño, niña o espíritu), la **pausa** (Esc o el botón Menú) y la **derrota**. Perder (caer al vacío o al agua, o que Narciso te venza) siempre muestra la ventana de derrota, con **Reintentar** (la sala, la fase o el tramo ya volvió a empezar: ese es el punto de control) y **Menú inicial**.
 
 Mientras el menú está abierto el juego se pausa con `get_tree().paused = true`. Para que los botones sigan funcionando, `Main` usa `process_mode = ALWAYS`, y `Pivote`, que contiene la sala, usa `PAUSABLE`: así la sala y su reloj se detienen.
 
@@ -55,7 +55,7 @@ scripts/transformaciones/
   transformacion.gd       Molde general de cualquier transformación
   reflexion.gd            La reflexión (primer templo)
 salas/rio_00.json ...     Cada sala, descrita como datos
-assets/sprites/           Dibujos SVG (ver docs/sprites.md)
+assets/sprites/           Dibujos SVG (ver docs/sprites.md y docs/arte.md)
 tests/test_reflexion.gd   Pruebas automáticas
 tools/solver.py           Buscador de soluciones para diseñar salas (Python)
 tools/formatear.py        Escribe una sala con su "solucion"
