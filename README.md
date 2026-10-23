@@ -53,7 +53,7 @@ La sala no aparece en el árbol porque `main.gd` la crea por código (`Sala.new(
 ### Las reglas de la sala (`sala.gd`)
 
 - En el **plano normal**, las piedras son obstáculos. Las redondas verde claro se pueden empujar; los bloques cuadrados con raíces están fijos. Una piedra empujada al agua queda flotando y se puede pisar.
-- En el **plano espiritual**, el piso se desvanece y queda la cuadrícula. Las piedras originales se vuelven fantasmas que se pueden atravesar, y sus reflejos celestes permiten cruzar el vacío y el agua. Solo los muros bloquean.
+- En el **plano espiritual**, el piso se desvanece y queda la cuadrícula. Las piedras originales se vuelven fantasmas que se pueden atravesar, y el agua se puede cruzar y el vacío solo sobre un reflejo celeste. Los muros siempre bloquean.
 - **Cambiar de plano** es una habilidad del jugador (`cambiar_plano()` en `sala.gd`). Si vuelves al plano normal parado sobre el vacío o el agua, caes y la sala se reinicia (señal `caida`). Encima de una piedra no se puede volver.
 - La función `imagen_en(c)` es el corazón matemático: pregunta si alguna piedra, al aplicarle la transformación, cae en la casilla `c`.
 

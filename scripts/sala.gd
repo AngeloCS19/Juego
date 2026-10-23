@@ -114,8 +114,8 @@ func _transitable_en_plano(c: Vector2i, en_espiritual: bool) -> bool:
 	if t == "#":
 		return false
 	if en_espiritual:
-		# Los objetos se atraviesan; el vacío y el agua solo se cruzan sobre un reflejo.
-		return imagen_en(c) or t in [".", "=", "E"]
+		# Se atraviesan objetos y agua; el vacío solo se cruza sobre un reflejo.
+		return imagen_en(c) or t in [".", "=", "E", "~"]
 	var i := piedra_en(c)
 	if i >= 0:
 		return piedras[i]["flota"]
