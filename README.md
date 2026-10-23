@@ -71,8 +71,9 @@ La sala no aparece en el árbol porque `main.gd` la crea por código (`Sala.new(
 ### Las reglas de la sala (`sala.gd`)
 
 - En el **plano normal**, las piedras son obstáculos: caminar contra una solo te gira hacia ella. Para empujarla hay que mirarla y sostener la dirección `TIEMPO_EMPUJE` segundos (`_process()` en `main.gd` mide el tiempo y llama a `sala.empujar_enfrente()`). Las redondas verde claro se pueden empujar; los bloques cuadrados con raíces están fijos. Una piedra empujada al agua queda flotando y se puede pisar.
-- En el **plano espiritual**, el piso se desvanece y queda la cuadrícula. Las piedras originales se vuelven fantasmas que se pueden atravesar, y el agua se puede cruzar y el vacío solo sobre un reflejo celeste. Los muros siempre bloquean.
-- **Cambiar de plano** es una habilidad del jugador (`cambiar_plano()` en `sala.gd`). Si vuelves al plano normal parado sobre el vacío o el agua, caes y la sala se reinicia (señal `caida`). Encima de una piedra no se puede volver.
+- En el **plano espiritual**, el piso se desvanece y queda la cuadrícula. Las piedras originales se vuelven fantasmas que se pueden atravesar, el agua y la lava se pueden cruzar y el vacío solo sobre un reflejo celeste. Los muros siempre bloquean.
+- La **lava** se comporta como el agua (en el plano normal bloquea y no se le pueden empujar piedras), pero tiene su propio eje. Una sala puede tener varios ejes (`transformaciones` en `sala.gd`): cada piedra marcada aparece reflejada respecto a cada uno.
+- **Cambiar de plano** es una habilidad del jugador (`cambiar_plano()` en `sala.gd`). Si vuelves al plano normal parado sobre el vacío, el agua o la lava, caes y la sala se reinicia (señal `caida`). Encima de una piedra no se puede volver.
 - **Solo las piedras marcadas con Reflejo** aparecen reflejadas en el plano espiritual. Una piedra marcada lleva un anillo celeste en el plano normal. El sprite del jugador gira hacia donde mira: esa es la casilla que apuntan las habilidades (`mirando` en `sala.gd`).
 - La función `imagen_en(c)` es el corazón matemático: pregunta si alguna piedra marcada, al aplicarle la transformación, cae en la casilla `c`.
 
@@ -94,6 +95,9 @@ Regla de diseño: **una mecánica nueva por sala**, presentada sin texto de tuto
 | Lejos del eje | `rio_05.json` | La distancia al eje se conserva: hay que alejar la piedra del río para que su reflejo se aleje igual y caiga sobre el vacío. |
 | El río que baja | `rio_06.json` | Eje vertical: el reflejo queda a la izquierda o a la derecha, en la misma fila. |
 | El río torcido | `rio_07.json` | Eje diagonal: reflejar intercambia la columna y la fila de la piedra, `(x, y)` → `(y, x)`. Se combina con empujar. |
+| La otra orilla | `rio_08.json` | La piedra está del otro lado del río: hay que cruzar, acomodarla allá y su reflejo vuelve a tu lado. (Boceto de Angelo.) |
+| El rincón | `rio_09.json` | Sala en L con río antidiagonal: `(x, y)` → `(10 − y, 10 − x)`. Empujar en dos direcciones. (Boceto de Angelo.) |
+| Río y lava | `rio_10.json` | Dos ejes: la lava también refleja, respecto a su propio eje. Cada piedra marcada tiene un reflejo por eje. (Boceto de Angelo.) |
 
 Siguiente paso: más salas que combinen lo anterior (eje vertical o diagonal con empujar, eje antidiagonal). "Elegir qué marcar" todavía no funciona como puzzle: marcar una piedra de más nunca estorba, así que marcar todas siempre sirve. Ideas aplazadas para cuando el juego esté más pulido: elegir el eje con estacas y limitar los cambios de plano por sala.
 
@@ -103,11 +107,11 @@ Copia `salas/rio_01.json`, cámbiale el nombre y edítala:
 
 ```
 #  muro      .  suelo     ~  agua      =  puente
-v  vacío     E  salida
+v  vacío     E  salida    ^  lava
 ```
 
 - `jugador`: casilla inicial `[x, y]` (empezando en 0, desde la esquina de arriba a la izquierda).
-- `plano_espiritual`: qué transformación aplica. Por ahora `"tipo": "reflexion"` con `"eje"` (`horizontal`, `vertical`, `diagonal`, `antidiagonal`) y `"valor"`.
+- `plano_espiritual`: qué transformación aplica. Por ahora `"tipo": "reflexion"` con `"eje"` (`horizontal`, `vertical`, `diagonal`, `antidiagonal`) y `"valor"`. Si la sala tiene río y lava, va una lista con una transformación por eje (mira `rio_10.json`).
 - `piedras`: posición de cada piedra; `"fija": true` si no se puede empujar.
 - `habilidades` (opcional): qué habilidades tiene el jugador en esa sala, por ejemplo `["traspasar"]`. Si no aparece, tiene todas.
 - `solucion`: una secuencia de teclas que la resuelve (U arriba, D abajo, L izquierda, R derecha, P usar Traspasar, F usar Reflejo). Las pruebas la usan para comprobar que la sala tiene solución.

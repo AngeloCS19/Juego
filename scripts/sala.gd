@@ -5,7 +5,7 @@ extends Node2D
 ##
 ## Letras del mapa:
 ##   #  muro      .  suelo     ~  agua      =  puente
-##   v  vacío     E  salida
+##   v  vacío     E  salida    ^  lava (refleja como el río, con su propio eje)
 
 signal completada
 signal plano_cambiado(espiritual: bool)
@@ -21,6 +21,7 @@ const TEX_CASILLA := {
 	"=": preload("res://assets/sprites/puente.svg"),
 	"v": preload("res://assets/sprites/vacio.svg"),
 	"E": preload("res://assets/sprites/salida.svg"),
+	"^": preload("res://assets/sprites/lava.svg"),
 }
 const TEX_PIEDRA := preload("res://assets/sprites/piedra.svg")
 const TEX_PIEDRA_FIJA := preload("res://assets/sprites/piedra_fija.svg")
@@ -30,11 +31,12 @@ const TEX_ANILLO_REFLEJO := preload("res://assets/sprites/anillo_reflejo.svg")
 # Solo para dibujar la salida fantasma del plano espiritual.
 const COLOR_SALIDA := Color(0.85, 0.7, 0.3)
 const CELESTE := Color(0.55, 0.85, 1.0)
+const COLOR_LAVA := Color(0.95, 0.4, 0.2)
 
 var datos: Dictionary
 var mapa: Array = []
 var tamano: Vector2i
-var transformacion: Transformacion
+var transformaciones: Array[Transformacion] = []  # una por eje: el río y, si hay, la lava
 var jugador: Vector2i
 var piedras: Array[Dictionary] = []  # cada una: {"pos": Vector2i, "fija": bool, "flota": bool, "marcada": bool}
 var mirando := Vector2i.UP  # hacia dónde mira el jugador (la casilla que apuntan las habilidades)
@@ -46,7 +48,11 @@ func cargar(ruta: String) -> void:
 	datos = JSON.parse_string(FileAccess.get_file_as_string(ruta))
 	mapa = datos["mapa"]
 	tamano = Vector2i(mapa[0].length(), mapa.size())
-	transformacion = Transformacion.desde_datos(datos["plano_espiritual"])
+	# "plano_espiritual" es una transformación o una lista de ellas (una por eje).
+	var plano = datos["plano_espiritual"]
+	transformaciones.clear()
+	for t in (plano if plano is Array else [plano]):
+		transformaciones.append(Transformacion.desde_datos(t))
 	reiniciar()
 
 
@@ -94,7 +100,7 @@ func _avanzar(dir: Vector2i) -> void:
 
 
 ## Habilidad del jugador: pasar de un plano al otro.
-## Volver al plano normal sobre el vacío o el agua es caer, y la sala se reinicia.
+## Volver al plano normal sobre el vacío, el agua o la lava es caer, y la sala se reinicia.
 ## Volver encima de una piedra no se permite.
 func cambiar_plano() -> void:
 	if espiritual and not _transitable_en_plano(jugador, false):
@@ -134,8 +140,10 @@ func piedra_en(c: Vector2i) -> int:
 ## ¿Hay en esta casilla la imagen espiritual de alguna piedra?
 func imagen_en(c: Vector2i) -> bool:
 	for p in piedras:
-		if p["marcada"] and transformacion.aplicar(p["pos"]) == c:
-			return true
+		if p["marcada"]:
+			for t in transformaciones:
+				if t.aplicar(p["pos"]) == c:
+					return true
 	return false
 
 
@@ -148,8 +156,8 @@ func _transitable_en_plano(c: Vector2i, en_espiritual: bool) -> bool:
 	if t == "#":
 		return false
 	if en_espiritual:
-		# Se atraviesan objetos y agua; el vacío solo se cruza sobre un reflejo.
-		return imagen_en(c) or t in [".", "=", "E", "~"]
+		# Se atraviesan objetos, agua y lava; el vacío solo se cruza sobre un reflejo.
+		return imagen_en(c) or t in [".", "=", "E", "~", "^"]
 	var i := piedra_en(c)
 	if i >= 0:
 		return piedras[i]["flota"]
@@ -208,15 +216,17 @@ func _draw() -> void:
 			else:
 				draw_texture_rect(TEX_CASILLA[celda(c)], _rect(c), false)
 	if espiritual:
-		transformacion.dibujar(self, TAM, tamano, CELESTE)
+		for t in transformaciones:
+			t.dibujar(self, TAM, tamano, CELESTE)
 	for p in piedras:
 		if espiritual:
 			# Los objetos pasan a ser translúcidos y celestes: la silueta blanca del sprite, teñida.
 			var r_fantasma := Rect2(_centro(p["pos"]) - Vector2.ONE * TAM * 0.5, Vector2.ONE * TAM)
 			draw_texture_rect(_silueta(TEX_PIEDRA_FIJA if p["fija"] else TEX_PIEDRA), r_fantasma, false, Color(CELESTE, 0.3))
 			if p["marcada"]:
-				var r_imagen := Rect2(_centro(transformacion.aplicar(p["pos"])) - Vector2.ONE * TAM * 0.5, Vector2.ONE * TAM)
-				draw_texture_rect(_silueta(TEX_PIEDRA_FIJA if p["fija"] else TEX_PIEDRA), r_imagen, false, Color(CELESTE, 0.85))
+				for t in transformaciones:  # un reflejo por cada eje
+					var r_imagen := Rect2(_centro(t.aplicar(p["pos"])) - Vector2.ONE * TAM * 0.5, Vector2.ONE * TAM)
+					draw_texture_rect(_silueta(TEX_PIEDRA_FIJA if p["fija"] else TEX_PIEDRA), r_imagen, false, Color(CELESTE, 0.85))
 			continue
 		var escala := 1.18 if p["flota"] else 1.0  # una piedra en el agua se ve un poco más grande
 		var lado := TAM * escala
@@ -240,6 +250,8 @@ func _dibujar_casilla_espiritual(c: Vector2i) -> void:
 			draw_rect(r, Color(CELESTE, 0.08))
 		"~":
 			draw_rect(r, Color(CELESTE, 0.12))
+		"^":
+			draw_rect(r, Color(COLOR_LAVA, 0.25))
 		"E":
 			draw_rect(r.grow(-4), Color(COLOR_SALIDA, 0.6), false, 2.0)
 	if celda(c) != "v":
