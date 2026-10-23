@@ -21,7 +21,11 @@
 			"cada": 2,
 			"lanzamientos": [[4, 6], [10, 6], [2, 6], [12, 6]],
 			"cada_lanzamiento": 5,
-			"golpes": 2
+			"golpes": 2,
+			"dialogo": [
+				{"quien": "narciso", "animo": "sereno", "texto": "¿Quién agita el agua? Estaba mirando el rostro más hermoso del mundo."},
+				{"quien": "narciso", "animo": "sereno", "texto": "Vete. Nadie me separa de mi reflejo."}
+			]
 		},
 		{
 			"mapa": [
@@ -42,7 +46,11 @@
 			"cada": 2,
 			"lanzamientos": [[5, 6], [9, 6], [3, 6], [11, 6]],
 			"cada_lanzamiento": 5,
-			"golpes": 2
+			"golpes": 2,
+			"dialogo": [
+				{"quien": "narciso", "animo": "enojado", "texto": "Esa piedra me devolvió mi propia cara. ¡Yo no debía verme ahí!"},
+				{"quien": "narciso", "animo": "enojado", "texto": "Pierdo pétalos, pero no te dejaré pasar."}
+			]
 		},
 		{
 			"mapa": [
@@ -63,7 +71,10 @@
 			"cada": 2,
 			"lanzamientos": [[4, 2], [4, 6], [4, 4]],
 			"cada_lanzamiento": 5,
-			"golpes": 2
+			"golpes": 2,
+			"dialogo": [
+				{"quien": "narciso", "animo": "enojado", "texto": "Mi corona se deshace... ¡Un pétalo más y no quedará nada!"}
+			]
 		}
 	],
 	"solucion": "UFUUUUUUUUPPULLLFLLLLLLLLLLLLLLLLLLLLLLLPLUEFUUUUUUUUUUUUUUUUUUUUUUUUUUPPDDDDDURRRRRFRRRRRRRRRRRRRRRRRRPRRFRRRPPURRRULEFLLLLLLLLLLLLLLLLLLP"

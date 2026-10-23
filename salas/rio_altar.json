@@ -31,5 +31,9 @@
 		"cinto": [4, 9],
 		"sandalias": [5, 8]
 	},
+	"dialogo_final": [
+		{"quien": "narciso", "animo": "sereno", "texto": "Así me veía... entero, del otro lado del agua."},
+		{"quien": "narciso", "animo": "sereno", "texto": "Ya no necesito mirar. Gracias."}
+	],
 	"solucion": "UUUREEEFLLLDDREEDRUEFDRRRRRULEEEFRURRULEEULDEFURRRR"
 }

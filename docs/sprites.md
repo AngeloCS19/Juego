@@ -14,7 +14,7 @@ Todos son SVG de 64×64 (una casilla; en el juego se escalan a 48 px).
 | `vacio.svg` | Vacío (`v`), oscuro | plano normal |
 | `lava.svg` | Río de lava (`^`), rojo con burbujas | plano normal |
 | `prenda_sandalias.svg`, `prenda_cinto.svg`, `prenda_tunica.svg`, `prenda_corona.svg` | Prendas de Narciso, a todo color | plano espiritual |
-| `narciso.svg` | Narciso visto desde arriba, en blanco: el código lo tiñe de celeste a naranja según la fase, y de rojo lava en la huida | plano espiritual (en el normal, translúcido) |
+| `narciso.svg` | Narciso visto desde arriba, a color: rizos oscuros, quitón blanco con broche dorado y una cola de espíritu que se desvanece. El código le pone un aura del color de su ánimo (celeste a naranja según la fase, rojo lava en la huida) y destella en blanco al recibir un golpe; su corona son los pétalos que dibuja el código | plano espiritual (en el normal, translúcido) |
 | `pasto.svg` | Pasto, el piso de las salas al aire libre (`"exterior": true`) | plano normal |
 | `estatua.svg` | Estatua de piedra de Narciso, con una mano en alto | plano normal (en el espiritual, su reflejo de cabeza) |
 | `flor_narciso.svg` | Flor de narciso que crece cuando Narciso descansa | al completar el altar |
@@ -50,3 +50,14 @@ El anillo `anillo_reflejo.svg` lleva un eje punteado con dos triángulos enfrent
 ## Personaje
 
 Se elige en el menú inicial: niño, niña o espíritu sin sexo aparente (`Sala.personaje`, un índice en `TEX_PERSONAJES`). Vistos desde arriba: el pelo (o la capucha) cubre la nuca y la cara asoma hacia adelante, así se sabe hacia dónde miran sin flecha. La niña lleva una trenza que cuelga hacia atrás.
+
+## Retratos para diálogos (`assets/retratos/`)
+
+Arte 2D grande (600×900) que aparece a la izquierda en los diálogos, al estilo de Hades. Un SVG por ánimo del personaje:
+
+| Archivo | Qué es |
+|---|---|
+| `narciso_retrato.svg` | Narciso sereno: ojos entrecerrados, una lágrima celeste, corona completa, halo celeste |
+| `narciso_retrato_enojado.svg` | Narciso enojado: cejas fruncidas, ojos naranjas, corona con flores marchitas, halo naranja |
+
+Mismo estilo que los sprites: contorno café grueso (`#2b1a14`), colores planos con una sombra, sin texto. Todo personaje que hable necesita sus retratos; se registran en `PERSONAJES` de `scripts/dialogo.gd`.
