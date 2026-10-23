@@ -1,0 +1,35 @@
+{
+	"nombre": "El altar de Narciso",
+	"tipo": "altar",
+	"exterior": true,
+	"mapa": [
+		"###########",
+		"#.........#",
+		"#.........#",
+		"#.........#",
+		"#.........#",
+		"#.........#",
+		"#~~~~~~~~~#",
+		"#~~~~~~~~~#",
+		"#~~~~~~~~~#",
+		"#~~~~~~~~~#",
+		"#~~~~~~~~~#",
+		"###########"
+	],
+	"jugador": [1, 5],
+	"plano_espiritual": { "tipo": "reflexion", "eje": "horizontal", "valor": 6 },
+	"estatua": [5, 3],
+	"piedras": [
+		{ "pos": [2, 2], "prenda": "corona" },
+		{ "pos": [2, 4], "prenda": "cinto" },
+		{ "pos": [8, 2], "prenda": "tunica" },
+		{ "pos": [8, 4], "prenda": "sandalias" }
+	],
+	"reflejo_vestido": {
+		"corona": [5, 10],
+		"tunica": [6, 9],
+		"cinto": [4, 9],
+		"sandalias": [5, 8]
+	},
+	"solucion": "UUUREEEFLLLDDREEDRUEFDRRRRRULEEEFRURRULEEULDEF"
+}

@@ -14,7 +14,6 @@ extends Sala
 ## "solucion" la juega en dificultad normal (un turno por acción).
 
 signal golpeado
-signal derrota  # el jugador se quedó sin corazones: la fase vuelve a empezar
 
 const TEX_NARCISO := preload("res://assets/sprites/narciso.svg")
 const CORAZONES := 3

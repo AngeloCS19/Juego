@@ -11,6 +11,7 @@ signal completada
 signal plano_cambiado(espiritual: bool)
 signal caida
 signal prenda_recogida(nombre: String)
+signal derrota  # Narciso venció al jugador (jefe o huida): la fase o el tramo vuelve a empezar
 
 const TAM := 48.0  # píxeles por casilla
 
@@ -27,6 +28,7 @@ const TEX_CASILLA := {
 const TEX_PIEDRA := preload("res://assets/sprites/piedra.svg")
 const TEX_PIEDRA_FIJA := preload("res://assets/sprites/piedra_fija.svg")
 const TEX_JUGADOR := preload("res://assets/sprites/jugador.svg")
+const TEX_PASTO := preload("res://assets/sprites/pasto.svg")  # el piso de las salas con "exterior": true
 const TEX_PRENDA := {
 	"sandalias": preload("res://assets/sprites/prenda_sandalias.svg"),
 	"cinto": preload("res://assets/sprites/prenda_cinto.svg"),
@@ -54,10 +56,20 @@ var _reloj: Timer
 static var _siluetas := {}  # sprite -> su silueta blanca, se calcula una vez
 
 
-## Crea la sala que describe el archivo: una sala de puzzle o, si su JSON dice "tipo": "jefe", la del jefe.
+## Crea la sala que describe el archivo. El "tipo" del JSON elige la clase:
+## sin tipo es una sala de puzzle; "jefe", "huida" y "altar" son las salas de Narciso.
 static func desde_archivo(ruta: String) -> Sala:
 	var d: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(ruta))
-	var nueva: Sala = SalaJefe.new() if d.get("tipo", "") == "jefe" else Sala.new()
+	var nueva: Sala
+	match d.get("tipo", ""):
+		"jefe":
+			nueva = SalaJefe.new()
+		"huida":
+			nueva = SalaHuida.new()
+		"altar":
+			nueva = SalaAltar.new()
+		_:
+			nueva = Sala.new()
 	nueva.cargar(ruta)
 	return nueva
 
@@ -271,6 +283,11 @@ func _centro(c: Vector2i) -> Vector2:
 	return (Vector2(c) + Vector2(0.5, 0.5)) * TAM
 
 
+## Sprite de una piedra. El altar lo cambia para dibujar la estatua y las prendas.
+func _tex_piedra(p: Dictionary) -> Texture2D:
+	return TEX_PIEDRA_FIJA if p["fija"] else TEX_PIEDRA
+
+
 func _draw() -> void:
 	for y in tamano.y:
 		for x in tamano.x:
@@ -279,7 +296,8 @@ func _draw() -> void:
 				_dibujar_casilla_espiritual(c)
 			else:
 				var sellada := celda(c) == "E" and not prenda_tomada
-				draw_texture_rect(TEX_CASILLA[celda(c)], _rect(c), false, Color(0.35, 0.35, 0.35) if sellada else Color.WHITE)
+				var tex: Texture2D = TEX_PASTO if celda(c) == "." and datos.get("exterior", false) else TEX_CASILLA[celda(c)]
+				draw_texture_rect(tex, _rect(c), false, Color(0.35, 0.35, 0.35) if sellada else Color.WHITE)
 	if espiritual:
 		for t in transformaciones:
 			t.dibujar(self, TAM, tamano, CELESTE)
@@ -287,16 +305,16 @@ func _draw() -> void:
 		if espiritual:
 			# Los objetos pasan a ser translúcidos y celestes: la silueta blanca del sprite, teñida.
 			var r_fantasma := Rect2(_centro(p["pos"]) - Vector2.ONE * TAM * 0.5, Vector2.ONE * TAM)
-			draw_texture_rect(_silueta(TEX_PIEDRA_FIJA if p["fija"] else TEX_PIEDRA), r_fantasma, false, Color(CELESTE, 0.3))
+			draw_texture_rect(_silueta(_tex_piedra(p)), r_fantasma, false, Color(CELESTE, 0.3))
 			if p["marcada"]:
 				for t in transformaciones:  # un reflejo por cada eje
 					var r_imagen := Rect2(_centro(t.aplicar(p["pos"])) - Vector2.ONE * TAM * 0.5, Vector2.ONE * TAM)
-					draw_texture_rect(_silueta(TEX_PIEDRA_FIJA if p["fija"] else TEX_PIEDRA), r_imagen, false, Color(CELESTE, 0.85))
+					draw_texture_rect(_silueta(_tex_piedra(p)), r_imagen, false, Color(CELESTE, 0.85))
 			continue
 		var escala := 1.18 if p["flota"] else 1.0  # una piedra en el agua se ve un poco más grande
 		var lado := TAM * escala
 		var r := Rect2(_centro(p["pos"]) - Vector2.ONE * lado * 0.5, Vector2.ONE * lado)
-		draw_texture_rect(TEX_PIEDRA_FIJA if p["fija"] else TEX_PIEDRA, r, false)
+		draw_texture_rect(_tex_piedra(p), r, false)
 		if p["marcada"]:
 			draw_texture_rect(TEX_ANILLO_REFLEJO, r, false)
 	if espiritual and not prenda_tomada:

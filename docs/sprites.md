@@ -14,7 +14,10 @@ Todos son SVG de 64×64 (una casilla; en el juego se escalan a 48 px).
 | `vacio.svg` | Vacío (`v`), oscuro | plano normal |
 | `lava.svg` | Río de lava (`^`), rojo con burbujas | plano normal |
 | `prenda_sandalias.svg`, `prenda_cinto.svg`, `prenda_tunica.svg`, `prenda_corona.svg` | Prendas de Narciso, a todo color | plano espiritual |
-| `narciso.svg` | Narciso visto desde arriba, en blanco: el código lo tiñe de celeste a naranja según la fase | plano espiritual (en el normal, translúcido) |
+| `narciso.svg` | Narciso visto desde arriba, en blanco: el código lo tiñe de celeste a naranja según la fase, y de rojo lava en la huida | plano espiritual (en el normal, translúcido) |
+| `pasto.svg` | Pasto, el piso de las salas al aire libre (`"exterior": true`) | plano normal |
+| `estatua.svg` | Estatua de piedra de Narciso, con una mano en alto | plano normal (en el espiritual, su reflejo de cabeza) |
+| `flor_narciso.svg` | Flor de narciso que crece cuando Narciso descansa | al completar el altar |
 | `puente.svg` | Puente de madera (`=`) | plano normal |
 | `salida.svg` | Salida dorada (`E`) | plano normal |
 | `piedra.svg` | Piedra redonda empujable | plano normal |
