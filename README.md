@@ -46,6 +46,7 @@ scripts/sala_jefe.gd      Narciso, el jefe (extiende Sala)
 scripts/sala_huida.gd     Los tramos de la huida (extiende Sala)
 scripts/sala_altar.gd     El altar de Narciso, afuera del templo (extiende Sala)
 scripts/menu.gd           Ventana de menú inicial, pausa y derrota
+scripts/dialogo.gd        Ventana de diálogo con retrato (estilo Hades)
 scripts/barra_habilidades.gd  Barra de habilidades (abajo a la izquierda)
 scripts/habilidades/
   habilidad.gd            Molde general de cualquier habilidad
@@ -56,6 +57,7 @@ scripts/transformaciones/
   reflexion.gd            La reflexión (primer templo)
 salas/rio_00.json ...     Cada sala, descrita como datos
 assets/sprites/           Dibujos SVG (ver docs/sprites.md y docs/arte.md)
+assets/retratos/          Retratos grandes para los diálogos
 tests/test_reflexion.gd   Pruebas automáticas
 tools/solver.py           Buscador de soluciones para diseñar salas (Python)
 tools/formatear.py        Escribe una sala con su "solucion"
@@ -92,6 +94,22 @@ La sala no aparece en el árbol porque `main.gd` la crea por código (`Sala.desd
 - **Cambiar de plano** es una habilidad del jugador (`cambiar_plano()` en `sala.gd`). Si vuelves al plano normal parado sobre el vacío o el agua, caes y la sala se reinicia (señal `caida`). Encima de una piedra no se puede volver.
 - **Solo las piedras marcadas con Reflejo** aparecen reflejadas en el plano espiritual. Una piedra marcada lleva un anillo celeste en el plano normal. El sprite del jugador gira hacia donde mira: esa es la casilla que apuntan las habilidades (`mirando` en `sala.gd`).
 - La función `imagen_en(c)` es el corazón matemático: pregunta si alguna piedra marcada, al aplicarle la transformación, cae en la casilla `c`.
+
+### Diálogos (`dialogo.gd`)
+
+Narciso habla entre fases, al empezar la huida y al descansar en el altar. Las líneas viven en los JSON de las salas, no en el código:
+
+```json
+"dialogo": [
+	{"quien": "narciso", "animo": "sereno", "texto": "Vete. Nadie me separa de mi reflejo."}
+]
+```
+
+- `"dialogo"` se muestra al entrar a la sala. En el jefe, cada fase lleva el suyo y se muestra al empezar esa fase (señal `fase_nueva`).
+- `"dialogo_final"` del altar se muestra cuando Narciso descansa.
+- `quien` elige el personaje y `animo` su retrato (ver `PERSONAJES` en `dialogo.gd`).
+
+La ventana pausa el juego (como el menú). El texto aparece letra por letra con un `Tween` sobre `visible_ratio`; tocar la pantalla, Espacio o Enter muestra todo el texto, y otra vez pasa a la siguiente línea. Las líneas no explican la mecánica: son historia, no tutorial. El jugador no habla (como Link en Zelda), así sirve cualquiera de los tres personajes.
 
 ### Animaciones (`sala.gd`)
 

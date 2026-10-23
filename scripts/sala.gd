@@ -231,6 +231,16 @@ func _flotar(clave: String, real: Vector2i, prisa: float) -> Vector2:
 	return _visto(clave, real) + Vector2(0, sin(_t * prisa * 2.0) * 3.0)
 
 
+## Dibuja a Narciso: un aura del color de su ánimo, su sprite y, si acaba de recibir un golpe,
+## un destello blanco encima ("destello" de 0 a 1). "alfa" lo vuelve translúcido en el plano normal.
+func _dibujar_narciso(centro: Vector2, aura: Color, alfa: float, destello := 0.0) -> void:
+	draw_circle(centro, TAM * 0.6, Color(aura, 0.3 * alfa))
+	var r := Rect2(centro - Vector2.ONE * (TAM * 0.5 + 4), Vector2.ONE * (TAM + 8))
+	draw_texture_rect(SalaJefe.TEX_NARCISO, r, false, Color(Color.WHITE.lerp(aura, 0.25), alfa))
+	if destello > 0.0:
+		draw_texture_rect(_silueta(SalaJefe.TEX_NARCISO), r, false, Color(1, 1, 1, destello * alfa))
+
+
 ## Cada acción del jugador cuenta como un turno, salvo en tiempo real, donde los turnos los marca un reloj.
 ## Las salas de puzzle no hacen nada en su turno; el jefe sí.
 func _accion() -> void:

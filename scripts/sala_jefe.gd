@@ -14,6 +14,7 @@ extends Sala
 ## "solucion" la juega en dificultad normal (un turno por acción).
 
 signal golpeado
+signal fase_nueva
 signal rompio  # Narciso rompió las piedras sin marcar
 
 const TEX_NARCISO := preload("res://assets/sprites/narciso.svg")
@@ -50,6 +51,8 @@ func _usar_fase(i: int) -> void:
 	datos = todo.duplicate()
 	datos.merge(todo["fases"][i], true)
 	_preparar()
+	if i > 0:
+		fase_nueva.emit()  # main.gd muestra el diálogo de la fase ("dialogo" en el JSON)
 
 
 ## Reiniciar repite solo la fase actual: las fases ganadas no se pierden.
@@ -197,10 +200,9 @@ func _draw() -> void:
 	var color := CELESTE.lerp(NARANJA, enojo)
 	# Al recibir un golpe destella en blanco y tiembla.
 	var golpe := maxf(0.0, 1.0 - _golpe_t / 0.5)
-	color = color.lerp(Color.WHITE, golpe)
 	color.a = 1.0 if espiritual else 0.35
 	var centro := _flotar("narciso", narciso, 1.5 + enojo) + Vector2(sin(_t * 70.0), 0) * 4.0 * golpe
-	draw_texture_rect(_silueta(TEX_NARCISO), Rect2(centro - Vector2.ONE * (TAM * 0.5 + 4), Vector2.ONE * (TAM + 8)), false, color)
+	_dibujar_narciso(centro, color, color.a, golpe)
 	# Su corona de narcisos: un pétalo por cada golpe que le falta. Gira despacio, y más rápido si está enojado.
 	var n := petalos()
 	for k in n:

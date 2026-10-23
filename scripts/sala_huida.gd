@@ -44,9 +44,7 @@ func _draw() -> void:
 	super()
 	# Rojo lava, más oscuro que el naranja del jugador para no confundirlos.
 	# Furioso, ya casi se ve en el plano normal.
-	var color := Color(0.85, 0.15, 0.1, 1.0 if espiritual else 0.8)
-	var centro := _flotar("narciso", narciso, 3.0)
-	draw_texture_rect(_silueta(SalaJefe.TEX_NARCISO), Rect2(centro - Vector2.ONE * (TAM * 0.5 + 4), Vector2.ONE * (TAM + 8)), false, color)
+	_dibujar_narciso(_flotar("narciso", narciso, 3.0), Color(0.85, 0.15, 0.1), 1.0 if espiritual else 0.8)
 
 
 func _process(delta: float) -> void:
