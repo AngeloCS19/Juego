@@ -1,6 +1,6 @@
 # Sprites: lista de assets y guías de diseño
 
-Estado: lista y guías listas; los sprites básicos viven en `assets/sprites/`. Todavía **no** están conectados a `sala.gd` (que hoy dibuja con `_draw()`); eso se hace en un cambio aparte para no pisar la mecánica.
+Estado: los sprites básicos viven en `assets/sprites/` y `sala.gd` ya los dibuja (`_draw()`). Los iconos de habilidad aún no se usan: la barra sigue con botones de texto.
 
 ## Assets necesarios (sacados de `sala.gd`, `main.gd`, `barra_habilidades.gd`)
 
