@@ -9,7 +9,7 @@
 		"~~~~~~~v~~~~~~~",
 		"#...~..v......#",
 		"#...~..v......#",
-		"#...~..vvvvvvv#",
+		"#.v.~..vvvvvvv#",
 		"#...~..v.E....#",
 		"###############"
 	],
@@ -22,5 +22,6 @@
 		{ "pos": [2, 2] },
 		{ "pos": [12, 3] }
 	],
-	"solucion": "RRDLEFRPRRRRRDDRRRRPUEFDPDDDDDLLL"
+	"prenda": { "nombre": "corona", "pos": [2, 8] },
+	"solucion": "DDRUFDPDDDDUUUUUURPLERPRRRRRDDRRRRPUEFDPDDDDDLLL"
 }

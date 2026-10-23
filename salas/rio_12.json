@@ -2,7 +2,7 @@
 	"nombre": "El eje escondido",
 	"mapa": [
 		"#############",
-		"#.......v...#",
+		"#..v....v...#",
 		"#.......v.E.#",
 		"#.......v...#",
 		"#....########",
@@ -18,5 +18,6 @@
 	"piedras": [
 		{ "pos": [2, 8] }
 	],
-	"solucion": "ULLLLLLLLLDREEEEEEFULLLUPUUUURRRRRR"
+	"prenda": { "nombre": "tunica", "pos": [3, 1] },
+	"solucion": "ULLLLLLLLDELDREFUUURPUUUUUDDDDDDDDLPREEEEEUULLLUPUUUUURRRRRDR"
 }

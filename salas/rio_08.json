@@ -5,7 +5,7 @@
 		"##E#..~.....#",
 		"##v#..~.....#",
 		"#.....~.....#",
-		"#.....~.....#",
+		"#..v..~.....#",
 		"#.....~.....#",
 		"#.....~.....#",
 		"#############"
@@ -15,5 +15,6 @@
 	"piedras": [
 		{ "pos": [9, 5] }
 	],
-	"solucion": "DRRRPRRRPEDRUEEEFLLLPLLLLLUU"
+	"prenda": { "nombre": "cinto", "pos": [3, 4] },
+	"solucion": "DDRRRPRRRRPUEFLULPLLLLRRRRRPEDRUEELLLPLLLLLUU"
 }

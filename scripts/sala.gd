@@ -10,6 +10,7 @@ extends Node2D
 signal completada
 signal plano_cambiado(espiritual: bool)
 signal caida
+signal prenda_recogida(nombre: String)
 
 const TAM := 48.0  # píxeles por casilla
 
@@ -26,6 +27,12 @@ const TEX_CASILLA := {
 const TEX_PIEDRA := preload("res://assets/sprites/piedra.svg")
 const TEX_PIEDRA_FIJA := preload("res://assets/sprites/piedra_fija.svg")
 const TEX_JUGADOR := preload("res://assets/sprites/jugador.svg")
+const TEX_PRENDA := {
+	"sandalias": preload("res://assets/sprites/prenda_sandalias.svg"),
+	"cinto": preload("res://assets/sprites/prenda_cinto.svg"),
+	"tunica": preload("res://assets/sprites/prenda_tunica.svg"),
+	"corona": preload("res://assets/sprites/prenda_corona.svg"),
+}
 # shortcut: un solo anillo (reflexión); cuando haya más transformaciones, que cada una elija el suyo.
 const TEX_ANILLO_REFLEJO := preload("res://assets/sprites/anillo_reflejo.svg")
 # Solo para dibujar la salida fantasma del plano espiritual.
@@ -41,6 +48,7 @@ var jugador: Vector2i
 var piedras: Array[Dictionary] = []  # cada una: {"pos": Vector2i, "fija": bool, "flota": bool, "marcada": bool}
 var mirando := Vector2i.UP  # hacia dónde mira el jugador (la casilla que apuntan las habilidades)
 var espiritual := false
+var prenda_tomada := true  # false mientras la sala tenga una prenda de Narciso sin recoger
 static var _siluetas := {}  # sprite -> su silueta blanca, se calcula una vez
 
 
@@ -60,6 +68,7 @@ func cargar(ruta: String) -> void:
 func reiniciar() -> void:
 	jugador = _vec(datos["jugador"])
 	mirando = Vector2i.UP
+	prenda_tomada = not datos.has("prenda")
 	piedras.clear()
 	for p in datos.get("piedras", []):
 		piedras.append({"pos": _vec(p["pos"]), "fija": p.get("fija", false), "flota": false, "marcada": false})
@@ -95,7 +104,12 @@ func empujar_enfrente() -> bool:
 func _avanzar(dir: Vector2i) -> void:
 	jugador += dir
 	queue_redraw()
-	if celda(jugador) == "E":
+	# Las prendas son de un espíritu: solo se ven y se recogen en el plano espiritual.
+	if espiritual and not prenda_tomada and jugador == _vec(datos["prenda"]["pos"]):
+		prenda_tomada = true
+		prenda_recogida.emit(datos["prenda"]["nombre"])
+	# La salida queda sellada hasta recoger la prenda de la sala.
+	if celda(jugador) == "E" and prenda_tomada:
 		completada.emit()
 
 
@@ -215,7 +229,8 @@ func _draw() -> void:
 			if espiritual:
 				_dibujar_casilla_espiritual(c)
 			else:
-				draw_texture_rect(TEX_CASILLA[celda(c)], _rect(c), false)
+				var sellada := celda(c) == "E" and not prenda_tomada
+				draw_texture_rect(TEX_CASILLA[celda(c)], _rect(c), false, Color(0.35, 0.35, 0.35) if sellada else Color.WHITE)
 	if espiritual:
 		for t in transformaciones:
 			t.dibujar(self, TAM, tamano, CELESTE)
@@ -235,6 +250,8 @@ func _draw() -> void:
 		draw_texture_rect(TEX_PIEDRA_FIJA if p["fija"] else TEX_PIEDRA, r, false)
 		if p["marcada"]:
 			draw_texture_rect(TEX_ANILLO_REFLEJO, r, false)
+	if espiritual and not prenda_tomada:
+		draw_texture_rect(TEX_PRENDA[datos["prenda"]["nombre"]], _rect(_vec(datos["prenda"]["pos"])).grow(-4), false)
 	# El sprite del jugador apunta hacia arriba: se gira hacia donde mira.
 	draw_set_transform(_centro(jugador), Vector2(mirando).angle() + PI / 2)
 	var lado_j := TAM * 0.9
@@ -254,6 +271,6 @@ func _dibujar_casilla_espiritual(c: Vector2i) -> void:
 		"^":
 			draw_rect(r, Color(COLOR_LAVA, 0.25))
 		"E":
-			draw_rect(r.grow(-4), Color(COLOR_SALIDA, 0.6), false, 2.0)
+			draw_rect(r.grow(-4), Color(COLOR_SALIDA, 0.6 if prenda_tomada else 0.2), false, 2.0)
 	if celda(c) != "v":
 		draw_rect(r, Color(CELESTE, 0.25), false, 1.0)
