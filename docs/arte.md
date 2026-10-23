@@ -40,7 +40,7 @@ Regla: lo que se puede mover (piedra, jugador) es más claro y saturado que el p
 ## Orden de trabajo
 
 1. Paleta y sprites nuevos, con los tres personajes. *(hecho)*
-2. Animaciones: caminar y empujar, la piedra que se refleja, caer, Narciso.
+2. Animaciones: caminar y empujar, la piedra que se refleja, caer, Narciso. *(hecho; ver README, "Animaciones")*
 3. Transiciones y efectos: espejo entre salas, mancha al Traspasar, agua y lava que se mueven.
 4. Interfaz: botones con iconos, menú inicial ilustrado, pausa nueva.
 5. Sonido y música (con la dirección de abajo).

@@ -59,6 +59,8 @@ func elegir(i: int, sala: Sala) -> bool:
 
 
 func usar(sala: Sala) -> void:
+	if sala.cayendo():
+		return
 	habilidades[activa].usar(sala)
 
 

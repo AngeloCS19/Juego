@@ -37,6 +37,7 @@ var _aturdido := 0
 var _lanzadas := 0
 var _llena := 0  # turnos seguidos con MAX_PIEDRAS piedras puestas
 var _marcadas: Array[Dictionary] = []  # piedras marcadas, de la más vieja a la más nueva
+var _golpe_t := 1.0  # tiempo desde el último golpe: Narciso destella y tiembla
 
 
 func cargar(ruta: String) -> void:
@@ -64,6 +65,12 @@ func reiniciar() -> void:
 	_lanzadas = 0
 	_llena = 0
 	narciso = _vec(datos["camino"][0])
+
+
+func _process(delta: float) -> void:
+	super(delta)
+	_golpe_t += delta
+	_seguir("narciso", _centro(narciso), delta, 0.35)  # Narciso flota más lento que el jugador
 
 
 func _turno() -> void:
@@ -134,6 +141,7 @@ func _revisar_golpe(donde: Vector2i) -> void:
 		return
 	golpes -= 1
 	_aturdido = ATURDIDO
+	_golpe_t = 0.0
 	golpeado.emit()
 	if golpes > 0:
 		queue_redraw()
@@ -187,11 +195,14 @@ func _draw() -> void:
 	# Narciso solo existe en el plano espiritual; en el normal se adivina su silueta.
 	var enojo := float(fase) / maxf(1.0, todo["fases"].size() - 1)
 	var color := CELESTE.lerp(NARANJA, enojo)
+	# Al recibir un golpe destella en blanco y tiembla.
+	var golpe := maxf(0.0, 1.0 - _golpe_t / 0.5)
+	color = color.lerp(Color.WHITE, golpe)
 	color.a = 1.0 if espiritual else 0.35
-	var r := _rect(narciso).grow(4)
-	draw_texture_rect(_silueta(TEX_NARCISO), r, false, color)
-	# Su corona de narcisos: un pétalo por cada golpe que le falta.
+	var centro := _flotar("narciso", narciso, 1.5 + enojo) + Vector2(sin(_t * 70.0), 0) * 4.0 * golpe
+	draw_texture_rect(_silueta(TEX_NARCISO), Rect2(centro - Vector2.ONE * (TAM * 0.5 + 4), Vector2.ONE * (TAM + 8)), false, color)
+	# Su corona de narcisos: un pétalo por cada golpe que le falta. Gira despacio, y más rápido si está enojado.
 	var n := petalos()
 	for k in n:
-		var angulo := TAU * k / n - PI / 2
-		draw_circle(_centro(narciso) + Vector2.from_angle(angulo) * TAM * 0.42, 5.0, Color(1, 1, 0.92, color.a))
+		var angulo := TAU * k / n - PI / 2 + _t * (0.4 + enojo)
+		draw_circle(centro + Vector2.from_angle(angulo) * TAM * 0.42, 5.0, Color(1, 1, 0.92, color.a))
