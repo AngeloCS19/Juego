@@ -15,7 +15,8 @@ Si tu Godot es más nuevo que 4.4, puede preguntar si quieres convertir el proye
 | Tecla | Acción |
 |---|---|
 | Flechas o WASD | Moverse una casilla |
-| Espacio | Cambiar de plano |
+| 1 a 9 | Elegir habilidad |
+| Espacio | Usar la habilidad activa (Traspasar: cambiar de plano) |
 | R | Reiniciar la sala |
 | Q / E | Girar la cámara 90° |
 
@@ -25,6 +26,10 @@ Si tu Godot es más nuevo que 4.4, puede preguntar si quieres convertir el proye
 main.tscn                 Escena principal (los nodos)
 scripts/main.gd           Controles, cámara y orden de las salas
 scripts/sala.gd           Reglas de una sala y cómo se dibuja
+scripts/barra_habilidades.gd  Barra de habilidades (abajo a la izquierda)
+scripts/habilidades/
+  habilidad.gd            Molde general de cualquier habilidad
+  traspasar.gd            Cambiar de plano
 scripts/transformaciones/
   transformacion.gd       Molde general de cualquier transformación
   reflexion.gd            La reflexión (primer templo)
@@ -76,6 +81,17 @@ v  vacío     E  salida
 - `solucion`: una secuencia de teclas que la resuelve (U arriba, D abajo, L izquierda, R derecha, P cambiar de plano). Las pruebas la usan para comprobar que la sala tiene solución.
 
 Después agrega la ruta del archivo a la lista `SALAS` en `scripts/main.gd`.
+
+## Habilidades
+
+El jugador tiene una barra de habilidades y solo una está activa a la vez (con borde dorado). Espacio usa la activa. Mientras una habilidad sigue en curso no se puede elegir otra: por ejemplo, estando en el plano espiritual con Traspasar no puedes cambiar a Reflejo.
+
+- `Habilidad` es el molde: tiene `nombre`, `disponible`, `usar(sala)` y `en_curso(sala)`.
+- `Traspasar` es la primera: `usar()` llama a `sala.cambiar_plano()` y `en_curso()` responde si estás en el plano espiritual.
+- `BarraHabilidades` es un `HBoxContainer` (una fila de controles de interfaz) que crea por código un `PanelContainer` con un `Label` por cada habilidad. `elegir(i, sala)` aplica la regla de "una a la vez".
+- La lista de habilidades está en `_ready()` de `main.gd`. "Reflejo" aparece bloqueada como adelanto: todavía no hace nada.
+
+Para agregar una habilidad nueva: crea un archivo en `scripts/habilidades/` que extienda `Habilidad`, implementa `usar()` (y `en_curso()` si dura en el tiempo) y agrégala a esa lista.
 
 ## Cómo crecerá a otros templos
 

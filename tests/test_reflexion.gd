@@ -49,6 +49,21 @@ func _init() -> void:
 	_igual(sala.jugador, Vector2i(1, 5), "la sala se reinicia después de caer")
 	sala.free()
 
+	# Solo una habilidad activa; no se cambia mientras Traspasar está en curso.
+	var sala_b := Sala.new()
+	sala_b.cargar("res://salas/rio_00.json")
+	var lista: Array[Habilidad] = [Traspasar.new(), Habilidad.new("Otra"), Habilidad.new("Bloqueada", false)]
+	var barra := BarraHabilidades.new(lista)
+	_igual(barra.elegir(2, sala_b), false, "no se elige una habilidad bloqueada")
+	_igual(barra.elegir(1, sala_b), true, "se elige otra habilidad en el plano normal")
+	_igual(barra.elegir(0, sala_b), true, "se vuelve a Traspasar")
+	barra.usar(sala_b)
+	_igual(sala_b.espiritual, true, "usar Traspasar cambia al plano espiritual")
+	_igual(barra.elegir(1, sala_b), false, "no se cambia de habilidad en el plano espiritual")
+	_igual(barra.activa, 0, "Traspasar sigue activa")
+	barra.free()
+	sala_b.free()
+
 	print("Fallos: %d" % fallos)
 	quit(1 if fallos else 0)
 

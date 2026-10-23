@@ -13,6 +13,7 @@ const FONDO_ESPIRITUAL := Color(0.03, 0.06, 0.12)
 var indice := 0
 var giro := 0  # cuartos de vuelta de la cámara (0 a 3)
 var sala: Sala
+var barra: BarraHabilidades
 
 @onready var pivote: Node2D = $Pivote
 @onready var etiqueta: Label = $Interfaz/Etiqueta
@@ -20,6 +21,10 @@ var sala: Sala
 
 func _ready() -> void:
 	pivote.position = get_viewport_rect().size / 2
+	var lista: Array[Habilidad] = [Traspasar.new(), Habilidad.new("Reflejo", false)]
+	barra = BarraHabilidades.new(lista)
+	barra.position = Vector2(16, get_viewport_rect().size.y - 56)
+	$Interfaz.add_child(barra)
 	_cargar_sala()
 
 
@@ -50,7 +55,12 @@ func _unhandled_input(evento: InputEvent) -> void:
 		KEY_RIGHT, KEY_D:
 			_mover(Vector2i.RIGHT)
 		KEY_SPACE:
-			sala.cambiar_plano()
+			barra.usar(sala)
+		KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9:
+			var i: int = evento.keycode - KEY_1
+			if not barra.elegir(i, sala) and i < barra.habilidades.size() and barra.habilidades[i].disponible:
+				_on_plano_cambiado(sala.espiritual)
+				etiqueta.text += "\nTermina la habilidad activa antes de elegir otra."
 		KEY_R:
 			sala.reiniciar()
 		KEY_Q:
@@ -72,7 +82,7 @@ func _girar(sentido: int) -> void:
 
 func _on_plano_cambiado(espiritual: bool) -> void:
 	RenderingServer.set_default_clear_color(FONDO_ESPIRITUAL if espiritual else FONDO_NORMAL)
-	etiqueta.text = "Sala %d · %s · Plano %s\nFlechas o WASD: mover · Espacio: cambiar de plano · R: reiniciar · Q/E: girar cámara" % [
+	etiqueta.text = "Sala %d · %s · Plano %s\nFlechas o WASD: mover · 1-9: elegir habilidad · Espacio: usarla · R: reiniciar · Q/E: girar cámara" % [
 		indice + 1, sala.datos["nombre"], "espiritual" if espiritual else "normal"]
 
 
