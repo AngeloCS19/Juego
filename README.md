@@ -4,11 +4,11 @@ Juego de puzzles con vista cenital donde se aprende matemática sin darse cuenta
 
 ## Cómo abrirlo
 
-1. Instala [Godot 4.4 o más reciente](https://godotengine.org/download) (la versión estándar, no la .NET).
+1. Instala [Godot 4.5 o más reciente](https://godotengine.org/download) (la versión estándar, no la .NET).
 2. En el gestor de proyectos de Godot: **Importar** y elige el archivo `project.godot` de esta carpeta.
 3. Presiona **F5** (o el botón ▶ arriba a la derecha) para jugar.
 
-Si tu Godot es más nuevo que 4.4, puede preguntar si quieres convertir el proyecto: acepta.
+Si tu Godot es más nuevo que 4.5, puede preguntar si quieres convertir el proyecto: acepta.
 
 ## Controles
 
@@ -29,7 +29,7 @@ Habilidades: **Traspasar** cambia de plano; **Reflejo** marca la piedra que tien
 
 ```
 main.tscn                 Escena principal (los nodos)
-scripts/main.gd           Controles, cámara y orden de las salas
+scripts/main.gd           Controles (teclado y táctiles), cámara y orden de las salas
 scripts/sala.gd           Reglas de una sala y cómo se dibuja
 scripts/barra_habilidades.gd  Barra de habilidades (abajo a la izquierda)
 scripts/habilidades/
@@ -39,7 +39,8 @@ scripts/habilidades/
 scripts/transformaciones/
   transformacion.gd       Molde general de cualquier transformación
   reflexion.gd            La reflexión (primer templo)
-salas/rio_01.json ...     Cada sala, descrita como datos
+salas/rio_00.json ...     Cada sala, descrita como datos
+assets/sprites/           Dibujos SVG (ver docs/sprites.md)
 tests/test_reflexion.gd   Pruebas automáticas
 ```
 
@@ -57,8 +58,10 @@ La sala no aparece en el árbol porque `main.gd` la crea por código (`Sala.new(
 
 - **`class_name`**: al poner `class_name Sala` arriba de un script, cualquier otro script puede usar `Sala` como un tipo, sin cargar el archivo a mano.
 - **Señales** (`signal completada`): la sala avisa "me resolvieron" sin saber quién escucha. `main.gd` se conecta con `sala.completada.connect(...)` y carga la siguiente. Así la sala no depende de `main`.
-- **`_draw()` y `queue_redraw()`**: en vez de usar imágenes, la sala se dibuja con figuras simples (rectángulos y círculos). Cuando algo cambia, `queue_redraw()` le pide a Godot que vuelva a llamar a `_draw()`. Esto es temporal: cuando tengamos arte, cambiaremos solo la parte de dibujo.
+- **`_draw()` y `queue_redraw()`**: la sala se dibuja a sí misma en `_draw()`, pintando los sprites SVG de `assets/sprites/` con `draw_texture_rect()`. Cuando algo cambia, `queue_redraw()` le pide a Godot que vuelva a llamar a `_draw()`. En el plano espiritual se usa una silueta blanca de cada sprite teñida de celeste (`_silueta()` en `sala.gd`).
+- **Tween**: anima una propiedad en el tiempo. El giro de cámara usa uno sobre `pivote.rotation`; antes de empezar otro se detiene el anterior (`kill()`) y el destino se calcula desde `giro`, para que girar rápido nunca deje el mapa torcido.
 - **`_unhandled_input(evento)`**: Godot llama esta función cada vez que se presiona una tecla.
+- **`_process(delta)`**: Godot la llama en cada cuadro. Ahí se mide cuánto tiempo se sostiene una dirección para empujar.
 - **`Vector2i`**: un par de números enteros (x, y). Lo usamos para las casillas de la cuadrícula. `y` crece hacia abajo.
 
 ### Las reglas de la sala (`sala.gd`)
@@ -66,12 +69,26 @@ La sala no aparece en el árbol porque `main.gd` la crea por código (`Sala.new(
 - En el **plano normal**, las piedras son obstáculos: caminar contra una solo te gira hacia ella. Para empujarla hay que mirarla y sostener la dirección `TIEMPO_EMPUJE` segundos (`_process()` en `main.gd` mide el tiempo y llama a `sala.empujar_enfrente()`). Las redondas verde claro se pueden empujar; los bloques cuadrados con raíces están fijos. Una piedra empujada al agua queda flotando y se puede pisar.
 - En el **plano espiritual**, el piso se desvanece y queda la cuadrícula. Las piedras originales se vuelven fantasmas que se pueden atravesar, y el agua se puede cruzar y el vacío solo sobre un reflejo celeste. Los muros siempre bloquean.
 - **Cambiar de plano** es una habilidad del jugador (`cambiar_plano()` en `sala.gd`). Si vuelves al plano normal parado sobre el vacío o el agua, caes y la sala se reinicia (señal `caida`). Encima de una piedra no se puede volver.
-- **Solo las piedras marcadas con Reflejo** aparecen reflejadas en el plano espiritual. Una piedra marcada lleva un anillo celeste en el plano normal. El jugador tiene un punto negro que indica hacia dónde mira: esa es la casilla que apuntan las habilidades (`mirando` en `sala.gd`).
+- **Solo las piedras marcadas con Reflejo** aparecen reflejadas en el plano espiritual. Una piedra marcada lleva un anillo celeste en el plano normal. El sprite del jugador gira hacia donde mira: esa es la casilla que apuntan las habilidades (`mirando` en `sala.gd`).
 - La función `imagen_en(c)` es el corazón matemático: pregunta si alguna piedra marcada, al aplicarle la transformación, cae en la casilla `c`.
 
 ### La matemática (`reflexion.gd`)
 
 El eje pasa por el centro de una fila o columna de casillas. Con un eje horizontal en la fila `k`, una casilla `(x, y)` se refleja en `(x, 2k − y)`: queda a la misma distancia del eje, del otro lado. También están los ejes vertical y diagonales para salas futuras.
+
+## Diseño de las salas
+
+Regla de diseño: **una mecánica nueva por sala**, presentada sin texto de tutorial; las salas siguientes la combinan. Nada de "plataformas" visuales que regalen la respuesta: el jugador debe razonar dónde cae el reflejo.
+
+| Sala | Archivo | Qué enseña |
+|---|---|---|
+| Cruzar el río | `rio_00.json` | Solo Traspasar: en el plano espiritual el agua se cruza. |
+| El paso celeste | `rio_01.json` | El vacío solo se cruza sobre un reflejo: marcar una piedra fija con Reflejo. |
+| Dos piedras | `rio_02.json` | Reflejar más de una piedra para armar el camino. |
+| Empujar la piedra | `rio_03.json` | Mover la piedra para que su reflejo caiga donde hace falta. |
+| Lo que toca el agua | `rio_04.json` | Piedras que flotan en el agua. **Pendiente de rediseño**: perdió su lección cuando el agua se volvió cruzable en el plano espiritual. |
+
+Siguiente paso acordado: salas más complejas que exploren la reflexión (ejes vertical y diagonales, varias piedras, elegir qué marcar, empujar antes de reflejar). Ideas aplazadas para cuando el juego esté más pulido: elegir el eje con estacas y limitar los cambios de plano por sala.
 
 ## Crear una sala nueva sin programar
 
@@ -103,7 +120,7 @@ El jugador tiene una barra de habilidades y solo una está activa a la vez (con 
 
 - `Habilidad` es el molde: tiene `nombre`, `disponible`, `usar(sala)` y `en_curso(sala)`.
 - `Traspasar` es la primera: `usar()` llama a `sala.cambiar_plano()` y `en_curso()` responde si estás en el plano espiritual.
-- `BarraHabilidades` es un `HBoxContainer` (una fila de controles de interfaz) que crea por código un `PanelContainer` con un `Label` por cada habilidad. `elegir(i, sala)` aplica la regla de "una a la vez".
+- `BarraHabilidades` es un `HBoxContainer` (una fila de controles de interfaz) que crea por código un `Button` por cada habilidad, grande para el dedo. `elegir(i, sala)` aplica la regla de "una a la vez".
 - La lista de habilidades está en `_ready()` de `main.gd`. Cada sala decide cuáles están disponibles con la clave `habilidades` de su JSON; las demás aparecen bloqueadas.
 - `Reflejo` marca o desmarca la piedra que el jugador tiene enfrente (`sala.marcar_enfrente()`).
 
@@ -118,7 +135,8 @@ Para el templo de la rotación basta con crear `scripts/transformaciones/rotacio
 Desde una terminal, en esta carpeta:
 
 ```
+godot --headless --import          # solo la primera vez en una copia nueva
 godot --headless --script res://tests/test_reflexion.gd
 ```
 
-Revisa las fórmulas de la reflexión y que cada sala se resuelva con su `solucion`. Debe terminar con `Fallos: 0`.
+Revisa las fórmulas de la reflexión, que cada sala se resuelva con su `solucion` y las reglas de movimiento, empuje, caída y habilidades. Debe terminar con `Fallos: 0`.

@@ -21,7 +21,7 @@ Todos son SVG de 64×64 (una casilla; en el juego se escalan a 48 px).
 | `icono_traspasar.svg` | Icono de la habilidad Traspasar | barra de habilidades |
 | `icono_reflejo.svg` | Icono de la habilidad Reflejo | barra de habilidades |
 
-**El plano celeste no necesita sprites propios:** se logra en código tiñendo los mismos sprites de celeste y con transparencia (`modulate`), y el piso se reemplaza por la cuadrícula que ya dibuja `transformacion.gd`. Así hay un solo arte por objeto y no se desincroniza con las salas.
+**El plano celeste no necesita sprites propios:** se logra en código con una silueta blanca de cada sprite, teñida de celeste y con transparencia (`_silueta()` en `sala.gd`; teñir con `modulate` no sirve porque multiplica y una piedra verde no se vería celeste), y el piso se reemplaza por la cuadrícula que ya dibuja `transformacion.gd`. Así hay un solo arte por objeto y no se desincroniza con las salas.
 
 ## Guías de diseño que se siguieron
 
