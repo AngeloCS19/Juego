@@ -1,0 +1,20 @@
+{
+	"nombre": "Huida: la lava",
+	"tipo": "huida",
+	"mapa": [
+		"###########",
+		"#....^....#",
+		"#....^...E#",
+		"#....^....#",
+		"###########"
+	],
+	"jugador": [1, 3],
+	"plano_espiritual": { "tipo": "reflexion", "eje": "vertical", "valor": 5 },
+	"piedras": [
+		{ "pos": [3, 1] }
+	],
+	"camino": [[0, 3], [1, 3], [1, 2], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1], [8, 1], [9, 1], [9, 2]],
+	"espera": 2,
+	"cada": 2,
+	"solucion": "UURREERRRRRD"
+}

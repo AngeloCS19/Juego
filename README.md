@@ -35,6 +35,9 @@ Al jugar desde el editor (F5) aparece arriba a la derecha un botón rojo **Debug
 main.tscn                 Escena principal (los nodos)
 scripts/main.gd           Controles (teclado y táctiles), cámara y orden de las salas
 scripts/sala.gd           Reglas de una sala y cómo se dibuja
+scripts/sala_jefe.gd      Narciso, el jefe (extiende Sala)
+scripts/sala_huida.gd     Los tramos de la huida (extiende Sala)
+scripts/sala_altar.gd     El altar de Narciso, afuera del templo (extiende Sala)
 scripts/barra_habilidades.gd  Barra de habilidades (abajo a la izquierda)
 scripts/habilidades/
   habilidad.gd            Molde general de cualquier habilidad
@@ -105,6 +108,8 @@ La tabla sigue el orden del juego, que lo decide la lista `SALAS` de `main.gd` y
 | Dos ríos | `rio_10.json` | Dos ejes: cada piedra marcada tiene un reflejo por cada río. (Boceto de Angelo.) |
 | La lava | `rio_11.json` | Sin plano espiritual: la lava solo se cruza empujando una piedra para hacer un puente. (Boceto de Angelo.) |
 | Narciso (jefe) | `rio_jefe.json` | El jefe del templo: hay que hacer que el reflejo de sus propias piedras caiga donde él está. Tres fases: alinear la columna, ajustar la distancia al eje y un eje vertical. |
+| Huida: el río, el vacío, la lava | `rio_huida_1.json` a `rio_huida_3.json` | Fase 4 del jefe: el templo se derrumba y Narciso persigue al jugador dejando lava. Tres tramos cortos con mecánicas ya conocidas (cruzar agua, cruzar el vacío sobre un reflejo, hundir una piedra en la lava). Cada tramo es un punto de control. |
+| El altar de Narciso | `rio_altar.json` | Afuera, junto a un estanque. El reflejo de la estatua aparece vestido; hay que empujar cada prenda y marcarla para que su reflejo caiga donde el reflejo vestido la muestra. Lo de arriba queda abajo en el reflejo: la corona va arriba de la estatua aunque en el estanque se vea abajo. |
 
 Siguiente paso: más salas que combinen lo anterior (eje vertical o diagonal con empujar, eje antidiagonal). "Elegir qué marcar" todavía no funciona como puzzle: marcar una piedra de más nunca estorba, así que marcar todas siempre sirve. Ideas aplazadas para cuando el juego esté más pulido: elegir el eje con estacas y limitar los cambios de plano por sala.
 
@@ -114,9 +119,25 @@ Narciso flota en el plano espiritual, del otro lado del río, y lanza piedras a 
 
 - `SalaJefe` **extiende** `Sala`: hereda las reglas (moverse, empujar, marcar, traspasar) y solo agrega lo del jefe. `Sala.desde_archivo()` elige la clase según `"tipo": "jefe"` en el JSON.
 - **Turnos.** Cada acción del jugador llama a `_accion()`, que corre un `_turno()`. En las salas de puzzle `_turno()` no hace nada; en el jefe, Narciso avanza por su `camino` y lanza piedras. Así, en dificultad **normal** el mundo espera al jugador.
-- **Dificultad difícil.** `usar_tiempo_real()` crea un `Timer` (un nodo de Godot que avisa cada cierto tiempo) que llama a `_turno()` cada `RITMO_DIFICIL` segundos aunque el jugador no se mueva. El botón Normal/Difícil solo aparece en el jefe; tras 5 derrotas seguidas en difícil se sugiere normal.
+- **Dificultad difícil.** `usar_tiempo_real()` crea un `Timer` (un nodo de Godot que avisa cada cierto tiempo) que llama a `_turno()` cada `RITMO_DIFICIL` segundos aunque el jugador no se mueva. El botón Normal/Difícil solo aparece donde Narciso actúa (jefe y huida); tras 5 derrotas seguidas en difícil se sugiere normal.
 - **Fases.** El JSON trae una lista `fases`; cada una tiene su mapa, eje, `camino`, `cada` (turnos por paso), `lanzamientos`, `cada_lanzamiento` y `golpes`. Reiniciar repite solo la fase actual.
 - Solo puede haber **dos piedras marcadas** a la vez en el jefe, para que no baste con marcar todas y traspasar al azar.
+
+### La huida (`sala_huida.gd`)
+
+Al perder su corona, Narciso enfurece. Cada tramo es una sala corta (`"tipo": "huida"`) con algo que el jugador ya sabe hacer: nada nuevo bajo presión.
+
+- Narciso recorre su `camino` (casillas en orden), empieza después de `espera` turnos y avanza una casilla cada `cada` turnos. Usa los mismos turnos que el jefe, así que la dificultad funciona igual: en normal avanza cuando el jugador actúa, en difícil con el reloj.
+- Cada casilla de piso que deja atrás se vuelve lava: el código cambia la letra en `mapa`, una copia del mapa del JSON. Por eso al reiniciar la lava desaparece.
+- Si alcanza al jugador, emite `derrota` (la misma señal que usa el jefe) y solo se repite ese tramo.
+
+### El altar (`sala_altar.gd`)
+
+Después de la huida el jugador sale del templo (`"exterior": true` dibuja el piso como pasto). La estatua de Narciso mira un estanque.
+
+- En el plano espiritual se ve el **reflejo vestido**: la estatua de cabeza en el estanque y, en celeste tenue, dónde va cada prenda (`reflejo_vestido`).
+- Las prendas son piedras con `"prenda"`: se empujan como piedras, pero no al agua. La estatua (`estatua`) es una piedra fija.
+- Se gana cuando cada prenda está **marcada** con Reflejo y su reflejo cae en su casilla. Entonces el alma de Narciso descansa y crece un narciso donde estaba la estatua.
 
 ## Crear una sala nueva sin programar
 
@@ -132,6 +153,8 @@ v  vacío     E  salida    ^  lava
 - `piedras`: posición de cada piedra; `"fija": true` si no se puede empujar.
 - `habilidades` (opcional): qué habilidades tiene el jugador en esa sala, por ejemplo `["traspasar"]`. Si no aparece, tiene todas.
 - `prenda` (opcional): una prenda de Narciso, `{ "nombre": "sandalias", "pos": [x, y] }`. Solo se ve y se recoge en el plano espiritual, y la salida queda sellada (oscura) hasta tenerla. Nombres: `sandalias`, `cinto`, `tunica`, `corona`.
+- `tipo` (opcional): `"jefe"`, `"huida"` o `"altar"` para las salas de Narciso; cada una tiene sus propias claves (ver arriba). Sin `tipo` es una sala de puzzle.
+- `exterior` (opcional): `true` dibuja el piso como pasto, para las salas al aire libre.
 - `solucion`: una secuencia de teclas que la resuelve (U arriba, D abajo, L izquierda, R derecha, P usar Traspasar, F usar Reflejo). Las pruebas la usan para comprobar que la sala tiene solución.
 
 Después agrega la ruta del archivo a la lista `SALAS` en `scripts/main.gd`.

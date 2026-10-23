@@ -16,12 +16,16 @@ const SALAS := [
 	"res://salas/rio_10.json",
 	"res://salas/rio_11.json",
 	"res://salas/rio_jefe.json",
+	"res://salas/rio_huida_1.json",
+	"res://salas/rio_huida_2.json",
+	"res://salas/rio_huida_3.json",
+	"res://salas/rio_altar.json",
 ]
 const FONDO_NORMAL := Color(0.1, 0.09, 0.08)
 const FONDO_ESPIRITUAL := Color(0.03, 0.06, 0.12)
 const UMBRAL_DESLIZAR := 30.0  # píxeles: un toque que se mueve menos que esto no es deslizar
 const TIEMPO_EMPUJE := 0.3  # segundos que hay que sostener la dirección para empujar una piedra
-const RITMO_DIFICIL := 0.6  # segundos por turno del jefe en dificultad difícil
+const RITMO_DIFICIL := 0.6  # segundos por turno de Narciso (jefe y huida) en dificultad difícil
 const ID_HABILIDADES := 1000  # opción "Todas las habilidades" del menú debug; las salas usan su índice
 const TECLAS_DIRECCION := {
 	KEY_UP: Vector2i.UP, KEY_W: Vector2i.UP, KEY_DOWN: Vector2i.DOWN, KEY_S: Vector2i.DOWN,
@@ -39,7 +43,7 @@ var _empuje := 0.0  # cuánto tiempo lleva sostenida la dirección hacia una pie
 var _tween_giro: Tween
 var _todas_habilidades := false  # modo debug: todas las habilidades en cualquier sala
 var dificil := false  # dificultad del jefe: normal es por turnos, difícil en tiempo real
-var _derrotas := 0  # derrotas seguidas ante el jefe en difícil
+var _derrotas := 0  # derrotas seguidas ante Narciso en difícil
 var _marcador: Label  # corazones y pétalos durante el jefe
 var _boton_dificultad: Button
 var prendas: Array[String] = []  # prendas de Narciso que el jugador ya sacó de su sala
@@ -155,11 +159,14 @@ func _cargar_sala() -> void:
 	sala.caida.connect(_on_caida)
 	sala.prenda_recogida.connect(_on_prenda_recogida)
 	pivote.add_child(sala)
-	_boton_dificultad.visible = sala is SalaJefe
-	if sala is SalaJefe:
-		sala.golpeado.connect(func(): etiqueta.text += "\nNarciso se vio en el reflejo y perdió pétalos.")
+	# La dificultad solo existe donde Narciso actúa: el jefe y la huida.
+	var con_narciso := sala is SalaJefe or sala is SalaHuida
+	_boton_dificultad.visible = con_narciso
+	if con_narciso:
 		sala.derrota.connect(_on_derrota)
 		sala.usar_tiempo_real(dificil, RITMO_DIFICIL)
+	if sala is SalaJefe:
+		sala.golpeado.connect(func(): etiqueta.text += "\nNarciso se vio en el reflejo y perdió pétalos.")
 	_pintar_dificultad()
 	var todas := ["traspasar", "reflejo"]
 	barra.configurar(todas if _todas_habilidades else sala.datos.get("habilidades", todas))
@@ -279,6 +286,8 @@ func _on_plano_cambiado(espiritual: bool) -> void:
 		indice + 1, sala.datos["nombre"], "espiritual" if espiritual else "normal"]
 	if not prendas.is_empty():
 		etiqueta.text += "\nPrendas de Narciso: %d de 4" % prendas.size()
+	if sala is SalaHuida:
+		etiqueta.text += "\n¡El templo se derrumba! Narciso te persigue y deja lava a su paso."
 	if _todas_habilidades:
 		etiqueta.text += "\nDEBUG: todas las habilidades"
 
@@ -300,7 +309,10 @@ func _pintar_dificultad() -> void:
 
 ## Perder no castiga: después de varias derrotas seguidas en difícil se sugiere normal.
 func _on_derrota() -> void:
-	etiqueta.text += "\nNarciso te venció: la fase empieza otra vez."
+	if sala is SalaHuida:
+		etiqueta.text += "\nNarciso te alcanzó: este tramo empieza otra vez."
+	else:
+		etiqueta.text += "\nNarciso te venció: la fase empieza otra vez."
 	if dificil:
 		_derrotas += 1
 		if _derrotas >= 5:
@@ -320,4 +332,4 @@ func _on_sala_completada() -> void:
 		_cargar_sala.call_deferred()  # diferido: la sala que avisa todavía está ejecutando su código
 	else:
 		set_process_unhandled_input(false)
-		etiqueta.text = "Templo del Río completado. Pronto: el espíritu que gira."
+		etiqueta.text = "Narciso por fin se ve vestido, y su alma descansa: crece un narciso.\nTemplo del Río completado. Pronto: el espíritu que gira."

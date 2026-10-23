@@ -56,6 +56,18 @@ func _init() -> void:
 	_igual(jefe.piedras.filter(func(p): return p["marcada"]).size(), 2, "el jefe solo permite dos piedras marcadas")
 	_igual(jefe.piedras[jefe.piedra_en(Vector2i(6, 7))]["marcada"] and jefe.piedras[jefe.piedra_en(Vector2i(8, 7))]["marcada"], true, "al marcar una tercera se desmarca la más vieja")
 	creados.append(jefe)
+	# Huida: Narciso deja lava donde pasa, y si alcanza al jugador el tramo vuelve a empezar.
+	var huida := _jugar("rio_huida_1.json", "RRRPPPP")  # tres pasos y cuatro cambios de plano sin moverse
+	_igual(huida.sala.celda(Vector2i(1, 2)), "^", "Narciso deja lava a su paso")
+	var alcanzado := [false]
+	huida.sala.derrota.connect(func(): alcanzado[0] = true)
+	for i in 6:
+		huida.sala.cambiar_plano()  # quedarse quieto: Narciso llega
+	_igual(alcanzado[0], true, "Narciso alcanza al jugador que no huye")
+	_igual(huida.sala.celda(Vector2i(1, 2)), ".", "al reiniciar el tramo la lava desaparece")
+	# Altar: con una prenda sin marcar el reflejo no está completo; las prendas no van al estanque.
+	_igual(_jugar("rio_altar.json", "UUUREEEFLLLDDREEDRUEFDRRRRRULEEEFRURRULEEULDE").completada, false, "el altar pide marcar todas las prendas")
+	_igual(_jugar("rio_altar.json", "RRRRRRRRUULDEE").sala.piedras[3]["pos"], Vector2i(8, 5), "una prenda no se empuja al estanque")
 	# Marcar dos veces la desmarca.
 	_igual(_jugar("rio_01.json", "RRUFFPUUUU").completada, false, "Reflejo dos veces desmarca la piedra")
 	# En la sala 1 Reflejo no está disponible.
