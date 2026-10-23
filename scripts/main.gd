@@ -68,11 +68,17 @@ func _crear_controles_tactiles() -> void:
 	var usar := BarraHabilidades.crear_boton("Usar", func(): barra.usar(sala), BarraHabilidades.COLOR_ACTIVA)
 	usar.custom_minimum_size = Vector2(120, 96)
 
+	# Debug va debajo de la fila, no al lado: así la fila no se alarga y no tapa el texto de arriba.
+	var esquina := VBoxContainer.new()
+	esquina.add_theme_constant_override("separation", 8)
+	esquina.add_child(acciones)
 	if OS.is_debug_build():
-		acciones.add_child(_crear_menu_debug())
+		var debug := _crear_menu_debug()
+		debug.size_flags_horizontal = Control.SIZE_SHRINK_END
+		esquina.add_child(debug)
 
 	_en_esquina(pantalla, barra, Control.PRESET_BOTTOM_LEFT)
-	_en_esquina(pantalla, acciones, Control.PRESET_TOP_RIGHT)
+	_en_esquina(pantalla, esquina, Control.PRESET_TOP_RIGHT)
 	_en_esquina(pantalla, usar, Control.PRESET_BOTTOM_RIGHT)
 
 
