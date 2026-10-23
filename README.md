@@ -12,13 +12,17 @@ Si tu Godot es más nuevo que 4.4, puede preguntar si quieres convertir el proye
 
 ## Controles
 
-| Tecla | Acción |
-|---|---|
-| Flechas o WASD | Moverse una casilla |
-| 1 a 9 | Elegir habilidad |
-| Espacio | Usar la habilidad activa (Traspasar: cambiar de plano · Reflejo: marcar la piedra de enfrente) |
-| R | Reiniciar la sala |
-| Q / E | Girar la cámara 90° |
+El juego se diseña para PC y para celular, así que todo se puede hacer con teclado o con el dedo (en la PC, el mouse funciona como dedo).
+
+| Acción | Teclado | Pantalla táctil o mouse |
+|---|---|---|
+| Moverse una casilla | Flechas o WASD | Deslizar en esa dirección, o tocar una casilla vecina |
+| Elegir habilidad | 1 a 9 | Tocar su botón (abajo a la izquierda) |
+| Usar la habilidad activa | Espacio | Botón **Usar**, o tocar al personaje |
+| Reiniciar la sala | R | Botón **Reiniciar** |
+| Girar la cámara 90° | Q / E | Botones **Girar** |
+
+Habilidades: **Traspasar** cambia de plano; **Reflejo** marca la piedra que tienes enfrente.
 
 ## Cómo está organizado
 
@@ -84,6 +88,13 @@ v  vacío     E  salida
 - `solucion`: una secuencia de teclas que la resuelve (U arriba, D abajo, L izquierda, R derecha, P usar Traspasar, F usar Reflejo). Las pruebas la usan para comprobar que la sala tiene solución.
 
 Después agrega la ruta del archivo a la lista `SALAS` en `scripts/main.gd`.
+
+## Controles táctiles (en `main.gd`)
+
+- `_crear_controles_tactiles()` pone en la capa `Interfaz` un `Control` llamado *pantalla* que ocupa toda la ventana. Sus hijos son los botones, colocados en las esquinas con *anclas* (`set_anchors_and_offsets_preset`), así que siguen en su esquina aunque el celular tenga otra proporción.
+- La pantalla recibe los toques sobre el mapa en `_on_toque()`: si el dedo se movió más de `UMBRAL_DESLIZAR` píxeles es un deslizamiento; si no, es un toque sobre una casilla.
+- En `project.godot`, `stretch/aspect="expand"` aprovecha toda la pantalla del celular y `handheld/orientation` la deja horizontal.
+- Los botones tienen `focus_mode = FOCUS_NONE`; si no, Espacio también "presionaría" el último botón tocado.
 
 ## Habilidades
 
