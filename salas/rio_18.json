@@ -1,0 +1,22 @@
+{
+	"nombre": "Una piedra, dos trabajos",
+	"mapa": [
+		"#############",
+		"#.....~.....#",
+		"#.....~.....#",
+		"#^^^^^~vvvvv#",
+		"#.....##.####",
+		"#.....##..E.#",
+		"#.....#######",
+		"#############"
+	],
+	"jugador": [3, 6],
+	"plano_espiritual": [
+		{ "tipo": "reflexion", "eje": "vertical", "valor": 6 },
+		{ "tipo": "reflexion", "eje": "horizontal", "valor": 3 }
+	],
+	"piedras": [
+		{ "pos": [2, 5] }
+	],
+	"solucion": "LLUREEDRUEEFUURPRRRDDDRR"
+}

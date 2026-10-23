@@ -1,0 +1,22 @@
+{
+	"nombre": "El reflejo no es piedra",
+	"mapa": [
+		"###########",
+		"#######..E#",
+		"#.....^...#",
+		"#vvvvv#####",
+		"#~~~~~~~~~#",
+		"#.........#",
+		"###########"
+	],
+	"jugador": [6, 5],
+	"plano_espiritual": [
+		{ "tipo": "reflexion", "eje": "horizontal", "valor": 4 },
+		{ "tipo": "reflexion", "eje": "vertical", "valor": 6 }
+	],
+	"piedras": [
+		{ "pos": [3, 2] },
+		{ "pos": [4, 5] }
+	],
+	"solucion": "LEEFPULUUPREEERRURR"
+}

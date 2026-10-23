@@ -1,0 +1,18 @@
+{
+	"nombre": "Elige el paso",
+	"mapa": [
+		"###########",
+		"#E.#...#..#",
+		"#..#...#..#",
+		"#^^#^^^#^^#",
+		"#.........#",
+		"#.........#",
+		"###########"
+	],
+	"jugador": [5, 5],
+	"plano_espiritual": { "tipo": "reflexion", "eje": "horizontal", "valor": 3 },
+	"piedras": [
+		{ "pos": [5, 4] }
+	],
+	"solucion": "RULEEEDLUEUUUL"
+}
