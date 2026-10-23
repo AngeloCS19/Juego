@@ -49,11 +49,26 @@ var piedras: Array[Dictionary] = []  # cada una: {"pos": Vector2i, "fija": bool,
 var mirando := Vector2i.UP  # hacia dónde mira el jugador (la casilla que apuntan las habilidades)
 var espiritual := false
 var prenda_tomada := true  # false mientras la sala tenga una prenda de Narciso sin recoger
+var tiempo_real := false  # dificultad difícil en el jefe: los turnos pasan solos
+var _reloj: Timer
 static var _siluetas := {}  # sprite -> su silueta blanca, se calcula una vez
+
+
+## Crea la sala que describe el archivo: una sala de puzzle o, si su JSON dice "tipo": "jefe", la del jefe.
+static func desde_archivo(ruta: String) -> Sala:
+	var d: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(ruta))
+	var nueva: Sala = SalaJefe.new() if d.get("tipo", "") == "jefe" else Sala.new()
+	nueva.cargar(ruta)
+	return nueva
 
 
 func cargar(ruta: String) -> void:
 	datos = JSON.parse_string(FileAccess.get_file_as_string(ruta))
+	_preparar()
+
+
+## Lee de "datos" el mapa y los ejes, y deja la sala en su estado inicial.
+func _preparar() -> void:
 	mapa = datos["mapa"]
 	tamano = Vector2i(mapa[0].length(), mapa.size())
 	# "plano_espiritual" es una transformación o una lista de ellas (una por eje).
@@ -85,6 +100,7 @@ func mover(dir: Vector2i) -> void:
 	queue_redraw()
 	if transitable(jugador + dir):
 		_avanzar(dir)
+	_accion()
 
 
 ## ¿Hay enfrente una piedra que se pueda intentar empujar?
@@ -98,6 +114,7 @@ func empujar_enfrente() -> bool:
 	if not hay_empujable_enfrente() or not _empujar(piedra_en(jugador + mirando), mirando):
 		return false
 	_avanzar(mirando)
+	_accion()
 	return true
 
 
@@ -125,6 +142,7 @@ func cambiar_plano() -> void:
 	espiritual = not espiritual
 	plano_cambiado.emit(espiritual)
 	queue_redraw()
+	_accion()
 
 
 ## Marca (o desmarca) para la transformación la piedra que el jugador tiene enfrente.
@@ -135,7 +153,38 @@ func marcar_enfrente() -> bool:
 		return false
 	piedras[i]["marcada"] = not piedras[i]["marcada"]
 	queue_redraw()
+	_accion()
 	return true
+
+
+## Cada acción del jugador cuenta como un turno, salvo en tiempo real, donde los turnos los marca un reloj.
+## Las salas de puzzle no hacen nada en su turno; el jefe sí.
+func _accion() -> void:
+	if not tiempo_real:
+		_turno()
+
+
+func _turno() -> void:
+	pass
+
+
+## Dificultad difícil: el mundo avanza un turno cada "intervalo" segundos, aunque el jugador no se mueva.
+func usar_tiempo_real(activo: bool, intervalo: float) -> void:
+	tiempo_real = activo
+	if _reloj == null:
+		_reloj = Timer.new()
+		_reloj.timeout.connect(_turno)
+		add_child(_reloj)
+	_reloj.wait_time = intervalo
+	if activo:
+		_reloj.start()
+	else:
+		_reloj.stop()
+
+
+## Texto extra para la interfaz (corazones, vida del jefe...). Las salas de puzzle no tienen.
+func estado() -> String:
+	return ""
 
 
 func celda(c: Vector2i) -> String:

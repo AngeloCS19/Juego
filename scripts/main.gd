@@ -15,11 +15,13 @@ const SALAS := [
 	"res://salas/rio_09.json",
 	"res://salas/rio_10.json",
 	"res://salas/rio_11.json",
+	"res://salas/rio_jefe.json",
 ]
 const FONDO_NORMAL := Color(0.1, 0.09, 0.08)
 const FONDO_ESPIRITUAL := Color(0.03, 0.06, 0.12)
 const UMBRAL_DESLIZAR := 30.0  # píxeles: un toque que se mueve menos que esto no es deslizar
 const TIEMPO_EMPUJE := 0.3  # segundos que hay que sostener la dirección para empujar una piedra
+const RITMO_DIFICIL := 0.6  # segundos por turno del jefe en dificultad difícil
 const ID_HABILIDADES := 1000  # opción "Todas las habilidades" del menú debug; las salas usan su índice
 const TECLAS_DIRECCION := {
 	KEY_UP: Vector2i.UP, KEY_W: Vector2i.UP, KEY_DOWN: Vector2i.DOWN, KEY_S: Vector2i.DOWN,
@@ -36,6 +38,10 @@ var _dir_dedo := Vector2i.ZERO  # dirección (en pantalla) que el dedo sostiene,
 var _empuje := 0.0  # cuánto tiempo lleva sostenida la dirección hacia una piedra
 var _tween_giro: Tween
 var _todas_habilidades := false  # modo debug: todas las habilidades en cualquier sala
+var dificil := false  # dificultad del jefe: normal es por turnos, difícil en tiempo real
+var _derrotas := 0  # derrotas seguidas ante el jefe en difícil
+var _marcador: Label  # corazones y pétalos durante el jefe
+var _boton_dificultad: Button
 var prendas: Array[String] = []  # prendas de Narciso que el jugador ya sacó de su sala
 
 @onready var pivote: Node2D = $Pivote
@@ -74,6 +80,9 @@ func _crear_controles_tactiles() -> void:
 	var esquina := VBoxContainer.new()
 	esquina.add_theme_constant_override("separation", 8)
 	esquina.add_child(acciones)
+	_boton_dificultad = BarraHabilidades.crear_boton("", _cambiar_dificultad)
+	_boton_dificultad.size_flags_horizontal = Control.SIZE_SHRINK_END
+	esquina.add_child(_boton_dificultad)
 	if OS.is_debug_build():
 		var debug := _crear_menu_debug()
 		debug.size_flags_horizontal = Control.SIZE_SHRINK_END
@@ -82,6 +91,12 @@ func _crear_controles_tactiles() -> void:
 	_en_esquina(pantalla, barra, Control.PRESET_BOTTOM_LEFT)
 	_en_esquina(pantalla, esquina, Control.PRESET_TOP_RIGHT)
 	_en_esquina(pantalla, usar, Control.PRESET_BOTTOM_RIGHT)
+
+	_marcador = Label.new()
+	_marcador.add_theme_font_size_override("font_size", 22)
+	_marcador.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_marcador.add_theme_color_override("font_color", Color(1, 0.85, 0.5))
+	pantalla.add_child(_marcador)  # va justo debajo del texto de arriba (ver _process)
 
 
 ## Menú solo para el desarrollador: saltar a cualquier sala y desbloquear todas las habilidades.
@@ -133,14 +148,19 @@ func _centrar() -> void:
 func _cargar_sala() -> void:
 	if sala:
 		sala.queue_free()
-	sala = Sala.new()
-	sala.cargar(SALAS[indice])
+	sala = Sala.desde_archivo(SALAS[indice])
 	sala.position = -Vector2(sala.tamano) * Sala.TAM / 2  # centra la sala en el pivote
 	sala.completada.connect(_on_sala_completada)
 	sala.plano_cambiado.connect(_on_plano_cambiado)
 	sala.caida.connect(_on_caida)
 	sala.prenda_recogida.connect(_on_prenda_recogida)
 	pivote.add_child(sala)
+	_boton_dificultad.visible = sala is SalaJefe
+	if sala is SalaJefe:
+		sala.golpeado.connect(func(): etiqueta.text += "\nNarciso se vio en el reflejo y perdió pétalos.")
+		sala.derrota.connect(_on_derrota)
+		sala.usar_tiempo_real(dificil, RITMO_DIFICIL)
+	_pintar_dificultad()
 	var todas := ["traspasar", "reflejo"]
 	barra.configurar(todas if _todas_habilidades else sala.datos.get("habilidades", todas))
 	_on_plano_cambiado(false)
@@ -207,6 +227,8 @@ func _casilla_tocada(posicion: Vector2) -> Vector2i:
 
 ## Empujar: sostener la dirección hacia una piedra que ya estás mirando.
 func _process(delta: float) -> void:
+	_marcador.text = sala.estado()
+	_marcador.position = etiqueta.position + Vector2(0, etiqueta.size.y)
 	var dir := _a_mundo(_direccion_sostenida())
 	if dir != Vector2i.ZERO and dir == sala.mirando and sala.hay_empujable_enfrente():
 		_empuje += delta
@@ -263,6 +285,26 @@ func _on_plano_cambiado(espiritual: bool) -> void:
 
 func _on_caida() -> void:
 	etiqueta.text += "\nCaíste: volviste al plano normal sobre el vacío o el agua."
+
+
+func _cambiar_dificultad() -> void:
+	dificil = not dificil
+	_derrotas = 0
+	sala.usar_tiempo_real(dificil, RITMO_DIFICIL)
+	_pintar_dificultad()
+
+
+func _pintar_dificultad() -> void:
+	_boton_dificultad.text = "Difícil" if dificil else "Normal"
+
+
+## Perder no castiga: después de varias derrotas seguidas en difícil se sugiere normal.
+func _on_derrota() -> void:
+	etiqueta.text += "\nNarciso te venció: la fase empieza otra vez."
+	if dificil:
+		_derrotas += 1
+		if _derrotas >= 5:
+			etiqueta.text += "\n¿Muy rápido? Toca el botón Difícil para jugar en Normal, por turnos."
 
 
 func _on_prenda_recogida(nombre: String) -> void:
