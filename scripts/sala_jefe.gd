@@ -22,7 +22,7 @@ const AVISO := 2  # turnos que se ve la sombra antes de que caiga una piedra
 const ATURDIDO := 3  # turnos que Narciso se queda quieto después de un golpe
 const MAX_PIEDRAS := 4  # para que la arena no se llene
 const MAX_MARCADAS := 2  # así no basta con marcar todas las piedras y traspasar al azar
-const CADA_ROMPER := 15  # cada cuántos turnos rompe las piedras sin marcar (así no basta con esperar)
+const CADA_ROMPER := 15  # turnos con la arena llena antes de romper las piedras sin marcar (así no basta con esperar)
 const NARANJA := Color(1.0, 0.55, 0.2)
 
 var todo: Dictionary  # el archivo completo; "datos" es la fase actual
@@ -35,6 +35,7 @@ var _paso := 0
 var _turnos := 0
 var _aturdido := 0
 var _lanzadas := 0
+var _llena := 0  # turnos seguidos con MAX_PIEDRAS piedras puestas
 var _marcadas: Array[Dictionary] = []  # piedras marcadas, de la más vieja a la más nueva
 
 
@@ -61,6 +62,7 @@ func reiniciar() -> void:
 	_turnos = 0
 	_aturdido = 0
 	_lanzadas = 0
+	_llena = 0
 	narciso = _vec(datos["camino"][0])
 
 
@@ -78,7 +80,10 @@ func _turno() -> void:
 			_caer(s["pos"])
 			if corazones == 0:
 				return  # _caer() ya reinició la fase
-	if _turnos % CADA_ROMPER == 0:
+	# La cuenta para romper empieza solo cuando ya lanzó todas sus piedras.
+	_llena = _llena + 1 if piedras.size() >= MAX_PIEDRAS else 0
+	if _llena >= CADA_ROMPER:
+		_llena = 0
 		_romper()
 	if _turnos % int(datos["cada_lanzamiento"]) == 0 and piedras.size() + sombras.size() < MAX_PIEDRAS:
 		var destino := _vec(datos["lanzamientos"][_lanzadas % datos["lanzamientos"].size()])
