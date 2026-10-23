@@ -57,6 +57,9 @@ scripts/transformaciones/
 salas/rio_00.json ...     Cada sala, descrita como datos
 assets/sprites/           Dibujos SVG (ver docs/sprites.md)
 tests/test_reflexion.gd   Pruebas automáticas
+tools/solver.py           Buscador de soluciones para diseñar salas (Python)
+tools/formatear.py        Escribe una sala con su "solucion"
+tools/gen_jefe.gd         Genera la "solucion" del jefe
 ```
 
 ### Los nodos de la escena
@@ -67,7 +70,7 @@ Si abres `main.tscn` en Godot verás este árbol:
 - **Pivote** (Node2D) es un punto en el centro de la pantalla. La sala se coloca dentro de él, así que girar el pivote gira toda la sala. Así funciona la rotación de cámara.
 - **Interfaz** (CanvasLayer) es una capa que no gira ni se mueve con el mundo. Dentro está **Etiqueta** (Label), el texto de arriba.
 
-La sala no aparece en el árbol porque `main.gd` la crea por código (`Sala.new()`) cada vez que empieza una sala nueva.
+La sala no aparece en el árbol porque `main.gd` la crea por código (`Sala.desde_archivo()`) cada vez que empieza una sala nueva. El menú (`Menu`) también se crea por código, dentro de **Interfaz**.
 
 ### Ideas de Godot que usa el código
 
@@ -125,7 +128,14 @@ La tabla sigue el orden del juego, que lo decide la lista `SALAS` de `main.gd` y
 | Huida: el río, el vacío, la lava | `rio_huida_1.json` a `rio_huida_3.json` | Fase 4 del jefe: el templo se derrumba y Narciso persigue al jugador dejando lava. Tres tramos cortos con mecánicas ya conocidas (cruzar agua, cruzar el vacío sobre un reflejo, hundir una piedra en la lava). Cada tramo es un punto de control. |
 | El altar de Narciso | `rio_altar.json` | Afuera, junto a un estanque. El reflejo de la estatua aparece vestido; hay que empujar cada prenda y marcarla para que su reflejo caiga donde el reflejo vestido la muestra. Lo de arriba queda abajo en el reflejo: la corona va arriba de la estatua aunque en el estanque se vea abajo. |
 
-Siguiente paso: más salas que combinen lo anterior (eje vertical o diagonal con empujar, eje antidiagonal). "Elegir qué marcar" todavía no funciona como puzzle: marcar una piedra de más nunca estorba, así que marcar todas siempre sirve. Ideas aplazadas para cuando el juego esté más pulido: elegir el eje con estacas y limitar los cambios de plano por sala.
+El Templo del Río está completo, de "Cruzar el río" al altar. Siguiente paso: el segundo templo, "el espíritu que gira" (rotación; ver "Cómo crecerá a otros templos"). Pendientes: rediseñar `rio_04` y probar en un celular el jefe y la huida en tiempo real (sus ritmos, `RITMO_NORMAL` y `CADA_ROMPER`, se ajustan jugando). "Elegir qué marcar" todavía no funciona como puzzle en las salas normales: marcar una piedra de más nunca estorba (en el jefe sí, porque solo se marcan dos). Ideas aplazadas: elegir el eje con estacas y limitar los cambios de plano por sala.
+
+### Cómo se diseña una sala
+
+1. Angelo suele mandar un boceto de pizarra (S salida, I inicio, negro vacío, azul río, rojo lava, círculo verde piedra).
+2. Se pasa a JSON y se resuelve con `python3 tools/solver.py sala.json`. Con letras prohibidas (`... sala.json F`) se comprueba que sin esa acción **no** haya solución: si la hay, la sala tiene un atajo y no enseña su idea.
+3. `python3 tools/formatear.py boceto.json salas/rio_nn.json` la escribe con su `solucion`, y se agrega a `SALAS`.
+4. Reglas de forma: la lava separada del agua y del vacío por muros; cada eje con al menos dos casillas de río o lava, para que se lea como una recta.
 
 ## El jefe: Narciso (`sala_jefe.gd`)
 
