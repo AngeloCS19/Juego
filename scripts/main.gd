@@ -13,6 +13,7 @@ const SALAS := [
 	"res://salas/rio_08.json",
 	"res://salas/rio_09.json",
 	"res://salas/rio_10.json",
+	"res://salas/rio_11.json",
 ]
 const FONDO_NORMAL := Color(0.1, 0.09, 0.08)
 const FONDO_ESPIRITUAL := Color(0.03, 0.06, 0.12)

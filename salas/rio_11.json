@@ -1,0 +1,18 @@
+{
+	"nombre": "La lava",
+	"mapa": [
+		"###########",
+		"#....^....#",
+		"#....^....#",
+		"#....^...E#",
+		"#....^....#",
+		"#....^....#",
+		"###########"
+	],
+	"jugador": [1, 1],
+	"plano_espiritual": { "tipo": "reflexion", "eje": "vertical", "valor": 5 },
+	"piedras": [
+		{ "pos": [2, 4] }
+	],
+	"solucion": "DDDREEERRURRR"
+}

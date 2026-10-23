@@ -5,7 +5,7 @@ extends Node2D
 ##
 ## Letras del mapa:
 ##   #  muro      .  suelo     ~  agua      =  puente
-##   v  vacío     E  salida    ^  lava (refleja como el río, con su propio eje)
+##   v  vacío     E  salida    ^  lava (refleja como el río, pero nunca se sobrevuela)
 
 signal completada
 signal plano_cambiado(espiritual: bool)
@@ -100,7 +100,7 @@ func _avanzar(dir: Vector2i) -> void:
 
 
 ## Habilidad del jugador: pasar de un plano al otro.
-## Volver al plano normal sobre el vacío, el agua o la lava es caer, y la sala se reinicia.
+## Volver al plano normal sobre el vacío o el agua es caer, y la sala se reinicia.
 ## Volver encima de una piedra no se permite.
 func cambiar_plano() -> void:
 	if espiritual and not _transitable_en_plano(jugador, false):
@@ -156,8 +156,9 @@ func _transitable_en_plano(c: Vector2i, en_espiritual: bool) -> bool:
 	if t == "#":
 		return false
 	if en_espiritual:
-		# Se atraviesan objetos, agua y lava; el vacío solo se cruza sobre un reflejo.
-		return imagen_en(c) or t in [".", "=", "E", "~", "^"]
+		# Se atraviesan objetos y agua; el vacío solo se cruza sobre un reflejo.
+		# La lava nunca: solo se cruza en el plano normal, sobre una piedra hundida en ella.
+		return t != "^" and (imagen_en(c) or t in [".", "=", "E", "~"])
 	var i := piedra_en(c)
 	if i >= 0:
 		return piedras[i]["flota"]
@@ -174,8 +175,8 @@ func _empujar(i: int, dir: Vector2i) -> bool:
 	match celda(destino):
 		".":
 			pass
-		"~":
-			p["flota"] = true  # una piedra en el agua queda flotando y se puede pisar
+		"~", "^":
+			p["flota"] = true  # una piedra en el agua o la lava queda flotando y se puede pisar
 		_:
 			return false
 	p["pos"] = destino

@@ -30,10 +30,13 @@ func _init() -> void:
 	_igual(_jugar("rio_01.json", "RRUPUUUU").completada, false, "sin Reflejo no se cruza el vacío")
 	# Si no se aleja la piedra del eje, su reflejo cae en el piso y no sobre el vacío.
 	_igual(_jugar("rio_05.json", "UURRDFPUUUUU").completada, false, "sin alejar la piedra no se cruza el vacío")
-	# Con río y lava, una piedra marcada se refleja en los dos ejes.
+	# Con dos ríos, una piedra marcada se refleja en los dos ejes.
 	var dos := _jugar("rio_10.json", "RRDLEF")
-	_igual(dos.sala.imagen_en(Vector2i(7, 2)), true, "reflejo respecto al río")
-	_igual(dos.sala.imagen_en(Vector2i(1, 8)), true, "reflejo respecto a la lava")
+	_igual(dos.sala.imagen_en(Vector2i(7, 2)), true, "reflejo respecto al río vertical")
+	_igual(dos.sala.imagen_en(Vector2i(1, 8)), true, "reflejo respecto al río horizontal")
+	# La lava no se sobrevuela en el plano espiritual; se cruza sobre una piedra hundida.
+	_igual(_jugar("rio_11.json", "PRRRR").sala.jugador, Vector2i(4, 1), "la lava bloquea en el plano espiritual")
+	_igual(_jugar("rio_11.json", "DDDREEE").sala.piedras[0]["flota"], true, "una piedra empujada a la lava flota")
 	# Marcar dos veces la desmarca.
 	_igual(_jugar("rio_01.json", "RRUFFPUUUU").completada, false, "Reflejo dos veces desmarca la piedra")
 	# En la sala 1 Reflejo no está disponible.
