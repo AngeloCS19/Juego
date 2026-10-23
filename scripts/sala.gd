@@ -25,7 +25,12 @@ const TEX_CASILLA := {
 	"E": preload("res://assets/sprites/salida.svg"),
 	"^": preload("res://assets/sprites/lava.svg"),
 }
-const TEX_PIEDRA := preload("res://assets/sprites/piedra.svg")
+## Rocas que se mueven: irregulares, con variantes para que no todas se vean iguales.
+const TEX_PIEDRAS := [
+	preload("res://assets/sprites/piedra_1.svg"),
+	preload("res://assets/sprites/piedra_2.svg"),
+	preload("res://assets/sprites/piedra_3.svg"),
+]
 const TEX_PIEDRA_FIJA := preload("res://assets/sprites/piedra_fija.svg")
 ## Los tres personajes que se eligen en el menú inicial: niño, niña y espíritu.
 const TEX_PERSONAJES := [
@@ -52,7 +57,7 @@ var mapa: Array = []
 var tamano: Vector2i
 var transformaciones: Array[Transformacion] = []  # una por eje: el río y, si hay, la lava
 var jugador: Vector2i
-var piedras: Array[Dictionary] = []  # cada una: {"pos": Vector2i, "fija": bool, "flota": bool, "marcada": bool}
+var piedras: Array[Dictionary] = []  # cada una: {"pos": Vector2i, "fija": bool, "flota": bool, "marcada": bool, "variante": int}
 var mirando := Vector2i.UP  # hacia dónde mira el jugador (la casilla que apuntan las habilidades)
 var espiritual := false
 var prenda_tomada := true  # false mientras la sala tenga una prenda de Narciso sin recoger (es opcional)
@@ -104,7 +109,7 @@ func reiniciar() -> void:
 	prenda_tomada = not datos.has("prenda")
 	piedras.clear()
 	for p in datos.get("piedras", []):
-		piedras.append({"pos": _vec(p["pos"]), "fija": p.get("fija", false), "flota": false, "marcada": false})
+		piedras.append({"pos": _vec(p["pos"]), "fija": p.get("fija", false), "flota": false, "marcada": false, "variante": piedras.size()})
 	if espiritual:
 		espiritual = false
 		plano_cambiado.emit(false)
@@ -290,7 +295,7 @@ func _centro(c: Vector2i) -> Vector2:
 
 ## Sprite de una piedra. El altar lo cambia para dibujar la estatua y las prendas.
 func _tex_piedra(p: Dictionary) -> Texture2D:
-	return TEX_PIEDRA_FIJA if p["fija"] else TEX_PIEDRA
+	return TEX_PIEDRA_FIJA if p["fija"] else TEX_PIEDRAS[p.get("variante", 0) % TEX_PIEDRAS.size()]
 
 
 func _draw() -> void:

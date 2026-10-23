@@ -101,7 +101,7 @@ func _caer(c: Vector2i) -> void:
 			derrota.emit()
 		return
 	if piedra_en(c) < 0 and celda(c) == ".":
-		piedras.append({"pos": c, "fija": false, "flota": false, "marcada": false})
+		piedras.append({"pos": c, "fija": false, "flota": false, "marcada": false, "variante": piedras.size()})
 
 
 ## Rompe las piedras que no están marcadas; después las vuelve a lanzar, porque hay espacio.

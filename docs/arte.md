@@ -25,13 +25,13 @@ Decisiones de Angelo (2026-10-23) para la mejora gráfica. `docs/sprites.md` tie
 | Contorno de todo | `#2b1a14` (café muy oscuro, más suave que el negro) |
 | Piso (arenisca) | `#e3c9a0` → `#cfae82`, manchas `#b8966a` |
 | Muro (adobe) | `#9a5a3d` → `#7a4330`, junta `#6e3a2a` |
-| Agua | `#5596bb` → `#3b7aa0`, espuma `#e9f1e6` |
+| Agua | `#3a7aa3` → `#4b8fb8`, lisa como el vacío, con brillo sutil `#cfeaf2` en el borde para contar casillas |
 | Vacío | `#1b1424` → `#0d0912`, motas `#5a4670` |
 | Lava | `#f07a32` → `#cf4a24`, burbujas `#ffd36a` |
 | Madera (puente) | `#9a6a44`, `#5c3a24` |
 | Salida (oro) | `#fff6cf`, `#e7b94e`, `#a77a1e` |
-| Piedra (olivo) | `#cdd98f` → `#8ea150` → `#6c7d38` |
-| Piedra fija | `#7a8a44` → `#4f5c28`, raíces `#3d2a1c` |
+| Roca que se mueve | gris `#d4d0c8` → `#a39e95` → `#77726a`; forma irregular, tres variantes (`piedra_1..3.svg`) |
+| Piedra fija | mármol `#f1ede4` → `#9c9588`; redonda y tallada, como la base de una estatua |
 | Pasto | `#9db66a` → `#86a055` |
 | Celeste espiritual | `#8cd9ff` (solo plano espiritual y marcas de Reflejo) |
 
