@@ -36,3 +36,11 @@ Todos son SVG de 64×64 (una casilla; en el juego se escalan a 48 px).
 9. **Básico a propósito.** Formas geométricas simples hechas a mano en SVG (vectorial: nítido a cualquier pantalla, pesa pocos KB, se edita con un editor de texto). El arte elaborado queda para después.
 
 Referencias generales de práctica en juegos 2D cenitales: legibilidad y silueta por encima del detalle, paleta limitada, contraste de valor para separar capas jugables, y no depender solo del color (accesibilidad).
+
+## Anillos de marca por transformación
+
+El anillo `anillo_reflejo.svg` lleva un eje punteado con dos triángulos enfrentados (símbolo de espejo). Cada transformación futura tendrá su propio anillo celeste con un símbolo distinto (p. ej. flecha para traslación, flecha curva para rotación).
+
+## Personaje
+
+Queda neutro hasta definir el lore (¿persona o figura?): un disco naranja con una punta dorada que marca hacia dónde mira. El sprite apunta hacia arriba y el juego lo rota según `mirando`.
