@@ -1,0 +1,22 @@
+{
+	"nombre": "El rincón",
+	"mapa": [
+		"###########",
+		"#...vE#####",
+		"#...vv#####",
+		"#.....#####",
+		"#....~#####",
+		"#...~~#####",
+		"#..~~~....#",
+		"#.~~~.....#",
+		"#~~~......#",
+		"#~~.......#",
+		"###########"
+	],
+	"jugador": [8, 7],
+	"plano_espiritual": { "tipo": "reflexion", "eje": "antidiagonal", "valor": 10 },
+	"piedras": [
+		{ "pos": [5, 8] }
+	],
+	"solucion": "DDLLLLUREEEEDRUEEFLULLPLUUULLUURR"
+}

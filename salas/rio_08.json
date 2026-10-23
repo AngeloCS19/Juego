@@ -1,0 +1,19 @@
+{
+	"nombre": "La otra orilla",
+	"mapa": [
+		"#############",
+		"##E#..~.....#",
+		"##v#..~.....#",
+		"#.....~.....#",
+		"#.....~.....#",
+		"#.....~.....#",
+		"#.....~.....#",
+		"#############"
+	],
+	"jugador": [2, 4],
+	"plano_espiritual": { "tipo": "reflexion", "eje": "vertical", "valor": 6 },
+	"piedras": [
+		{ "pos": [9, 5] }
+	],
+	"solucion": "DRRRPRRRPEDRUEEEFLLLPLLLLLUU"
+}

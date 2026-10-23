@@ -1,0 +1,26 @@
+{
+	"nombre": "Río y lava",
+	"mapa": [
+		"###############",
+		"#...~..v......#",
+		"#...~..v......#",
+		"#...~..v......#",
+		"#...~..v......#",
+		"^^^^^^^v^^^^^^^",
+		"#...~..v......#",
+		"#...~..v......#",
+		"#...~..vvvvvvv#",
+		"#...~..v.E....#",
+		"###############"
+	],
+	"jugador": [1, 1],
+	"plano_espiritual": [
+		{ "tipo": "reflexion", "eje": "vertical", "valor": 4 },
+		{ "tipo": "reflexion", "eje": "horizontal", "valor": 5 }
+	],
+	"piedras": [
+		{ "pos": [2, 2] },
+		{ "pos": [12, 3] }
+	],
+	"solucion": "RRDLEFRPRRRRRDDRRRRPUEFDPDDDDDLLL"
+}
