@@ -2,27 +2,39 @@ class_name BarraHabilidades
 extends HBoxContainer
 ## Barra con las habilidades del jugador. Solo una está activa a la vez,
 ## y no se puede cambiar mientras la activa siga en curso.
+## Cada habilidad es un botón grande, para poder tocarlo en el celular.
+
+signal pedida(i: int)  # el jugador tocó la habilidad i
 
 const COLOR_ACTIVA := Color(0.95, 0.75, 0.3)
 const COLOR_NORMAL := Color(0.4, 0.4, 0.45)
+const TAM_BOTON := Vector2(72, 64)  # tamaño mínimo cómodo para un dedo
 
 var habilidades: Array[Habilidad] = []
 var activa := 0
-var _casillas: Array[PanelContainer] = []
-var _textos: Array[Label] = []
+var _botones: Array[Button] = []
 
 
 func _init(p_habilidades: Array[Habilidad]) -> void:
 	habilidades = p_habilidades
 	add_theme_constant_override("separation", 8)
 	for i in habilidades.size():
-		var casilla := PanelContainer.new()
-		var texto := Label.new()
-		casilla.add_child(texto)
-		add_child(casilla)
-		_casillas.append(casilla)
-		_textos.append(texto)
+		var boton := crear_boton("", pedida.emit.bind(i))
+		add_child(boton)
+		_botones.append(boton)
 	_pintar()
+
+
+## Botón con el estilo del juego. Lo usa la barra y también main.gd para los demás controles.
+static func crear_boton(texto: String, accion: Callable, borde := COLOR_NORMAL) -> Button:
+	var boton := Button.new()
+	boton.text = texto
+	boton.custom_minimum_size = TAM_BOTON
+	boton.focus_mode = Control.FOCUS_NONE  # si no, Espacio "presionaría" el último botón tocado
+	boton.add_theme_font_size_override("font_size", 22)
+	_estilo(boton, borde, 1)
+	boton.pressed.connect(accion)
+	return boton
 
 
 ## Deja disponibles solo las habilidades cuyo nombre (en minúsculas) está en la lista.
@@ -51,14 +63,19 @@ func usar(sala: Sala) -> void:
 
 
 func _pintar() -> void:
-	for i in _casillas.size():
-		_textos[i].text = "%d · %s" % [i + 1, habilidades[i].nombre]
-		if not habilidades[i].disponible:
-			_textos[i].text += " (bloqueada)"
-		_casillas[i].modulate.a = 1.0 if habilidades[i].disponible else 0.4
-		var estilo := StyleBoxFlat.new()
-		estilo.bg_color = Color(0, 0, 0, 0.5)
-		estilo.border_color = COLOR_ACTIVA if i == activa else COLOR_NORMAL
-		estilo.set_border_width_all(3 if i == activa else 1)
-		estilo.set_content_margin_all(8)
-		_casillas[i].add_theme_stylebox_override("panel", estilo)
+	for i in _botones.size():
+		_botones[i].text = "%d · %s" % [i + 1, habilidades[i].nombre]
+		_botones[i].disabled = not habilidades[i].disponible
+		_botones[i].modulate.a = 1.0 if habilidades[i].disponible else 0.4
+		_estilo(_botones[i], COLOR_ACTIVA if i == activa else COLOR_NORMAL, 3 if i == activa else 1)
+
+
+static func _estilo(boton: Button, borde: Color, grosor: int) -> void:
+	var estilo := StyleBoxFlat.new()
+	estilo.bg_color = Color(0, 0, 0, 0.55)
+	estilo.border_color = borde
+	estilo.set_border_width_all(grosor)
+	estilo.set_corner_radius_all(6)
+	estilo.set_content_margin_all(12)
+	for estado in ["normal", "hover", "pressed", "disabled"]:
+		boton.add_theme_stylebox_override(estado, estilo)
