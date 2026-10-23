@@ -395,6 +395,7 @@ func _ritmo() -> float:
 
 
 func _on_caida() -> void:
+	await get_tree().create_timer(Sala.DURACION_CAIDA).timeout  # primero se ve caer al personaje
 	_menu_derrota("Caíste: volviste al plano normal sobre el vacío o el agua.")
 
 

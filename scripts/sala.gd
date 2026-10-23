@@ -51,6 +51,10 @@ const TEX_ANILLO_REFLEJO := preload("res://assets/sprites/anillo_reflejo.svg")
 const COLOR_SALIDA := Color(0.85, 0.7, 0.3)
 const CELESTE := Color(0.55, 0.85, 1.0)
 const COLOR_LAVA := Color(0.95, 0.4, 0.2)
+# Animaciones: solo cambian el dibujo. Las reglas ya cambiaron al instante, así las pruebas no esperan.
+const DURACION_PASO := 0.12  # segundos que tarda en verse un paso o un empujón
+const DURACION_REFLEJO := 0.45  # lo que tarda el reflejo en viajar al otro lado del eje
+const DURACION_CAIDA := 0.6  # main.gd espera esto antes de abrir la ventana de derrota
 
 var datos: Dictionary
 var mapa: Array = []
@@ -64,6 +68,12 @@ var prenda_tomada := true  # false mientras la sala tenga una prenda de Narciso 
 static var personaje := 0  # índice en TEX_PERSONAJES; static: lo comparten todas las salas
 var tiempo_real := false  # dificultad difícil en el jefe: los turnos pasan solos
 var _reloj: Timer
+var _t := 0.0  # reloj de las animaciones
+var _vis := {}  # posiciones dibujadas (en píxeles); siguen a las reales con suavidad (ver _seguir)
+var _angulo := 0.0  # ángulo dibujado del jugador
+var _t_plano := 0.0  # tiempo desde que se entró al plano espiritual
+var _caida_t := DURACION_CAIDA  # tiempo desde la última caída (DURACION_CAIDA o más: no está cayendo)
+var _caida_en := Vector2.ZERO
 static var _siluetas := {}  # sprite -> su silueta blanca, se calcula una vez
 
 
@@ -119,6 +129,8 @@ func reiniciar() -> void:
 ## Gira al jugador hacia la dirección dada (en coordenadas del mundo) y avanza una casilla
 ## si se puede. Contra una piedra solo gira: para moverla se usa empujar_enfrente().
 func mover(dir: Vector2i) -> void:
+	if cayendo():
+		return
 	mirando = dir
 	queue_redraw()
 	if transitable(jugador + dir):
@@ -129,7 +141,7 @@ func mover(dir: Vector2i) -> void:
 ## ¿Hay enfrente una piedra que se pueda intentar empujar?
 func hay_empujable_enfrente() -> bool:
 	var i := piedra_en(jugador + mirando)
-	return not espiritual and i >= 0 and not piedras[i]["fija"] and not piedras[i]["flota"]
+	return not espiritual and not cayendo() and i >= 0 and not piedras[i]["fija"] and not piedras[i]["flota"]
 
 
 ## Empuja la piedra que el jugador mira y avanza detrás de ella.
@@ -158,10 +170,13 @@ func _avanzar(dir: Vector2i) -> void:
 func cambiar_plano() -> void:
 	if espiritual and not _transitable_en_plano(jugador, false):
 		if piedra_en(jugador) < 0:
+			_caida_en = _visto("jugador", jugador)
+			_caida_t = 0.0
 			reiniciar()
 			caida.emit()
 		return
 	espiritual = not espiritual
+	_t_plano = 0.0  # al entrar, los reflejos viajan desde su piedra
 	plano_cambiado.emit(espiritual)
 	queue_redraw()
 	_accion()
@@ -174,9 +189,46 @@ func marcar_enfrente() -> bool:
 	if i < 0:
 		return false
 	piedras[i]["marcada"] = not piedras[i]["marcada"]
+	piedras[i]["t_marca"] = 0.0  # el anillo aparece con un salto y el reflejo viaja
 	queue_redraw()
 	_accion()
 	return true
+
+
+## Mientras se ve la caída el jugador no puede actuar. Fuera del árbol de escenas (las pruebas) nunca se espera.
+func cayendo() -> bool:
+	return is_inside_tree() and _caida_t < DURACION_CAIDA
+
+
+func _process(delta: float) -> void:
+	_t += delta
+	_t_plano += delta
+	_caida_t += delta
+	_seguir("jugador", _centro(jugador), delta)
+	_angulo = lerp_angle(_angulo, Vector2(mirando).angle() + PI / 2, minf(1.0, delta * 20.0))
+	for p in piedras:
+		var destino := _centro(p["pos"])
+		var v: Vector2 = p.get("vis", destino)
+		p["vis"] = destino if v.distance_to(destino) > TAM * 2.5 else v.move_toward(destino, TAM * delta / DURACION_PASO)
+		p["t_marca"] = p.get("t_marca", 1.0) + delta
+	queue_redraw()
+
+
+## Acerca la posición dibujada "clave" a la real, a una casilla cada "duracion" segundos.
+## Si está lejos (la sala se reinició), salta de una vez.
+func _seguir(clave: String, destino: Vector2, delta: float, duracion := DURACION_PASO) -> void:
+	var v: Vector2 = _vis.get(clave, destino)
+	_vis[clave] = destino if v.distance_to(destino) > TAM * 2.5 else v.move_toward(destino, TAM * delta / duracion)
+
+
+func _visto(clave: String, real: Vector2i) -> Vector2:
+	return _vis.get(clave, _centro(real))
+
+
+## Dónde dibujar a Narciso (jefe y huida): su posición suave, subiendo y bajando como si flotara.
+## "prisa" acelera el vaivén: más enojado, más rápido.
+func _flotar(clave: String, real: Vector2i, prisa: float) -> Vector2:
+	return _visto(clave, real) + Vector2(0, sin(_t * prisa * 2.0) * 3.0)
 
 
 ## Cada acción del jugador cuenta como un turno, salvo en tiempo real, donde los turnos los marca un reloj.
@@ -314,29 +366,46 @@ func _draw() -> void:
 		for t in transformaciones:
 			t.dibujar(self, TAM, tamano, CELESTE)
 	for p in piedras:
+		var centro: Vector2 = p.get("vis", _centro(p["pos"]))
 		if espiritual:
 			# Los objetos pasan a ser translúcidos y celestes: la silueta blanca del sprite, teñida.
-			var r_fantasma := Rect2(_centro(p["pos"]) - Vector2.ONE * TAM * 0.5, Vector2.ONE * TAM)
+			var r_fantasma := Rect2(centro - Vector2.ONE * TAM * 0.5, Vector2.ONE * TAM)
 			draw_texture_rect(_silueta(_tex_piedra(p)), r_fantasma, false, Color(CELESTE, 0.3))
 			if p["marcada"]:
+				# El reflejo viaja en línea recta desde la piedra, cruzando el eje en ángulo recto.
+				var k := ease(clampf(minf(_t_plano, p.get("t_marca", 1.0)) / DURACION_REFLEJO, 0.0, 1.0), 0.4)
 				for t in transformaciones:  # un reflejo por cada eje
-					var r_imagen := Rect2(_centro(t.aplicar(p["pos"])) - Vector2.ONE * TAM * 0.5, Vector2.ONE * TAM)
-					draw_texture_rect(_silueta(_tex_piedra(p)), r_imagen, false, Color(CELESTE, 0.85))
+					var imagen := _centro(t.aplicar(p["pos"]))
+					if k < 1.0:
+						draw_line(centro, imagen, Color(CELESTE, 0.6 * (1.0 - k)), 2.0)
+					var r_imagen := Rect2(centro.lerp(imagen, k) - Vector2.ONE * TAM * 0.5, Vector2.ONE * TAM)
+					draw_texture_rect(_silueta(_tex_piedra(p)), r_imagen, false, Color(CELESTE, 0.3 + 0.55 * k))
 			continue
 		var escala := 1.18 if p["flota"] else 1.0  # una piedra en el agua se ve un poco más grande
 		var lado := TAM * escala
-		var r := Rect2(_centro(p["pos"]) - Vector2.ONE * lado * 0.5, Vector2.ONE * lado)
+		var r := Rect2(centro - Vector2.ONE * lado * 0.5, Vector2.ONE * lado)
 		# Hundida en la lava se tiñe de rojo, como si se mezclara con ella.
 		var hundida: bool = p["flota"] and celda(p["pos"]) == "^"
 		draw_texture_rect(_tex_piedra(p), r, false, Color(1, 0.55, 0.4) if hundida else Color.WHITE)
 		if p["marcada"]:
-			draw_texture_rect(TEX_ANILLO_REFLEJO, r, false)
+			var salto := 1.0 + 0.35 * maxf(0.0, 1.0 - p.get("t_marca", 1.0) / 0.25)  # aparece grande y se asienta
+			draw_texture_rect(TEX_ANILLO_REFLEJO, Rect2(centro - r.size * salto * 0.5, r.size * salto), false)
 	if espiritual and not prenda_tomada:
 		draw_texture_rect(TEX_PRENDA[datos["prenda"]["nombre"]], _rect(_vec(datos["prenda"]["pos"])).grow(-4), false)
-	# El sprite del jugador apunta hacia arriba: se gira hacia donde mira.
-	draw_set_transform(_centro(jugador), Vector2(mirando).angle() + PI / 2)
-	var lado_j := TAM * 0.9
 	var tex_jugador: Texture2D = TEX_PERSONAJES[personaje]
+	if _caida_t < DURACION_CAIDA:
+		# Cae girando y achicándose donde volvió al plano normal; la sala ya se reinició debajo.
+		var k := _caida_t / DURACION_CAIDA
+		draw_set_transform(_caida_en, _angulo + k * TAU, Vector2.ONE * (1.0 - k))
+		draw_texture_rect(tex_jugador, Rect2(-Vector2.ONE * TAM * 0.45, Vector2.ONE * TAM * 0.9), false, Color(1, 1, 1, 1.0 - k))
+		draw_set_transform(Vector2.ZERO)
+		return
+	# El sprite del jugador apunta hacia arriba: se gira hacia donde mira.
+	# Al caminar da un saltito: crece un poco a mitad de paso.
+	var pos := _visto("jugador", jugador)
+	var a_mitad := pos.distance_to(_centro(jugador)) / TAM
+	draw_set_transform(pos, _angulo, Vector2.ONE * (1.0 + 0.1 * sin(clampf(a_mitad, 0.0, 1.0) * PI)))
+	var lado_j := TAM * 0.9
 	if espiritual:
 		tex_jugador = _silueta(tex_jugador)
 	draw_texture_rect(tex_jugador, Rect2(-Vector2.ONE * lado_j * 0.5, Vector2.ONE * lado_j), false)

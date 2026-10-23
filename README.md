@@ -93,6 +93,15 @@ La sala no aparece en el árbol porque `main.gd` la crea por código (`Sala.desd
 - **Solo las piedras marcadas con Reflejo** aparecen reflejadas en el plano espiritual. Una piedra marcada lleva un anillo celeste en el plano normal. El sprite del jugador gira hacia donde mira: esa es la casilla que apuntan las habilidades (`mirando` en `sala.gd`).
 - La función `imagen_en(c)` es el corazón matemático: pregunta si alguna piedra marcada, al aplicarle la transformación, cae en la casilla `c`.
 
+### Animaciones (`sala.gd`)
+
+Las reglas cambian al instante; las animaciones solo cambian el **dibujo**. Así las pruebas no tienen que esperar nada. Cada cuadro, `_process(delta)` acerca la posición *dibujada* (`_vis`, y `"vis"` en cada piedra) a la posición *real* a velocidad fija (`DURACION_PASO` por casilla). Si la diferencia es grande (la sala se reinició), salta de una vez.
+
+- **Caminar y empujar:** el personaje y la piedra se deslizan; el personaje crece un poco a mitad del paso, como un saltito.
+- **Reflejo:** al marcar, el anillo aparece grande y se asienta. Al entrar al plano espiritual, cada reflejo viaja en línea recta desde su piedra hasta su lugar al otro lado del eje (cruzándolo en ángulo recto), dejando un rastro que se desvanece (`DURACION_REFLEJO`).
+- **Caer:** el personaje gira y se achica donde cayó. `main.gd` espera `DURACION_CAIDA` antes de abrir la ventana de derrota, y mientras tanto no se puede actuar (`cayendo()`).
+- **Narciso:** flota (sube y baja), se desliza entre casillas, su corona gira (más rápido cuanto más enojado) y al recibir un golpe destella en blanco y tiembla.
+
 ### La matemática (`reflexion.gd`)
 
 El eje pasa por el centro de una fila o columna de casillas. Con un eje horizontal en la fila `k`, una casilla `(x, y)` se refleja en `(x, 2k − y)`: queda a la misma distancia del eje, del otro lado. También están los ejes vertical y diagonales para salas futuras.
