@@ -8,18 +8,26 @@ extends Control
 
 signal terminado
 
-## Quién puede hablar: su nombre, un título corto y un retrato por cada ánimo.
+## Quién puede hablar: su nombre, un título corto, su letra y cómo se ve cada ánimo.
+## Cada personaje tiene una tipografía que dice cómo es (en assets/fuentes/, con su licencia OFL).
+## Un ánimo elige el retrato y, si "tiembla", las letras se sacuden (la ira de Narciso en la huida).
 ## Para un personaje nuevo basta con agregarlo aquí y dibujar sus retratos en assets/retratos/.
 const PERSONAJES := {
 	"narciso": {
 		"nombre": "Narciso",
 		"titulo": "Espíritu del río",
-		"retratos": {
-			"sereno": preload("res://assets/retratos/narciso_retrato.svg"),
-			"enojado": preload("res://assets/retratos/narciso_retrato_enojado.svg"),
+		# Cursiva fina y elegante, de libro antiguo: Narciso es vanidoso y refinado.
+		"fuente": preload("res://assets/fuentes/CormorantGaramond-SemiBoldItalic.ttf"),
+		"tamano": 36,
+		"animos": {
+			"sereno": {"retrato": preload("res://assets/retratos/narciso_retrato.svg")},
+			"enojado": {"retrato": preload("res://assets/retratos/narciso_retrato_enojado.svg")},
+			"furioso": {"retrato": preload("res://assets/retratos/narciso_retrato_enojado.svg"), "tiembla": true},
 		},
 	},
 }
+## Los nombres van en mayúsculas romanas, como grabados en piedra.
+const FUENTE_NOMBRE := preload("res://assets/fuentes/Cinzel-Bold.ttf")
 const LETRAS_POR_SEGUNDO := 45.0
 const ORO := Color(0.91, 0.73, 0.31)
 
@@ -28,7 +36,7 @@ var _i := 0
 var _retrato := TextureRect.new()
 var _nombre := Label.new()
 var _titulo := Label.new()
-var _texto := Label.new()
+var _texto := RichTextLabel.new()  # Rich: permite efectos como [shake]
 var _escribir: Tween
 
 
@@ -54,9 +62,11 @@ func _init() -> void:
 	caja.add_theme_stylebox_override("panel", _estilo(Color(0.96, 0.94, 0.89), ORO, 5, 28))
 	_anclar(caja, 0.3, 0.68, 0.97, 0.96)
 	add_child(caja)
-	_texto.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_texto.add_theme_font_size_override("font_size", 28)
-	_texto.add_theme_color_override("font_color", Color(0.17, 0.1, 0.08))
+	_texto.bbcode_enabled = true
+	_texto.fit_content = true
+	_texto.scroll_active = false
+	_texto.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_texto.add_theme_color_override("default_color", Color(0.17, 0.1, 0.08))
 	caja.add_child(_texto)
 
 	# La placa con el nombre, encima del recuadro.
@@ -69,6 +79,7 @@ func _init() -> void:
 	var columna := VBoxContainer.new()
 	columna.add_theme_constant_override("separation", 0)
 	placa.add_child(columna)
+	_nombre.add_theme_font_override("font", FUENTE_NOMBRE)
 	_nombre.add_theme_font_size_override("font_size", 34)
 	_nombre.add_theme_color_override("font_color", ORO)
 	_nombre.uppercase = true
@@ -106,14 +117,21 @@ func avanzar() -> void:
 func _mostrar_linea() -> void:
 	var linea: Dictionary = _lineas[_i]
 	var quien: Dictionary = PERSONAJES[linea["quien"]]
-	_retrato.texture = quien["retratos"][linea.get("animo", "sereno")]
+	var animo: Dictionary = quien["animos"][linea.get("animo", "sereno")]
+	_retrato.texture = animo["retrato"]
 	_nombre.text = quien["nombre"]
 	_titulo.text = quien["titulo"]
-	_texto.text = linea["texto"]
+	_titulo.add_theme_font_override("font", quien["fuente"])
+	_texto.add_theme_font_override("normal_font", quien["fuente"])
+	_texto.add_theme_font_size_override("normal_font_size", quien["tamano"])
+	var texto: String = linea["texto"].replace("[", "[lb]")  # un corchete del JSON no debe leerse como efecto
+	if animo.get("tiembla", false):
+		texto = "[color=#7a1a10][shake rate=25.0 level=10 connected=1]%s[/shake][/color]" % texto
+	_texto.text = texto
 	# El texto aparece letra por letra: visible_ratio va de 0 (nada) a 1 (todo).
 	_texto.visible_ratio = 0.0
 	_escribir = create_tween()
-	_escribir.tween_property(_texto, "visible_ratio", 1.0, _texto.text.length() / LETRAS_POR_SEGUNDO)
+	_escribir.tween_property(_texto, "visible_ratio", 1.0, _texto.get_total_character_count() / LETRAS_POR_SEGUNDO)
 
 
 func _gui_input(evento: InputEvent) -> void:

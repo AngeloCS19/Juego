@@ -14,8 +14,8 @@
 	"espera": 2,
 	"cada": 2,
 	"dialogo": [
-		{"quien": "narciso", "animo": "enojado", "texto": "¡Mi corona! ¡Sin ella este templo no se sostiene!"},
-		{"quien": "narciso", "animo": "enojado", "texto": "Si yo me hundo, te hundes conmigo."}
+		{"quien": "narciso", "animo": "furioso", "texto": "¡Mi corona! ¡Sin ella este templo no se sostiene!"},
+		{"quien": "narciso", "animo": "furioso", "texto": "Si yo me hundo, te hundes conmigo."}
 	],
 	"solucion": "RRRPRRPRRR"
 }
