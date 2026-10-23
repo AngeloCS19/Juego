@@ -19,7 +19,7 @@ Todos son SVG de 64×64 (una casilla; en el juego se escalan a 48 px).
 | `estatua.svg` | Estatua de piedra de Narciso, con una mano en alto | plano normal (en el espiritual, su reflejo de cabeza) |
 | `flor_narciso.svg` | Flor de narciso que crece cuando Narciso descansa | al completar el altar |
 | `puente.svg` | Puente de madera (`=`) | plano normal |
-| `salida.svg` | Salida dorada (`E`) | plano normal |
+| `salida.svg` | Salida: el espejo de Narciso, un estanque redondo de mármol que refleja un cielo dorado, con cuatro narcisos (fondo transparente: se dibuja sobre el piso o el pasto) | plano normal |
 | `piedra_1.svg`, `piedra_2.svg`, `piedra_3.svg` | Roca gris irregular que se empuja; cada piedra de la sala toma una variante según su orden en el JSON (`"variante"`) | plano normal |
 | `piedra_fija.svg` | Piedra fija: redonda y tallada, como la base de una estatua | plano normal |
 | `jugador_nino.svg`, `jugador_nina.svg`, `jugador_espiritu.svg` | Los tres personajes que se eligen en el menú inicial, vistos desde arriba y **apuntando hacia arriba** (el juego los rota según `mirando`) | ambos planos |

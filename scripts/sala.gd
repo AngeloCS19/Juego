@@ -305,7 +305,10 @@ func _draw() -> void:
 			if espiritual:
 				_dibujar_casilla_espiritual(c)
 			else:
-				var tex: Texture2D = TEX_PASTO if celda(c) == "." and datos.get("exterior", false) else TEX_CASILLA[celda(c)]
+				var piso: Texture2D = TEX_PASTO if datos.get("exterior", false) else TEX_CASILLA["."]
+				if celda(c) == "E":
+					draw_texture_rect(piso, _rect(c), false)  # el espejo de la salida es redondo: debajo va el piso
+				var tex: Texture2D = piso if celda(c) == "." else TEX_CASILLA[celda(c)]
 				draw_texture_rect(tex, _rect(c), false)
 	if espiritual:
 		for t in transformaciones:
@@ -351,6 +354,6 @@ func _dibujar_casilla_espiritual(c: Vector2i) -> void:
 		"^":
 			draw_rect(r, Color(COLOR_LAVA, 0.25))
 		"E":
-			draw_rect(r.grow(-4), Color(COLOR_SALIDA, 0.6), false, 2.0)
+			draw_arc(_centro(c), TAM * 0.4, 0.0, TAU, 32, Color(COLOR_SALIDA, 0.6), 2.0)
 	if celda(c) != "v":
 		draw_rect(r, Color(CELESTE, 0.25), false, 1.0)
