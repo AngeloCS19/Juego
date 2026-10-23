@@ -25,6 +25,7 @@ var _inicio_toque := Vector2.ZERO
 var _dedo_abajo := false
 var _dir_dedo := Vector2i.ZERO  # dirección (en pantalla) que el dedo sostiene, si deslizó o tocó una casilla vecina
 var _empuje := 0.0  # cuánto tiempo lleva sostenida la dirección hacia una piedra
+var _tween_giro: Tween
 
 @onready var pivote: Node2D = $Pivote
 @onready var etiqueta: Label = $Interfaz/Etiqueta
@@ -184,9 +185,15 @@ func _a_pantalla(dir_mundo: Vector2i) -> Vector2i:
 	return Vector2i(Vector2(dir_mundo).rotated(giro * PI / 2).round())
 
 
+## La animación siempre termina en el ángulo de "giro", aunque se presione rápido varias veces:
+## se detiene la animación anterior y se parte desde donde quedó.
 func _girar(sentido: int) -> void:
 	giro = posmod(giro + sentido, 4)
-	create_tween().tween_property(pivote, "rotation", pivote.rotation + sentido * PI / 2, 0.25)
+	if _tween_giro:
+		_tween_giro.kill()
+	var destino := pivote.rotation + wrapf(giro * PI / 2 - pivote.rotation, -PI, PI)  # por el camino más corto
+	_tween_giro = create_tween()
+	_tween_giro.tween_property(pivote, "rotation", destino, 0.25)
 
 
 func _on_plano_cambiado(espiritual: bool) -> void:
