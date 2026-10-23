@@ -87,8 +87,11 @@ Regla de diseño: **una mecánica nueva por sala**, presentada sin texto de tuto
 | Dos piedras | `rio_02.json` | Reflejar más de una piedra para armar el camino. |
 | Empujar la piedra | `rio_03.json` | Mover la piedra para que su reflejo caiga donde hace falta. |
 | Lo que toca el agua | `rio_04.json` | Piedras que flotan en el agua. **Pendiente de rediseño**: perdió su lección cuando el agua se volvió cruzable en el plano espiritual. |
+| Lejos del eje | `rio_05.json` | La distancia al eje se conserva: hay que alejar la piedra del río para que su reflejo se aleje igual y caiga sobre el vacío. |
+| El río que baja | `rio_06.json` | Eje vertical: el reflejo queda a la izquierda o a la derecha, en la misma fila. |
+| El río torcido | `rio_07.json` | Eje diagonal: reflejar intercambia la columna y la fila de la piedra, `(x, y)` → `(y, x)`. Se combina con empujar. |
 
-Siguiente paso acordado: salas más complejas que exploren la reflexión (ejes vertical y diagonales, varias piedras, elegir qué marcar, empujar antes de reflejar). Ideas aplazadas para cuando el juego esté más pulido: elegir el eje con estacas y limitar los cambios de plano por sala.
+Siguiente paso: más salas que combinen lo anterior (eje vertical o diagonal con empujar, eje antidiagonal). "Elegir qué marcar" todavía no funciona como puzzle: marcar una piedra de más nunca estorba, así que marcar todas siempre sirve. Ideas aplazadas para cuando el juego esté más pulido: elegir el eje con estacas y limitar los cambios de plano por sala.
 
 ## Crear una sala nueva sin programar
 

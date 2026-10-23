@@ -28,6 +28,8 @@ func _init() -> void:
 
 	# Sin marcar la piedra con Reflejo no aparece su reflejo y no se cruza el vacío.
 	_igual(_jugar("rio_01.json", "RRUPUUUU").completada, false, "sin Reflejo no se cruza el vacío")
+	# Si no se aleja la piedra del eje, su reflejo cae en el piso y no sobre el vacío.
+	_igual(_jugar("rio_05.json", "UURRDFPUUUUU").completada, false, "sin alejar la piedra no se cruza el vacío")
 	# Marcar dos veces la desmarca.
 	_igual(_jugar("rio_01.json", "RRUFFPUUUU").completada, false, "Reflejo dos veces desmarca la piedra")
 	# En la sala 1 Reflejo no está disponible.

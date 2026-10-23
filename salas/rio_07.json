@@ -1,0 +1,21 @@
+{
+	"nombre": "El río torcido",
+	"mapa": [
+		"#########",
+		"#~..vv.E#",
+		"#.~..vv.#",
+		"#..~..vv#",
+		"#...~..v#",
+		"#....~..#",
+		"#.....~.#",
+		"#......~#",
+		"#########"
+	],
+	"jugador": [1, 7],
+	"plano_espiritual": { "tipo": "reflexion", "eje": "diagonal", "valor": 0 },
+	"piedras": [
+		{ "pos": [1, 4], "fija": true },
+		{ "pos": [2, 5] }
+	],
+	"solucion": "URRULEFULFUPUURRRRR"
+}
