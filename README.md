@@ -16,7 +16,8 @@ El juego se diseña para PC y para celular, así que todo se puede hacer con tec
 
 | Acción | Teclado | Pantalla táctil o mouse |
 |---|---|---|
-| Moverse una casilla | Flechas o WASD | Deslizar en esa dirección, o tocar una casilla vecina |
+| Moverse una casilla (contra una piedra, solo girar hacia ella) | Flechas o WASD | Deslizar en esa dirección, o tocar una casilla vecina |
+| Empujar la piedra que miras | Mantener presionada esa dirección | Mantener el dedo después de deslizar, o sobre la piedra |
 | Elegir habilidad | 1 a 9 | Tocar su botón (abajo a la izquierda) |
 | Usar la habilidad activa | Espacio | Botón **Usar**, o tocar al personaje |
 | Reiniciar la sala | R | Botón **Reiniciar** |
@@ -62,7 +63,7 @@ La sala no aparece en el árbol porque `main.gd` la crea por código (`Sala.new(
 
 ### Las reglas de la sala (`sala.gd`)
 
-- En el **plano normal**, las piedras son obstáculos. Las redondas verde claro se pueden empujar; los bloques cuadrados con raíces están fijos. Una piedra empujada al agua queda flotando y se puede pisar.
+- En el **plano normal**, las piedras son obstáculos: caminar contra una solo te gira hacia ella. Para empujarla hay que mirarla y sostener la dirección `TIEMPO_EMPUJE` segundos (`_process()` en `main.gd` mide el tiempo y llama a `sala.empujar_enfrente()`). Las redondas verde claro se pueden empujar; los bloques cuadrados con raíces están fijos. Una piedra empujada al agua queda flotando y se puede pisar.
 - En el **plano espiritual**, el piso se desvanece y queda la cuadrícula. Las piedras originales se vuelven fantasmas que se pueden atravesar, y el agua se puede cruzar y el vacío solo sobre un reflejo celeste. Los muros siempre bloquean.
 - **Cambiar de plano** es una habilidad del jugador (`cambiar_plano()` en `sala.gd`). Si vuelves al plano normal parado sobre el vacío o el agua, caes y la sala se reinicia (señal `caida`). Encima de una piedra no se puede volver.
 - **Solo las piedras marcadas con Reflejo** aparecen reflejadas en el plano espiritual. Una piedra marcada lleva un anillo celeste en el plano normal. El jugador tiene un punto negro que indica hacia dónde mira: esa es la casilla que apuntan las habilidades (`mirando` en `sala.gd`).

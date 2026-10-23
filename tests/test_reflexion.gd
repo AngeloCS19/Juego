@@ -33,6 +33,14 @@ func _init() -> void:
 	# En la sala 1 Reflejo no está disponible.
 	_igual(_jugar("rio_00.json", "F").sala.piedras.size(), 0, "la sala 1 no tiene piedras")
 
+	# Chocar con una piedra solo gira al jugador; no la empuja ni avanza.
+	var g := _jugar("rio_03.json", "LUR")
+	_igual(g.sala.jugador, Vector2i(1, 5), "chocar con una piedra no avanza")
+	_igual(g.sala.mirando, Vector2i.RIGHT, "chocar con una piedra gira al jugador hacia ella")
+	_igual(g.sala.piedras[0]["pos"], Vector2i(2, 5), "chocar con una piedra no la empuja")
+	_igual(_jugar("rio_03.json", "LURE").sala.piedras[0]["pos"], Vector2i(3, 5), "empujar mueve la piedra de enfrente")
+	_igual(_jugar("rio_02.json", "RRE").sala.jugador, Vector2i(3, 6), "una piedra fija no se empuja")
+
 	# Volver al plano normal sobre el vacío es caer y reiniciar la sala.
 	var r := _jugar("rio_01.json", "RRUFPUUU")  # termina parado sobre el reflejo, encima del vacío
 	var cayo := [false]
@@ -62,7 +70,8 @@ func _init() -> void:
 	quit(1 if fallos else 0)
 
 
-## Juega una sala con una secuencia de teclas: U D L R mueven, P usa Traspasar, F usa Reflejo.
+## Juega una sala con una secuencia de teclas: U D L R mueven (o giran, contra una piedra),
+## E empuja la piedra de enfrente, P usa Traspasar, F usa Reflejo.
 ## Usa la barra de habilidades real, así que respeta qué habilidades tiene la sala.
 func _jugar(ruta: String, secuencia: String) -> Dictionary:
 	var sala := Sala.new()
@@ -81,6 +90,8 @@ func _jugar(ruta: String, secuencia: String) -> Dictionary:
 			"F":
 				if barra.elegir(1, sala):
 					barra.usar(sala)
+			"E":
+				sala.empujar_enfrente()
 			_:
 				sala.mover(pasos[letra])
 	creados.append_array([sala, barra])

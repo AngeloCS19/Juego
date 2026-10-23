@@ -11,12 +11,20 @@ const SALAS := [
 const FONDO_NORMAL := Color(0.1, 0.09, 0.08)
 const FONDO_ESPIRITUAL := Color(0.03, 0.06, 0.12)
 const UMBRAL_DESLIZAR := 30.0  # píxeles: un toque que se mueve menos que esto no es deslizar
+const TIEMPO_EMPUJE := 0.3  # segundos que hay que sostener la dirección para empujar una piedra
+const TECLAS_DIRECCION := {
+	KEY_UP: Vector2i.UP, KEY_W: Vector2i.UP, KEY_DOWN: Vector2i.DOWN, KEY_S: Vector2i.DOWN,
+	KEY_LEFT: Vector2i.LEFT, KEY_A: Vector2i.LEFT, KEY_RIGHT: Vector2i.RIGHT, KEY_D: Vector2i.RIGHT,
+}
 
 var indice := 0
 var giro := 0  # cuartos de vuelta de la cámara (0 a 3)
 var sala: Sala
 var barra: BarraHabilidades
 var _inicio_toque := Vector2.ZERO
+var _dedo_abajo := false
+var _dir_dedo := Vector2i.ZERO  # dirección (en pantalla) que el dedo sostiene, si deslizó o tocó una casilla vecina
+var _empuje := 0.0  # cuánto tiempo lleva sostenida la dirección hacia una piedra
 
 @onready var pivote: Node2D = $Pivote
 @onready var etiqueta: Label = $Interfaz/Etiqueta
@@ -86,15 +94,10 @@ func _cargar_sala() -> void:
 func _unhandled_input(evento: InputEvent) -> void:
 	if not (evento is InputEventKey and evento.pressed and not evento.echo):
 		return
+	if evento.keycode in TECLAS_DIRECCION:
+		_mover(TECLAS_DIRECCION[evento.keycode])
+		return
 	match evento.keycode:
-		KEY_UP, KEY_W:
-			_mover(Vector2i.UP)
-		KEY_DOWN, KEY_S:
-			_mover(Vector2i.DOWN)
-		KEY_LEFT, KEY_A:
-			_mover(Vector2i.LEFT)
-		KEY_RIGHT, KEY_D:
-			_mover(Vector2i.RIGHT)
 		KEY_SPACE:
 			barra.usar(sala)
 		KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9:
@@ -115,31 +118,70 @@ func _elegir(i: int) -> void:
 
 ## Deslizar mueve una casilla en esa dirección. Tocar una casilla vecina mueve hacia ella,
 ## y tocar al personaje usa la habilidad activa.
+## Mantener el dedo después de deslizar, o sobre una casilla vecina, cuenta como sostener esa dirección.
 func _on_toque(evento: InputEvent) -> void:
+	if evento is InputEventMouseMotion and _dedo_abajo and _dir_dedo == Vector2i.ZERO:
+		var arrastre: Vector2 = evento.position - _inicio_toque
+		if arrastre.length() >= UMBRAL_DESLIZAR:
+			if absf(arrastre.x) > absf(arrastre.y):
+				_dir_dedo = Vector2i(signi(int(arrastre.x)), 0)
+			else:
+				_dir_dedo = Vector2i(0, signi(int(arrastre.y)))
+			_mover(_dir_dedo)  # un paso por deslizamiento, apenas se reconoce
+		return
 	if not (evento is InputEventMouseButton and evento.button_index == MOUSE_BUTTON_LEFT):
 		return
+	_dedo_abajo = evento.pressed
 	if evento.pressed:
 		_inicio_toque = evento.position
+		_dir_dedo = Vector2i.ZERO
+		var diferencia := _casilla_tocada(evento.position) - sala.jugador
+		if absi(diferencia.x) + absi(diferencia.y) == 1:
+			sala.mover(diferencia)  # ya está en coordenadas del mundo, aunque la cámara esté girada
+			_dir_dedo = _a_pantalla(diferencia)
 		return
-	var arrastre: Vector2 = evento.position - _inicio_toque
-	if arrastre.length() >= UMBRAL_DESLIZAR:
-		if absf(arrastre.x) > absf(arrastre.y):
-			_mover(Vector2i(signi(int(arrastre.x)), 0))
-		else:
-			_mover(Vector2i(0, signi(int(arrastre.y))))
-		return
-	var tocada := Vector2i((sala.to_local(evento.position) / Sala.TAM).floor())
-	var diferencia := tocada - sala.jugador
-	if diferencia == Vector2i.ZERO:
+	if _dir_dedo == Vector2i.ZERO and _casilla_tocada(evento.position) == sala.jugador:
 		barra.usar(sala)
-	elif absi(diferencia.x) + absi(diferencia.y) == 1:
-		sala.mover(diferencia)  # ya está en coordenadas del mundo, aunque la cámara esté girada
+	_dir_dedo = Vector2i.ZERO
+
+
+func _casilla_tocada(posicion: Vector2) -> Vector2i:
+	return Vector2i((sala.to_local(posicion) / Sala.TAM).floor())
+
+
+## Empujar: sostener la dirección hacia una piedra que ya estás mirando.
+func _process(delta: float) -> void:
+	var dir := _a_mundo(_direccion_sostenida())
+	if dir != Vector2i.ZERO and dir == sala.mirando and sala.hay_empujable_enfrente():
+		_empuje += delta
+		if _empuje >= TIEMPO_EMPUJE:
+			_empuje = 0.0
+			sala.empujar_enfrente()
+	else:
+		_empuje = 0.0
+
+
+## Dirección en pantalla que el jugador mantiene presionada (teclado o dedo), o cero.
+func _direccion_sostenida() -> Vector2i:
+	if _dedo_abajo:
+		return _dir_dedo
+	for tecla in TECLAS_DIRECCION:
+		if Input.is_key_pressed(tecla):
+			return TECLAS_DIRECCION[tecla]
+	return Vector2i.ZERO
 
 
 ## Las flechas siguen la pantalla: si la cámara está girada, la dirección se gira al revés.
 func _mover(dir_pantalla: Vector2i) -> void:
-	var dir := Vector2(dir_pantalla).rotated(-giro * PI / 2).round()
-	sala.mover(Vector2i(dir))
+	sala.mover(_a_mundo(dir_pantalla))
+
+
+func _a_mundo(dir_pantalla: Vector2i) -> Vector2i:
+	return Vector2i(Vector2(dir_pantalla).rotated(-giro * PI / 2).round())
+
+
+func _a_pantalla(dir_mundo: Vector2i) -> Vector2i:
+	return Vector2i(Vector2(dir_mundo).rotated(giro * PI / 2).round())
 
 
 func _girar(sentido: int) -> void:
