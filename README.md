@@ -112,6 +112,11 @@ Narciso habla entre fases, al empezar la huida y al descansar en el altar. Las l
 
 La ventana pausa el juego (como el menú). El texto aparece letra por letra con un `Tween` sobre `visible_ratio`; tocar la pantalla, Espacio o Enter muestra todo el texto, y otra vez pasa a la siguiente línea. Las líneas no explican la mecánica: son historia, no tutorial. El jugador no habla (como Link en Zelda), así sirve cualquiera de los tres personajes.
 
+### Transiciones y efectos
+
+- **Entre salas** (`cortina.gd`): un espejo que se cierra. Dos mitades oscuras avanzan hasta juntarse en el eje de la sala que termina (una línea punteada celeste); con la pantalla tapada se carga la sala siguiente y el espejo se abre. Si el eje es vertical (o la cámara está girada), se cierra de lado. Usa un `Tween` con pasos en fila: cerrar, `tween_callback` (cargar la sala), esperar, abrir.
+- **Al Traspasar** (`_dibujar_mancha()` en `sala.gd`): una mancha de tinta del color del plano nuevo se expande desde el jugador y se desvanece. El borde es un círculo deformado por una suma de ondas (`sin`) con amplitudes y desfases al azar, así que nunca sale igual. Se dibuja con `draw_colored_polygon`.
+
 ### Animaciones (`sala.gd`)
 
 Las reglas cambian al instante; las animaciones solo cambian el **dibujo**. Así las pruebas no tienen que esperar nada. Cada cuadro, `_process(delta)` acerca la posición *dibujada* (`_vis`, y `"vis"` en cada piedra) a la posición *real* a velocidad fija (`DURACION_PASO` por casilla). Si la diferencia es grande (la sala se reinició), salta de una vez.

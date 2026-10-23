@@ -55,6 +55,7 @@ const COLOR_LAVA := Color(0.95, 0.4, 0.2)
 const DURACION_PASO := 0.12  # segundos que tarda en verse un paso o un empujón
 const DURACION_REFLEJO := 0.45  # lo que tarda el reflejo en viajar al otro lado del eje
 const DURACION_CAIDA := 0.6  # main.gd espera esto antes de abrir la ventana de derrota
+const DURACION_MANCHA := 0.55  # la mancha de tinta que se expande al Traspasar
 
 var datos: Dictionary
 var mapa: Array = []
@@ -74,6 +75,9 @@ var _angulo := 0.0  # ángulo dibujado del jugador
 var _t_plano := 0.0  # tiempo desde que se entró al plano espiritual
 var _caida_t := DURACION_CAIDA  # tiempo desde la última caída (DURACION_CAIDA o más: no está cayendo)
 var _caida_en := Vector2.ZERO
+var _mancha_t := DURACION_MANCHA
+var _mancha_en := Vector2.ZERO
+var _mancha_onda: Array[Vector3] = []  # la forma de esta mancha: (amplitud, ondas por vuelta, desfase)
 static var _siluetas := {}  # sprite -> su silueta blanca, se calcula una vez
 
 
@@ -177,6 +181,7 @@ func cambiar_plano() -> void:
 		return
 	espiritual = not espiritual
 	_t_plano = 0.0  # al entrar, los reflejos viajan desde su piedra
+	_nueva_mancha()
 	plano_cambiado.emit(espiritual)
 	queue_redraw()
 	_accion()
@@ -204,6 +209,7 @@ func _process(delta: float) -> void:
 	_t += delta
 	_t_plano += delta
 	_caida_t += delta
+	_mancha_t += delta
 	_seguir("jugador", _centro(jugador), delta)
 	_angulo = lerp_angle(_angulo, Vector2(mirando).angle() + PI / 2, minf(1.0, delta * 20.0))
 	for p in piedras:
@@ -420,6 +426,35 @@ func _draw() -> void:
 		tex_jugador = _silueta(tex_jugador)
 	draw_texture_rect(tex_jugador, Rect2(-Vector2.ONE * lado_j * 0.5, Vector2.ONE * lado_j), false)
 	draw_set_transform(Vector2.ZERO)
+	_dibujar_mancha()
+
+
+## Al Traspasar, una mancha de tinta del color del plano nuevo se expande desde el jugador.
+## Su borde es una suma de ondas con amplitudes y desfases al azar, así nunca sale igual.
+func _nueva_mancha() -> void:
+	_mancha_t = 0.0
+	_mancha_en = _visto("jugador", jugador)
+	_mancha_onda.clear()
+	for ondas in [2, 3, 5, 7]:
+		_mancha_onda.append(Vector3(randf_range(0.03, 0.13), ondas, randf() * TAU))
+
+
+func _dibujar_mancha() -> void:
+	if _mancha_t >= DURACION_MANCHA:
+		return
+	var k := _mancha_t / DURACION_MANCHA
+	var radio := ease(k, 0.4) * Vector2(tamano).length() * TAM
+	var color := Color(0.35, 0.65, 1.0) if espiritual else Color(0.95, 0.8, 0.55)
+	var borde := PackedVector2Array()
+	for i in 64:
+		var angulo := TAU * i / 64
+		var r := 1.0
+		for o in _mancha_onda:
+			r += o.x * sin(o.y * angulo + o.z + _t * 4.0)  # el borde se sigue moviendo, como tinta en agua
+		borde.append(_mancha_en + Vector2.from_angle(angulo) * radio * r)
+	draw_colored_polygon(borde, Color(color, 0.45 * (1.0 - k)))
+	borde.append(borde[0])
+	draw_polyline(borde, Color(color.lightened(0.5), 0.9 * (1.0 - k)), 5.0)
 
 
 ## En el plano espiritual el piso se desvanece y solo queda la cuadrícula.

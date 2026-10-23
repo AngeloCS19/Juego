@@ -13,6 +13,7 @@ Decisiones de Angelo (2026-10-23) para la mejora gráfica. `docs/sprites.md` tie
 | Animaciones | Caminar y empujar; la piedra que viaja al otro lado del eje al reflejarse; Narciso y sus fases; caer al vacío o al agua. |
 | Transición entre salas | **Espejo que se cierra en el eje**: dos mitades oscuras se juntan en una línea punteada celeste y se vuelven a abrir. |
 | Efecto al Traspasar | **Mancha** que se expande desde el jugador, no un círculo perfecto: borde irregular y distinto cada vez (como tinta en agua), para que se sienta creativo. |
+| Tipografía | **Una por personaje, según su personalidad y emoción** (pedido de Angelo, 2026-10-23). Narciso: cursiva fina y elegante, de aire griego (Cormorant Garamond itálica); cuando está furioso, en la huida, sus letras tiemblan rojas. Los nombres van en mayúsculas romanas (Cinzel). Todo personaje nuevo que hable necesita su propia letra y sus retratos. |
 | Botones (celular) | **Solo iconos**; el nombre aparece únicamente la primera vez que se ve el botón. |
 | Menú inicial | Ilustración fija del templo con el título. |
 | Pausa | Pantalla completa oscurecida, más bonita que la actual. |
@@ -41,7 +42,7 @@ Regla: lo que se puede mover (piedra, jugador) es más claro y saturado que el p
 
 1. Paleta y sprites nuevos, con los tres personajes. *(hecho)*
 2. Animaciones: caminar y empujar, la piedra que se refleja, caer, Narciso. *(hecho; ver README, "Animaciones")*
-3. Transiciones y efectos: espejo entre salas, mancha al Traspasar, agua y lava que se mueven.
+3. Transiciones y efectos: espejo entre salas (`cortina.gd`), mancha al Traspasar (`_dibujar_mancha()` en `sala.gd`). *(hecho)* Agua y lava que se mueven: pendiente.
 4. Interfaz: botones con iconos, menú inicial ilustrado, pausa nueva.
 5. Sonido y música (con la dirección de abajo).
 
