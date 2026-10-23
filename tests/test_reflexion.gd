@@ -37,6 +37,10 @@ func _init() -> void:
 	# La lava no se sobrevuela en el plano espiritual; se cruza sobre una piedra hundida.
 	_igual(_jugar("rio_11.json", "PRRRR").sala.jugador, Vector2i(4, 1), "la lava bloquea en el plano espiritual")
 	_igual(_jugar("rio_11.json", "DDDREEE").sala.piedras[0]["flota"], true, "una piedra empujada a la lava flota")
+	# La salida queda sellada hasta recoger la prenda, que solo se toma en el plano espiritual.
+	_igual(_jugar("rio_05.json", "UURRDEFUPUUUUU").completada, false, "sin la prenda la salida no se abre")
+	var con_prenda := _jugar("rio_05.json", "RRRULEEULDEFUPUUUUU")
+	_igual(con_prenda.sala.prenda_tomada, true, "la prenda se recoge en el plano espiritual")
 	# Marcar dos veces la desmarca.
 	_igual(_jugar("rio_01.json", "RRUFFPUUUU").completada, false, "Reflejo dos veces desmarca la piedra")
 	# En la sala 1 Reflejo no está disponible.

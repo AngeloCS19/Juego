@@ -73,6 +73,7 @@ La sala no aparece en el árbol porque `main.gd` la crea por código (`Sala.new(
 - En el **plano normal**, las piedras son obstáculos: caminar contra una solo te gira hacia ella. Para empujarla hay que mirarla y sostener la dirección `TIEMPO_EMPUJE` segundos (`_process()` en `main.gd` mide el tiempo y llama a `sala.empujar_enfrente()`). Las redondas verde claro se pueden empujar; los bloques cuadrados con raíces están fijos. Una piedra empujada al agua queda flotando y se puede pisar.
 - En el **plano espiritual**, el piso se desvanece y queda la cuadrícula. Las piedras originales se vuelven fantasmas que se pueden atravesar, el agua se puede cruzar y el vacío solo sobre un reflejo celeste. La lava nunca se cruza en este plano. Los muros siempre bloquean.
 - La **lava** es lo opuesto del río: no se sobrevuela en el plano espiritual (ni sobre un reflejo). Solo se cruza en el plano normal, empujando una piedra a la lava: queda flotando, fija para siempre, y se pisa como un puente. Puede tener su eje de reflexión como el río.
+- **Prendas de Narciso:** cuatro salas guardan una prenda (`prenda` en el JSON). Es de un espíritu: solo existe en el plano espiritual. La salida está sellada hasta recogerla, y `main.gd` cuenta las prendas al salir de cada sala (`prendas`) para el altar del final.
 - Una sala puede tener varios ejes (`transformaciones` en `sala.gd`): cada piedra marcada aparece reflejada respecto a cada uno.
 - **Cambiar de plano** es una habilidad del jugador (`cambiar_plano()` en `sala.gd`). Si vuelves al plano normal parado sobre el vacío o el agua, caes y la sala se reinicia (señal `caida`). Encima de una piedra no se puede volver.
 - **Solo las piedras marcadas con Reflejo** aparecen reflejadas en el plano espiritual. Una piedra marcada lleva un anillo celeste en el plano normal. El sprite del jugador gira hacia donde mira: esa es la casilla que apuntan las habilidades (`mirando` en `sala.gd`).
@@ -119,6 +120,7 @@ v  vacío     E  salida    ^  lava
 - `plano_espiritual`: qué transformación aplica. Por ahora `"tipo": "reflexion"` con `"eje"` (`horizontal`, `vertical`, `diagonal`, `antidiagonal`) y `"valor"`. Si la sala tiene dos ejes, va una lista con una transformación por eje (mira `rio_10.json`).
 - `piedras`: posición de cada piedra; `"fija": true` si no se puede empujar.
 - `habilidades` (opcional): qué habilidades tiene el jugador en esa sala, por ejemplo `["traspasar"]`. Si no aparece, tiene todas.
+- `prenda` (opcional): una prenda de Narciso, `{ "nombre": "sandalias", "pos": [x, y] }`. Solo se ve y se recoge en el plano espiritual, y la salida queda sellada (oscura) hasta tenerla. Nombres: `sandalias`, `cinto`, `tunica`, `corona`.
 - `solucion`: una secuencia de teclas que la resuelve (U arriba, D abajo, L izquierda, R derecha, P usar Traspasar, F usar Reflejo). Las pruebas la usan para comprobar que la sala tiene solución.
 
 Después agrega la ruta del archivo a la lista `SALAS` en `scripts/main.gd`.

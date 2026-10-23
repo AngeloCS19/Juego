@@ -36,6 +36,7 @@ var _dir_dedo := Vector2i.ZERO  # dirección (en pantalla) que el dedo sostiene,
 var _empuje := 0.0  # cuánto tiempo lleva sostenida la dirección hacia una piedra
 var _tween_giro: Tween
 var _todas_habilidades := false  # modo debug: todas las habilidades en cualquier sala
+var prendas: Array[String] = []  # prendas de Narciso que el jugador ya sacó de su sala
 
 @onready var pivote: Node2D = $Pivote
 @onready var etiqueta: Label = $Interfaz/Etiqueta
@@ -138,6 +139,7 @@ func _cargar_sala() -> void:
 	sala.completada.connect(_on_sala_completada)
 	sala.plano_cambiado.connect(_on_plano_cambiado)
 	sala.caida.connect(_on_caida)
+	sala.prenda_recogida.connect(_on_prenda_recogida)
 	pivote.add_child(sala)
 	var todas := ["traspasar", "reflejo"]
 	barra.configurar(todas if _todas_habilidades else sala.datos.get("habilidades", todas))
@@ -253,6 +255,8 @@ func _on_plano_cambiado(espiritual: bool) -> void:
 	RenderingServer.set_default_clear_color(FONDO_ESPIRITUAL if espiritual else FONDO_NORMAL)
 	etiqueta.text = "Sala %d · %s · Plano %s\nMover: flechas o deslizar · Habilidad: 1-9 · Usar: Espacio o botón Usar" % [
 		indice + 1, sala.datos["nombre"], "espiritual" if espiritual else "normal"]
+	if not prendas.is_empty():
+		etiqueta.text += "\nPrendas de Narciso: %d de 4" % prendas.size()
 	if _todas_habilidades:
 		etiqueta.text += "\nDEBUG: todas las habilidades"
 
@@ -261,7 +265,14 @@ func _on_caida() -> void:
 	etiqueta.text += "\nCaíste: volviste al plano normal sobre el vacío o el agua."
 
 
+func _on_prenda_recogida(nombre: String) -> void:
+	etiqueta.text += "\nEncontraste una prenda de Narciso: %s." % nombre
+
+
 func _on_sala_completada() -> void:
+	# La prenda cuenta al salir de la sala: si el jugador cae y la sala se reinicia, hay que recogerla otra vez.
+	if sala.datos.has("prenda") and not sala.datos["prenda"]["nombre"] in prendas:
+		prendas.append(sala.datos["prenda"]["nombre"])
 	indice += 1
 	if indice < SALAS.size():
 		_cargar_sala.call_deferred()  # diferido: la sala que avisa todavía está ejecutando su código

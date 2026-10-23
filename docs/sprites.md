@@ -13,6 +13,7 @@ Todos son SVG de 64×64 (una casilla; en el juego se escalan a 48 px).
 | `agua.svg` | Agua del río (`~`) | plano normal |
 | `vacio.svg` | Vacío (`v`), oscuro | plano normal |
 | `lava.svg` | Río de lava (`^`), rojo con burbujas | plano normal |
+| `prenda_sandalias.svg`, `prenda_cinto.svg`, `prenda_tunica.svg`, `prenda_corona.svg` | Prendas de Narciso, a todo color | plano espiritual |
 | `puente.svg` | Puente de madera (`=`) | plano normal |
 | `salida.svg` | Salida dorada (`E`) | plano normal |
 | `piedra.svg` | Piedra redonda empujable | plano normal |
