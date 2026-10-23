@@ -21,7 +21,7 @@ Juego de puzzles cenital (tipo Zelda/Portal) para secundaria en Costa Rica (MEP,
 - **Prendas de Narciso**: opcionales. La salida siempre abre; el altar solo muestra las que el jugador recogió y tiene salida aunque no se complete.
 - **Narciso en tiempo real**: en normal y en difícil se mueve solo; la dificultad solo cambia su velocidad (`RITMO_NORMAL`, `RITMO_DIFICIL`). El modo por turnos se descartó porque obligaba a contar acciones. Solo las pruebas juegan por turnos. Las arenas del jefe son simétricas respecto al eje.
 - **Perder** siempre muestra la ventana de derrota (Reintentar desde el punto de control o Menú inicial). La dificultad se elige en el menú (Esc o botón Menú).
-- **Dirección de arte** (Angelo, 2026-10-23): vectorial pulido, ambiente onírico, paleta tierra cálida. Todo está en `docs/arte.md`, también la dirección de sonido y música (que se hará después).
+- **Dirección de arte** (Angelo, 2026-10-23): vectorial pulido, ambiente onírico, paleta tierra cálida. Todo personaje que hable tiene retratos 2D (estilo Hades) y **su propia tipografía**, que muestra su personalidad o emoción (`PERSONAJES` en `dialogo.gd`). Todo está en `docs/arte.md`, también la dirección de sonido y música (que se hará después).
 - El código debe crecer a otras transformaciones (rotación, traslación, homotecia) con nuevas subclases de `Transformacion`, sin tocar las salas.
 
 ## Forma de trabajar

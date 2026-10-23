@@ -55,6 +55,7 @@ var _derrotas := 0  # derrotas seguidas ante Narciso en difícil
 var _marcador: Label  # corazones y pétalos durante el jefe
 var _menu: Menu
 var _dialogo: Dialogo
+var _cortina: Cortina
 var _empezada := false  # si ya se tocó Jugar: el menú inicial ofrece Continuar
 var prendas: Array[String] = []  # prendas de Narciso que el jugador ya sacó de su sala
 
@@ -117,6 +118,8 @@ func _crear_controles_tactiles() -> void:
 	_marcador.add_theme_color_override("font_color", Color(1, 0.85, 0.5))
 	pantalla.add_child(_marcador)  # va justo debajo del texto de arriba (ver _process)
 
+	_cortina = Cortina.new()
+	$Interfaz.add_child(_cortina)  # debajo del diálogo y del menú
 	_dialogo = Dialogo.new()
 	_dialogo.terminado.connect(func(): get_tree().paused = _menu.visible)
 	$Interfaz.add_child(_dialogo)
@@ -210,7 +213,7 @@ func _hablar(lineas: Array) -> void:
 
 # shortcut: teclas fijas en código; pasarlas al Mapa de Entrada del proyecto cuando haya control de mando.
 func _unhandled_input(evento: InputEvent) -> void:
-	if not (evento is InputEventKey and evento.pressed and not evento.echo):
+	if not (evento is InputEventKey and evento.pressed and not evento.echo) or _cortina.activa():
 		return
 	if evento.keycode == KEY_ESCAPE:
 		if _menu.visible:
@@ -283,7 +286,7 @@ func _casilla_tocada(posicion: Vector2) -> Vector2i:
 func _process(delta: float) -> void:
 	_marcador.text = sala.estado()
 	_marcador.position = etiqueta.position + Vector2(0, etiqueta.size.y)
-	if _menu.visible or _dialogo.visible:
+	if _menu.visible or _dialogo.visible or _cortina.activa():
 		return
 	var dir := _a_mundo(_direccion_sostenida())
 	if dir != Vector2i.ZERO and dir == sala.mirando and sala.hay_empujable_enfrente():
@@ -434,13 +437,26 @@ func _on_prenda_recogida(nombre: String) -> void:
 	etiqueta.text += "\nEncontraste una prenda de Narciso: %s." % nombre
 
 
+## Cambia a la sala "indice" con la transición de espejo, que se cierra sobre el eje de la sala que termina.
+## El juego queda en pausa mientras tanto; al final sigue en pausa solo si se abrió un diálogo o el menú.
+func _pasar_de_sala() -> void:
+	var plano = sala.datos["plano_espiritual"]
+	var eje: String = (plano[0] if plano is Array else plano).get("eje", "horizontal")
+	# Si la cámara está girada un cuarto de vuelta, en pantalla el eje se ve al revés.
+	var vertical := (eje == "vertical") != (giro % 2 == 1)
+	get_tree().paused = true
+	_dedo_abajo = false
+	var t := _cortina.pasar(vertical, _cargar_sala)
+	t.finished.connect(func(): get_tree().paused = _menu.visible or _dialogo.visible)
+
+
 func _on_sala_completada() -> void:
 	# La prenda cuenta al salir de la sala: si el jugador cae y la sala se reinicia, hay que recogerla otra vez.
 	if sala.datos.has("prenda") and sala.prenda_tomada and not sala.datos["prenda"]["nombre"] in prendas:
 		prendas.append(sala.datos["prenda"]["nombre"])
 	indice += 1
 	if indice < SALAS.size():
-		_cargar_sala.call_deferred()  # diferido: la sala que avisa todavía está ejecutando su código
+		_pasar_de_sala()
 	else:
 		set_process_unhandled_input(false)
 		var cierre := "Narciso descansa en paz." if sala is SalaAltar and sala.en_paz else "El espíritu de Narciso sigue esperando sus prendas junto al estanque."
