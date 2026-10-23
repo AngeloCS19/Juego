@@ -1,0 +1,23 @@
+{
+	"nombre": "La isla",
+	"mapa": [
+		"#########",
+		"#...E...#",
+		"#^^^^^^^#",
+		"#.......#",
+		"#^^^^^^^#",
+		"#.......#",
+		"#.......#",
+		"#########"
+	],
+	"jugador": [4, 6],
+	"plano_espiritual": [
+		{ "tipo": "reflexion", "eje": "horizontal", "valor": 2 },
+		{ "tipo": "reflexion", "eje": "horizontal", "valor": 4 }
+	],
+	"piedras": [
+		{ "pos": [4, 3] },
+		{ "pos": [2, 5] }
+	],
+	"solucion": "LLLUREEDRUEUEUU"
+}

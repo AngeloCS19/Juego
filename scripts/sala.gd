@@ -314,7 +314,9 @@ func _draw() -> void:
 		var escala := 1.18 if p["flota"] else 1.0  # una piedra en el agua se ve un poco más grande
 		var lado := TAM * escala
 		var r := Rect2(_centro(p["pos"]) - Vector2.ONE * lado * 0.5, Vector2.ONE * lado)
-		draw_texture_rect(_tex_piedra(p), r, false)
+		# Hundida en la lava se tiñe de rojo, como si se mezclara con ella.
+		var hundida: bool = p["flota"] and celda(p["pos"]) == "^"
+		draw_texture_rect(_tex_piedra(p), r, false, Color(1, 0.55, 0.4) if hundida else Color.WHITE)
 		if p["marcada"]:
 			draw_texture_rect(TEX_ANILLO_REFLEJO, r, false)
 	if espiritual and not prenda_tomada:

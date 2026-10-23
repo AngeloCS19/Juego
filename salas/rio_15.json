@@ -1,0 +1,22 @@
+{
+	"nombre": "Cuerpo y espíritu",
+	"mapa": [
+		"###########",
+		"#....E....#",
+		"#^^^^^^^^^#",
+		"#.........#",
+		"#.........#",
+		"#~~~~~~~~~#",
+		"#.........#",
+		"###########"
+	],
+	"jugador": [5, 6],
+	"plano_espiritual": [
+		{ "tipo": "reflexion", "eje": "horizontal", "valor": 2 },
+		{ "tipo": "reflexion", "eje": "horizontal", "valor": 5 }
+	],
+	"piedras": [
+		{ "pos": [5, 3] }
+	],
+	"solucion": "PUUPEUU"
+}

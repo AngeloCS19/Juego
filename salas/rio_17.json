@@ -1,0 +1,19 @@
+{
+	"nombre": "¿Puente o reflejo?",
+	"mapa": [
+		"#############",
+		"#.....^..v..#",
+		"#.....^..v.E#",
+		"#.....^..v..#",
+		"#.....^..v..#",
+		"#.....^..v..#",
+		"#############"
+	],
+	"jugador": [3, 5],
+	"plano_espiritual": { "tipo": "reflexion", "eje": "vertical", "valor": 6 },
+	"piedras": [
+		{ "pos": [3, 2] },
+		{ "pos": [5, 4] }
+	],
+	"solucion": "UUFDRERRUURPRRR"
+}
