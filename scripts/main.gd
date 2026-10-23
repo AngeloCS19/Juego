@@ -191,7 +191,7 @@ func _girar(sentido: int) -> void:
 
 func _on_plano_cambiado(espiritual: bool) -> void:
 	RenderingServer.set_default_clear_color(FONDO_ESPIRITUAL if espiritual else FONDO_NORMAL)
-	etiqueta.text = "Sala %d · %s · Plano %s\nMover: flechas, WASD o deslizar · Habilidad: 1-9 o tocarla · Usar: Espacio, botón Usar o tocar al personaje" % [
+	etiqueta.text = "Sala %d · %s · Plano %s\nMover: flechas o deslizar · Habilidad: 1-9 · Usar: Espacio o botón Usar" % [
 		indice + 1, sala.datos["nombre"], "espiritual" if espiritual else "normal"]
 
 
