@@ -11,6 +11,7 @@ const SALAS := [
 	"res://salas/rio_06.json",
 	"res://salas/rio_07.json",
 	"res://salas/rio_08.json",
+	"res://salas/rio_12.json",
 	"res://salas/rio_09.json",
 	"res://salas/rio_10.json",
 	"res://salas/rio_11.json",
