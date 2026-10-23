@@ -136,7 +136,7 @@ Narciso flota en el plano espiritual, del otro lado del río, y lanza piedras a 
 - **Dificultad.** Solo cambia la velocidad de Narciso (y lo que tardan en caer sus piedras); las salas de puzzle son iguales. Se elige en el menú; tras 5 derrotas seguidas en difícil, la ventana de derrota sugiere normal.
 - **Pruebas.** Sin reloj, cada acción del jugador corre un turno (`_accion()`). Las pruebas juegan así, para que la `solucion` dé siempre el mismo resultado.
 - **Arena simétrica.** El lado del jugador es el espejo exacto del de Narciso: si Narciso está en su fila del fondo, la piedra va en tu última fila.
-- **Romper piedras.** Cada `CADA_ROMPER` turnos Narciso rompe las piedras sin marcar y las vuelve a lanzar, así que quedarse quieto no sirve.
+- **Romper piedras.** Cuando ya hay `MAX_PIEDRAS` (4) piedras en la arena empieza una cuenta: tras `CADA_ROMPER` turnos Narciso rompe las piedras sin marcar y las vuelve a lanzar, así que quedarse quieto no sirve.
 - **Fases.** El JSON trae una lista `fases`; cada una tiene su mapa, eje, `camino`, `cada` (turnos por paso), `lanzamientos`, `cada_lanzamiento` y `golpes`. Reiniciar repite solo la fase actual.
 - Solo puede haber **dos piedras marcadas** a la vez en el jefe, para que no baste con marcar todas y traspasar al azar.
 
