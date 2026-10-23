@@ -6,6 +6,7 @@ const SALAS := [
 	"res://salas/rio_01.json",
 	"res://salas/rio_02.json",
 	"res://salas/rio_03.json",
+	"res://salas/rio_04.json",
 ]
 const FONDO_NORMAL := Color(0.1, 0.09, 0.08)
 const FONDO_ESPIRITUAL := Color(0.03, 0.06, 0.12)
@@ -21,7 +22,7 @@ var barra: BarraHabilidades
 
 func _ready() -> void:
 	pivote.position = get_viewport_rect().size / 2
-	var lista: Array[Habilidad] = [Traspasar.new(), Habilidad.new("Reflejo", false)]
+	var lista: Array[Habilidad] = [Traspasar.new(), Reflejo.new()]
 	barra = BarraHabilidades.new(lista)
 	barra.position = Vector2(16, get_viewport_rect().size.y - 56)
 	$Interfaz.add_child(barra)
@@ -38,6 +39,7 @@ func _cargar_sala() -> void:
 	sala.plano_cambiado.connect(_on_plano_cambiado)
 	sala.caida.connect(_on_caida)
 	pivote.add_child(sala)
+	barra.configurar(sala.datos.get("habilidades", ["traspasar", "reflejo"]))
 	_on_plano_cambiado(false)
 
 

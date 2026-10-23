@@ -16,7 +16,7 @@ Si tu Godot es más nuevo que 4.4, puede preguntar si quieres convertir el proye
 |---|---|
 | Flechas o WASD | Moverse una casilla |
 | 1 a 9 | Elegir habilidad |
-| Espacio | Usar la habilidad activa (Traspasar: cambiar de plano) |
+| Espacio | Usar la habilidad activa (Traspasar: cambiar de plano · Reflejo: marcar la piedra de enfrente) |
 | R | Reiniciar la sala |
 | Q / E | Girar la cámara 90° |
 
@@ -30,6 +30,7 @@ scripts/barra_habilidades.gd  Barra de habilidades (abajo a la izquierda)
 scripts/habilidades/
   habilidad.gd            Molde general de cualquier habilidad
   traspasar.gd            Cambiar de plano
+  reflejo.gd              Marcar la piedra de enfrente para reflejarla
 scripts/transformaciones/
   transformacion.gd       Molde general de cualquier transformación
   reflexion.gd            La reflexión (primer templo)
@@ -60,7 +61,8 @@ La sala no aparece en el árbol porque `main.gd` la crea por código (`Sala.new(
 - En el **plano normal**, las piedras son obstáculos. Las redondas verde claro se pueden empujar; los bloques cuadrados con raíces están fijos. Una piedra empujada al agua queda flotando y se puede pisar.
 - En el **plano espiritual**, el piso se desvanece y queda la cuadrícula. Las piedras originales se vuelven fantasmas que se pueden atravesar, y el agua se puede cruzar y el vacío solo sobre un reflejo celeste. Los muros siempre bloquean.
 - **Cambiar de plano** es una habilidad del jugador (`cambiar_plano()` en `sala.gd`). Si vuelves al plano normal parado sobre el vacío o el agua, caes y la sala se reinicia (señal `caida`). Encima de una piedra no se puede volver.
-- La función `imagen_en(c)` es el corazón matemático: pregunta si alguna piedra, al aplicarle la transformación, cae en la casilla `c`.
+- **Solo las piedras marcadas con Reflejo** aparecen reflejadas en el plano espiritual. Una piedra marcada lleva un anillo celeste en el plano normal. El jugador tiene un punto negro que indica hacia dónde mira: esa es la casilla que apuntan las habilidades (`mirando` en `sala.gd`).
+- La función `imagen_en(c)` es el corazón matemático: pregunta si alguna piedra marcada, al aplicarle la transformación, cae en la casilla `c`.
 
 ### La matemática (`reflexion.gd`)
 
@@ -78,7 +80,8 @@ v  vacío     E  salida
 - `jugador`: casilla inicial `[x, y]` (empezando en 0, desde la esquina de arriba a la izquierda).
 - `plano_espiritual`: qué transformación aplica. Por ahora `"tipo": "reflexion"` con `"eje"` (`horizontal`, `vertical`, `diagonal`, `antidiagonal`) y `"valor"`.
 - `piedras`: posición de cada piedra; `"fija": true` si no se puede empujar.
-- `solucion`: una secuencia de teclas que la resuelve (U arriba, D abajo, L izquierda, R derecha, P cambiar de plano). Las pruebas la usan para comprobar que la sala tiene solución.
+- `habilidades` (opcional): qué habilidades tiene el jugador en esa sala, por ejemplo `["traspasar"]`. Si no aparece, tiene todas.
+- `solucion`: una secuencia de teclas que la resuelve (U arriba, D abajo, L izquierda, R derecha, P usar Traspasar, F usar Reflejo). Las pruebas la usan para comprobar que la sala tiene solución.
 
 Después agrega la ruta del archivo a la lista `SALAS` en `scripts/main.gd`.
 
@@ -89,7 +92,8 @@ El jugador tiene una barra de habilidades y solo una está activa a la vez (con 
 - `Habilidad` es el molde: tiene `nombre`, `disponible`, `usar(sala)` y `en_curso(sala)`.
 - `Traspasar` es la primera: `usar()` llama a `sala.cambiar_plano()` y `en_curso()` responde si estás en el plano espiritual.
 - `BarraHabilidades` es un `HBoxContainer` (una fila de controles de interfaz) que crea por código un `PanelContainer` con un `Label` por cada habilidad. `elegir(i, sala)` aplica la regla de "una a la vez".
-- La lista de habilidades está en `_ready()` de `main.gd`. "Reflejo" aparece bloqueada como adelanto: todavía no hace nada.
+- La lista de habilidades está en `_ready()` de `main.gd`. Cada sala decide cuáles están disponibles con la clave `habilidades` de su JSON; las demás aparecen bloqueadas.
+- `Reflejo` marca o desmarca la piedra que el jugador tiene enfrente (`sala.marcar_enfrente()`).
 
 Para agregar una habilidad nueva: crea un archivo en `scripts/habilidades/` que extienda `Habilidad`, implementa `usar()` (y `en_curso()` si dura en el tiempo) y agrégala a esa lista.
 

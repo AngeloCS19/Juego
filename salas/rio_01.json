@@ -1,21 +1,18 @@
 {
-	"nombre": "El primer reflejo",
+	"nombre": "El paso celeste",
 	"mapa": [
-		"#########",
-		"#...E...#",
-		"#vvvvvvv#",
-		"#vvvvvvv#",
-		"~~~~=~~~~",
-		"#.......#",
-		"#.......#",
-		"#.......#",
-		"#########"
+		"#######",
+		"#..E..#",
+		"#vvvvv#",
+		"~~~~~~~",
+		"#.....#",
+		"#.....#",
+		"#######"
 	],
-	"jugador": [2, 6],
-	"plano_espiritual": { "tipo": "reflexion", "eje": "horizontal", "valor": 4 },
+	"jugador": [1, 5],
+	"plano_espiritual": { "tipo": "reflexion", "eje": "horizontal", "valor": 3 },
 	"piedras": [
-		{ "pos": [4, 5], "fija": true },
-		{ "pos": [4, 6], "fija": true }
+		{ "pos": [3, 4], "fija": true }
 	],
-	"solucion": "PRRUUUUU"
+	"solucion": "RRUFPUUUU"
 }

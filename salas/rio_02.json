@@ -1,5 +1,5 @@
 {
-	"nombre": "Empujar la piedra",
+	"nombre": "Dos piedras",
 	"mapa": [
 		"#########",
 		"#...E...#",
@@ -14,8 +14,8 @@
 	"jugador": [2, 6],
 	"plano_espiritual": { "tipo": "reflexion", "eje": "horizontal", "valor": 4 },
 	"piedras": [
-		{ "pos": [2, 5] },
+		{ "pos": [4, 5], "fija": true },
 		{ "pos": [4, 6], "fija": true }
 	],
-	"solucion": "LURRPRUUUU"
+	"solucion": "RRFURFPRUUUU"
 }

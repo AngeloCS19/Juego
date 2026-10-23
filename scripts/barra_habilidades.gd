@@ -9,6 +9,7 @@ const COLOR_NORMAL := Color(0.4, 0.4, 0.45)
 var habilidades: Array[Habilidad] = []
 var activa := 0
 var _casillas: Array[PanelContainer] = []
+var _textos: Array[Label] = []
 
 
 func _init(p_habilidades: Array[Habilidad]) -> void:
@@ -17,13 +18,20 @@ func _init(p_habilidades: Array[Habilidad]) -> void:
 	for i in habilidades.size():
 		var casilla := PanelContainer.new()
 		var texto := Label.new()
-		texto.text = "%d · %s" % [i + 1, habilidades[i].nombre]
-		if not habilidades[i].disponible:
-			texto.text += " (bloqueada)"
-			casilla.modulate.a = 0.4
 		casilla.add_child(texto)
 		add_child(casilla)
 		_casillas.append(casilla)
+		_textos.append(texto)
+	_pintar()
+
+
+## Deja disponibles solo las habilidades cuyo nombre (en minúsculas) está en la lista.
+## Cada sala dice cuáles tiene en su JSON, en "habilidades".
+func configurar(disponibles: Array) -> void:
+	for h in habilidades:
+		h.disponible = h.nombre.to_lower() in disponibles
+	if not habilidades[activa].disponible:
+		activa = 0
 	_pintar()
 
 
@@ -44,6 +52,10 @@ func usar(sala: Sala) -> void:
 
 func _pintar() -> void:
 	for i in _casillas.size():
+		_textos[i].text = "%d · %s" % [i + 1, habilidades[i].nombre]
+		if not habilidades[i].disponible:
+			_textos[i].text += " (bloqueada)"
+		_casillas[i].modulate.a = 1.0 if habilidades[i].disponible else 0.4
 		var estilo := StyleBoxFlat.new()
 		estilo.bg_color = Color(0, 0, 0, 0.5)
 		estilo.border_color = COLOR_ACTIVA if i == activa else COLOR_NORMAL
