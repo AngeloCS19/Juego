@@ -20,8 +20,8 @@ Todos son SVG de 64×64 (una casilla; en el juego se escalan a 48 px).
 | `flor_narciso.svg` | Flor de narciso que crece cuando Narciso descansa | al completar el altar |
 | `puente.svg` | Puente de madera (`=`) | plano normal |
 | `salida.svg` | Salida dorada (`E`) | plano normal |
-| `piedra.svg` | Piedra redonda empujable | plano normal |
-| `piedra_fija.svg` | Bloque cuadrado con raíces | plano normal |
+| `piedra_1.svg`, `piedra_2.svg`, `piedra_3.svg` | Roca gris irregular que se empuja; cada piedra de la sala toma una variante según su orden en el JSON (`"variante"`) | plano normal |
+| `piedra_fija.svg` | Piedra fija: redonda y tallada, como la base de una estatua | plano normal |
 | `jugador_nino.svg`, `jugador_nina.svg`, `jugador_espiritu.svg` | Los tres personajes que se eligen en el menú inicial, vistos desde arriba y **apuntando hacia arriba** (el juego los rota según `mirando`) | ambos planos |
 | `anillo_reflejo.svg` | Anillo celeste de una piedra marcada con Reflejo | encima de la piedra |
 | `icono_traspasar.svg` | Icono de la habilidad Traspasar | barra de habilidades |
@@ -32,7 +32,7 @@ Todos son SVG de 64×64 (una casilla; en el juego se escalan a 48 px).
 ## Guías de diseño que se siguieron
 
 1. **Lectura en pantalla pequeña (celular horizontal).** Cada casilla mide 48 px: formas grandes y simples, contorno oscuro grueso, sin detalles finos que se pierdan al reducir. (Principio de silueta: cada objeto debe distinguirse solo por su forma.)
-2. **Forma + color, nunca solo color.** Una persona con daltonismo (o un celular con poco brillo) debe poder diferenciar piedra empujable (redonda) de piedra fija (cuadrada con raíces), y agua de vacío (ondas vs. oscuridad plana). Ya lo hace el código actual; los sprites lo conservan.
+2. **Forma + color, nunca solo color.** Una persona con daltonismo (o un celular con poco brillo) debe poder diferenciar piedra empujable (roca irregular) de piedra fija (círculo tallado, regular), y agua de vacío (azul con brillo en el borde vs. oscuridad con motas).
 3. **Contraste de valor.** Piso medio, muro oscuro, personaje y piedra más claros/saturados que el fondo, para que lo interactivo destaque sobre lo estático.
 4. **Paleta corta y consistente**: tierra cálida, ver `docs/arte.md`. Cambiarla es editar colores en los SVG.
 5. **Celeste reservado.** El celeste solo significa "plano espiritual / reflejo". Ningún sprite del plano normal lo usa, excepto el anillo de Reflejo, que es justamente el puente entre planos.
