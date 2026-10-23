@@ -107,7 +107,8 @@ Narciso habla entre fases, al empezar la huida y al descansar en el altar. Las l
 
 - `"dialogo"` se muestra al entrar a la sala. En el jefe, cada fase lleva el suyo y se muestra al empezar esa fase (señal `fase_nueva`).
 - `"dialogo_final"` del altar se muestra cuando Narciso descansa.
-- `quien` elige el personaje y `animo` su retrato (ver `PERSONAJES` en `dialogo.gd`).
+- `quien` elige el personaje y `animo` su retrato (ver `PERSONAJES` en `dialogo.gd`). Narciso tiene `sereno`, `enojado` y `furioso` (en la huida: las letras tiemblan con el efecto `[shake]` de `RichTextLabel`).
+- Cada personaje tiene su tipografía, que muestra cómo es: Narciso habla en cursiva fina y elegante (Cormorant Garamond), y los nombres van en mayúsculas romanas (Cinzel). Las fuentes están en `assets/fuentes/` con su licencia OFL, que permite usarlas gratis en el juego.
 
 La ventana pausa el juego (como el menú). El texto aparece letra por letra con un `Tween` sobre `visible_ratio`; tocar la pantalla, Espacio o Enter muestra todo el texto, y otra vez pasa a la siguiente línea. Las líneas no explican la mecánica: son historia, no tutorial. El jugador no habla (como Link en Zelda), así sirve cualquiera de los tres personajes.
 
