@@ -2,6 +2,7 @@ extends Node2D
 ## Punto de entrada: carga las salas en orden, lee los controles y gira la cámara.
 
 const SALAS := [
+	"res://salas/rio_00.json",
 	"res://salas/rio_01.json",
 	"res://salas/rio_02.json",
 	"res://salas/rio_03.json",
@@ -30,6 +31,7 @@ func _cargar_sala() -> void:
 	sala.position = -Vector2(sala.tamano) * Sala.TAM / 2  # centra la sala en el pivote
 	sala.completada.connect(_on_sala_completada)
 	sala.plano_cambiado.connect(_on_plano_cambiado)
+	sala.caida.connect(_on_caida)
 	pivote.add_child(sala)
 	_on_plano_cambiado(false)
 
@@ -47,6 +49,8 @@ func _unhandled_input(evento: InputEvent) -> void:
 			_mover(Vector2i.LEFT)
 		KEY_RIGHT, KEY_D:
 			_mover(Vector2i.RIGHT)
+		KEY_SPACE:
+			sala.cambiar_plano()
 		KEY_R:
 			sala.reiniciar()
 		KEY_Q:
@@ -68,8 +72,12 @@ func _girar(sentido: int) -> void:
 
 func _on_plano_cambiado(espiritual: bool) -> void:
 	RenderingServer.set_default_clear_color(FONDO_ESPIRITUAL if espiritual else FONDO_NORMAL)
-	etiqueta.text = "Sala %d · %s · Plano %s\nFlechas o WASD: mover · Empuja la estatua: cambiar de plano · R: reiniciar · Q/E: girar cámara" % [
+	etiqueta.text = "Sala %d · %s · Plano %s\nFlechas o WASD: mover · Espacio: cambiar de plano · R: reiniciar · Q/E: girar cámara" % [
 		indice + 1, sala.datos["nombre"], "espiritual" if espiritual else "normal"]
+
+
+func _on_caida() -> void:
+	etiqueta.text += "\nCaíste: volviste al plano normal sobre el vacío o el agua."
 
 
 func _on_sala_completada() -> void:

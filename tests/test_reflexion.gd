@@ -27,9 +27,27 @@ func _init() -> void:
 		var lista := [false]
 		sala.completada.connect(func(): lista[0] = true)
 		for letra in sala.datos["solucion"]:
-			sala.mover(pasos[letra])
+			if letra == "P":
+				sala.cambiar_plano()
+			else:
+				sala.mover(pasos[letra])
 		_igual(lista[0], true, "%s se resuelve con su solución" % ruta)
 		sala.free()
+
+	# Volver al plano normal sobre el vacío es caer y reiniciar la sala.
+	var sala := Sala.new()
+	sala.cargar("res://salas/rio_00.json")
+	var cayo := [false]
+	sala.caida.connect(func(): cayo[0] = true)
+	for letra in "PRRUUU":  # termina parado sobre el reflejo, encima del vacío
+		if letra == "P":
+			sala.cambiar_plano()
+		else:
+			sala.mover(pasos[letra])
+	sala.cambiar_plano()
+	_igual(cayo[0], true, "caer al volver al plano normal sobre el vacío")
+	_igual(sala.jugador, Vector2i(1, 5), "la sala se reinicia después de caer")
+	sala.free()
 
 	print("Fallos: %d" % fallos)
 	quit(1 if fallos else 0)

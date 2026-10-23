@@ -15,7 +15,7 @@ Si tu Godot es más nuevo que 4.4, puede preguntar si quieres convertir el proye
 | Tecla | Acción |
 |---|---|
 | Flechas o WASD | Moverse una casilla |
-| Caminar contra la estatua | Cambiar de plano |
+| Espacio | Cambiar de plano |
 | R | Reiniciar la sala |
 | Q / E | Girar la cámara 90° |
 
@@ -53,7 +53,8 @@ La sala no aparece en el árbol porque `main.gd` la crea por código (`Sala.new(
 ### Las reglas de la sala (`sala.gd`)
 
 - En el **plano normal**, las piedras son obstáculos. Las redondas verde claro se pueden empujar; los bloques cuadrados con raíces están fijos. Una piedra empujada al agua queda flotando y se puede pisar.
-- En el **plano espiritual**, el piso se desvanece y queda la cuadrícula. Las piedras originales se vuelven fantasmas que se pueden atravesar, y sus reflejos aparecen como plataformas celestes sólidas, incluso sobre el vacío.
+- En el **plano espiritual**, el piso se desvanece y queda la cuadrícula. Las piedras originales se vuelven fantasmas que se pueden atravesar, y sus reflejos celestes permiten cruzar el vacío y el agua. Solo los muros bloquean.
+- **Cambiar de plano** es una habilidad del jugador (`cambiar_plano()` en `sala.gd`). Si vuelves al plano normal parado sobre el vacío o el agua, caes y la sala se reinicia (señal `caida`). Encima de una piedra no se puede volver.
 - La función `imagen_en(c)` es el corazón matemático: pregunta si alguna piedra, al aplicarle la transformación, cae en la casilla `c`.
 
 ### La matemática (`reflexion.gd`)
@@ -66,13 +67,13 @@ Copia `salas/rio_01.json`, cámbiale el nombre y edítala:
 
 ```
 #  muro      .  suelo     ~  agua      =  puente
-v  vacío     E  salida    S  estatua
+v  vacío     E  salida
 ```
 
 - `jugador`: casilla inicial `[x, y]` (empezando en 0, desde la esquina de arriba a la izquierda).
 - `plano_espiritual`: qué transformación aplica. Por ahora `"tipo": "reflexion"` con `"eje"` (`horizontal`, `vertical`, `diagonal`, `antidiagonal`) y `"valor"`.
 - `piedras`: posición de cada piedra; `"fija": true` si no se puede empujar.
-- `solucion`: una secuencia de teclas que la resuelve (U arriba, D abajo, L izquierda, R derecha). Las pruebas la usan para comprobar que la sala tiene solución.
+- `solucion`: una secuencia de teclas que la resuelve (U arriba, D abajo, L izquierda, R derecha, P cambiar de plano). Las pruebas la usan para comprobar que la sala tiene solución.
 
 Después agrega la ruta del archivo a la lista `SALAS` en `scripts/main.gd`.
 
