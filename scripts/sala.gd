@@ -32,7 +32,8 @@ var mapa: Array = []
 var tamano: Vector2i
 var transformacion: Transformacion
 var jugador: Vector2i
-var piedras: Array[Dictionary] = []  # cada una: {"pos": Vector2i, "fija": bool, "flota": bool}
+var piedras: Array[Dictionary] = []  # cada una: {"pos": Vector2i, "fija": bool, "flota": bool, "marcada": bool}
+var mirando := Vector2i.UP  # hacia dónde mira el jugador (la casilla que apuntan las habilidades)
 var espiritual := false
 
 
@@ -47,9 +48,10 @@ func cargar(ruta: String) -> void:
 ## Devuelve la sala a su estado inicial (el gong).
 func reiniciar() -> void:
 	jugador = _vec(datos["jugador"])
+	mirando = Vector2i.UP
 	piedras.clear()
 	for p in datos.get("piedras", []):
-		piedras.append({"pos": _vec(p["pos"]), "fija": p.get("fija", false), "flota": false})
+		piedras.append({"pos": _vec(p["pos"]), "fija": p.get("fija", false), "flota": false, "marcada": false})
 	if espiritual:
 		espiritual = false
 		plano_cambiado.emit(false)
@@ -58,6 +60,7 @@ func reiniciar() -> void:
 
 ## Intenta mover al jugador una casilla en la dirección dada (en coordenadas del mundo).
 func mover(dir: Vector2i) -> void:
+	mirando = dir
 	var destino := jugador + dir
 	if not espiritual:
 		var i := piedra_en(destino)
@@ -84,6 +87,17 @@ func cambiar_plano() -> void:
 	queue_redraw()
 
 
+## Marca (o desmarca) para la transformación la piedra que el jugador tiene enfrente.
+## Solo las piedras marcadas aparecen transformadas en el plano espiritual.
+func marcar_enfrente() -> bool:
+	var i := piedra_en(jugador + mirando)
+	if i < 0:
+		return false
+	piedras[i]["marcada"] = not piedras[i]["marcada"]
+	queue_redraw()
+	return true
+
+
 func celda(c: Vector2i) -> String:
 	if c.x < 0 or c.y < 0 or c.x >= tamano.x or c.y >= tamano.y:
 		return "#"
@@ -100,7 +114,7 @@ func piedra_en(c: Vector2i) -> int:
 ## ¿Hay en esta casilla la imagen espiritual de alguna piedra?
 func imagen_en(c: Vector2i) -> bool:
 	for p in piedras:
-		if transformacion.aplicar(p["pos"]) == c:
+		if p["marcada"] and transformacion.aplicar(p["pos"]) == c:
 			return true
 	return false
 
@@ -165,12 +179,19 @@ func _draw() -> void:
 	for p in piedras:
 		if espiritual:
 			draw_circle(_centro(p["pos"]), TAM * 0.35, Color(CELESTE, 0.2))
-			draw_circle(_centro(transformacion.aplicar(p["pos"])), TAM * 0.4, Color(CELESTE, 0.85))
-		elif p["fija"]:
+			if p["marcada"]:
+				draw_circle(_centro(transformacion.aplicar(p["pos"])), TAM * 0.4, Color(CELESTE, 0.85))
+			continue
+		if p["fija"]:
 			_dibujar_piedra_fija(p["pos"])
 		else:
 			draw_circle(_centro(p["pos"]), TAM * (0.45 if p["flota"] else 0.38), COLOR_PIEDRA)
-	draw_circle(_centro(jugador), TAM * 0.3, Color.WHITE if espiritual else COLOR_JUGADOR)
+		if p["marcada"]:
+			draw_circle(_centro(p["pos"]), TAM * 0.47, CELESTE, false, 3.0)
+	var color_jugador := Color.WHITE if espiritual else COLOR_JUGADOR
+	draw_circle(_centro(jugador), TAM * 0.3, color_jugador)
+	# Un punto hacia donde mira, para saber qué piedra apuntan las habilidades.
+	draw_circle(_centro(jugador) + Vector2(mirando) * TAM * 0.3, TAM * 0.08, Color.BLACK)
 
 
 ## Las piedras fijas son bloques cuadrados con raíces, para que no se confundan con las que se empujan.

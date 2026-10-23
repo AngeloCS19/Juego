@@ -1,18 +1,16 @@
 {
-	"nombre": "El paso celeste",
+	"nombre": "Cruzar el río",
 	"mapa": [
 		"#######",
 		"#..E..#",
-		"#vvvvv#",
-		"~~~=~~~",
+		"#.....#",
+		"~~~~~~~",
 		"#.....#",
 		"#.....#",
 		"#######"
 	],
-	"jugador": [1, 5],
+	"jugador": [3, 5],
 	"plano_espiritual": { "tipo": "reflexion", "eje": "horizontal", "valor": 3 },
-	"piedras": [
-		{ "pos": [3, 4], "fija": true }
-	],
-	"solucion": "PRRUUUU"
+	"habilidades": ["traspasar"],
+	"solucion": "PUUUU"
 }

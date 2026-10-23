@@ -1,22 +1,21 @@
 {
-	"nombre": "Lo que toca el agua",
+	"nombre": "Empujar la piedra",
 	"mapa": [
 		"#########",
 		"#...E...#",
 		"#vvvvvvv#",
 		"#vvvvvvv#",
-		"~~~~~~~~~",
+		"~~~~=~~~~",
 		"#.......#",
 		"#.......#",
 		"#.......#",
 		"#########"
 	],
-	"jugador": [3, 7],
+	"jugador": [2, 6],
 	"plano_espiritual": { "tipo": "reflexion", "eje": "horizontal", "valor": 4 },
 	"piedras": [
-		{ "pos": [4, 5] },
 		{ "pos": [2, 5] },
-		{ "pos": [6, 6] }
+		{ "pos": [4, 6], "fija": true }
 	],
-	"solucion": "URUDLLLURRDDRRRRULLPLUUUUU"
+	"solucion": "LURRFDRFPURUUUU"
 }

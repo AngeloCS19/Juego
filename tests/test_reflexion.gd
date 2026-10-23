@@ -3,6 +3,7 @@ extends SceneTree
 ## Revisa la matemática de la reflexión y que cada sala se pueda resolver con su "solucion".
 
 var fallos := 0
+var creados: Array[Node] = []  # nodos de prueba, se liberan al final
 
 
 func _init() -> void:
@@ -20,34 +21,25 @@ func _init() -> void:
 		var p := Vector2i(7, -3)
 		_igual(r.aplicar(r.aplicar(p)), p, "%s: reflejar dos veces vuelve al inicio" % eje)
 
-	var pasos := {"U": Vector2i.UP, "D": Vector2i.DOWN, "L": Vector2i.LEFT, "R": Vector2i.RIGHT}
 	for ruta in DirAccess.get_files_at("res://salas"):
-		var sala := Sala.new()
-		sala.cargar("res://salas/" + ruta)
-		var lista := [false]
-		sala.completada.connect(func(): lista[0] = true)
-		for letra in sala.datos["solucion"]:
-			if letra == "P":
-				sala.cambiar_plano()
-			else:
-				sala.mover(pasos[letra])
-		_igual(lista[0], true, "%s se resuelve con su solución" % ruta)
-		sala.free()
+		if ruta.ends_with(".json"):
+			var r := _jugar(ruta, "")
+			_igual(_jugar(ruta, r.sala.datos["solucion"]).completada, true, "%s se resuelve con su solución" % ruta)
+
+	# Sin marcar la piedra con Reflejo no aparece su reflejo y no se cruza el vacío.
+	_igual(_jugar("rio_01.json", "RRUPUUUU").completada, false, "sin Reflejo no se cruza el vacío")
+	# Marcar dos veces la desmarca.
+	_igual(_jugar("rio_01.json", "RRUFFPUUUU").completada, false, "Reflejo dos veces desmarca la piedra")
+	# En la sala 1 Reflejo no está disponible.
+	_igual(_jugar("rio_00.json", "F").sala.piedras.size(), 0, "la sala 1 no tiene piedras")
 
 	# Volver al plano normal sobre el vacío es caer y reiniciar la sala.
-	var sala := Sala.new()
-	sala.cargar("res://salas/rio_00.json")
+	var r := _jugar("rio_01.json", "RRUFPUUU")  # termina parado sobre el reflejo, encima del vacío
 	var cayo := [false]
-	sala.caida.connect(func(): cayo[0] = true)
-	for letra in "PRRUUU":  # termina parado sobre el reflejo, encima del vacío
-		if letra == "P":
-			sala.cambiar_plano()
-		else:
-			sala.mover(pasos[letra])
-	sala.cambiar_plano()
+	r.sala.caida.connect(func(): cayo[0] = true)
+	r.barra.usar(r.sala)
 	_igual(cayo[0], true, "caer al volver al plano normal sobre el vacío")
-	_igual(sala.jugador, Vector2i(1, 5), "la sala se reinicia después de caer")
-	sala.free()
+	_igual(r.sala.jugador, Vector2i(1, 5), "la sala se reinicia después de caer")
 
 	# Solo una habilidad activa; no se cambia mientras Traspasar está en curso.
 	var sala_b := Sala.new()
@@ -64,8 +56,35 @@ func _init() -> void:
 	barra.free()
 	sala_b.free()
 
+	for n in creados:
+		n.free()
 	print("Fallos: %d" % fallos)
 	quit(1 if fallos else 0)
+
+
+## Juega una sala con una secuencia de teclas: U D L R mueven, P usa Traspasar, F usa Reflejo.
+## Usa la barra de habilidades real, así que respeta qué habilidades tiene la sala.
+func _jugar(ruta: String, secuencia: String) -> Dictionary:
+	var sala := Sala.new()
+	sala.cargar("res://salas/" + ruta)
+	var lista: Array[Habilidad] = [Traspasar.new(), Reflejo.new()]
+	var barra := BarraHabilidades.new(lista)
+	barra.configurar(sala.datos.get("habilidades", ["traspasar", "reflejo"]))
+	var resultado := {"sala": sala, "barra": barra, "completada": false}
+	sala.completada.connect(func(): resultado["completada"] = true)
+	var pasos := {"U": Vector2i.UP, "D": Vector2i.DOWN, "L": Vector2i.LEFT, "R": Vector2i.RIGHT}
+	for letra in secuencia:
+		match letra:
+			"P":
+				if barra.elegir(0, sala):
+					barra.usar(sala)
+			"F":
+				if barra.elegir(1, sala):
+					barra.usar(sala)
+			_:
+				sala.mover(pasos[letra])
+	creados.append_array([sala, barra])
+	return resultado
 
 
 func _igual(obtenido, esperado, nombre: String) -> void:
