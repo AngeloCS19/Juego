@@ -39,6 +39,7 @@ var jugador: Vector2i
 var piedras: Array[Dictionary] = []  # cada una: {"pos": Vector2i, "fija": bool, "flota": bool, "marcada": bool}
 var mirando := Vector2i.UP  # hacia dónde mira el jugador (la casilla que apuntan las habilidades)
 var espiritual := false
+static var _siluetas := {}  # sprite -> su silueta blanca, se calcula una vez
 
 
 func cargar(ruta: String) -> void:
@@ -173,6 +174,19 @@ func _empujar(i: int, dir: Vector2i) -> bool:
 	return true
 
 
+## Copia del sprite con todos los píxeles blancos (conserva la forma). Se tiñe con el color de dibujo:
+## modulate multiplica, así que sobre un sprite verde el celeste no se vería celeste.
+func _silueta(tex: Texture2D) -> Texture2D:
+	if not tex in _siluetas:
+		var img := tex.get_image()
+		img.convert(Image.FORMAT_RGBA8)
+		for y in img.get_height():
+			for x in img.get_width():
+				img.set_pixel(x, y, Color(1, 1, 1, img.get_pixel(x, y).a))
+		_siluetas[tex] = ImageTexture.create_from_image(img)
+	return _siluetas[tex]
+
+
 func _vec(arr: Array) -> Vector2i:
 	return Vector2i(int(arr[0]), int(arr[1]))
 
@@ -197,12 +211,12 @@ func _draw() -> void:
 		transformacion.dibujar(self, TAM, tamano, CELESTE)
 	for p in piedras:
 		if espiritual:
-			# Los objetos pasan a ser translúcidos y celestes: el mismo sprite, teñido.
+			# Los objetos pasan a ser translúcidos y celestes: la silueta blanca del sprite, teñida.
 			var r_fantasma := Rect2(_centro(p["pos"]) - Vector2.ONE * TAM * 0.5, Vector2.ONE * TAM)
-			draw_texture_rect(TEX_PIEDRA_FIJA if p["fija"] else TEX_PIEDRA, r_fantasma, false, Color(CELESTE, 0.3))
+			draw_texture_rect(_silueta(TEX_PIEDRA_FIJA if p["fija"] else TEX_PIEDRA), r_fantasma, false, Color(CELESTE, 0.3))
 			if p["marcada"]:
 				var r_imagen := Rect2(_centro(transformacion.aplicar(p["pos"])) - Vector2.ONE * TAM * 0.5, Vector2.ONE * TAM)
-				draw_texture_rect(TEX_PIEDRA_FIJA if p["fija"] else TEX_PIEDRA, r_imagen, false, Color(CELESTE, 0.85))
+				draw_texture_rect(_silueta(TEX_PIEDRA_FIJA if p["fija"] else TEX_PIEDRA), r_imagen, false, Color(CELESTE, 0.85))
 			continue
 		var escala := 1.18 if p["flota"] else 1.0  # una piedra en el agua se ve un poco más grande
 		var lado := TAM * escala
@@ -213,7 +227,8 @@ func _draw() -> void:
 	# El sprite del jugador apunta hacia arriba: se gira hacia donde mira.
 	draw_set_transform(_centro(jugador), Vector2(mirando).angle() + PI / 2)
 	var lado_j := TAM * 0.9
-	draw_texture_rect(TEX_JUGADOR, Rect2(-Vector2.ONE * lado_j * 0.5, Vector2.ONE * lado_j), false, Color.WHITE if not espiritual else Color(CELESTE, 1.0))
+	var tex_jugador := _silueta(TEX_JUGADOR) if espiritual else TEX_JUGADOR
+	draw_texture_rect(tex_jugador, Rect2(-Vector2.ONE * lado_j * 0.5, Vector2.ONE * lado_j), false)
 	draw_set_transform(Vector2.ZERO)
 
 
