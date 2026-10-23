@@ -5,10 +5,11 @@ extends Node2D
 ##
 ## Letras del mapa:
 ##   #  muro      .  suelo     ~  agua      =  puente
-##   v  vacío     E  salida    S  estatua del guardián (cambia de plano)
+##   v  vacío     E  salida
 
 signal completada
 signal plano_cambiado(espiritual: bool)
+signal caida
 
 const TAM := 48.0  # píxeles por casilla
 
@@ -20,9 +21,7 @@ const COLOR_CASILLA := {
 	"=": Color(0.45, 0.32, 0.2),
 	"v": Color(0.04, 0.04, 0.06),
 	"E": Color(0.85, 0.7, 0.3),
-	"S": Color(0.55, 0.5, 0.4),
 }
-const COLOR_ESTATUA := Color(0.75, 0.75, 0.8)
 const COLOR_PIEDRA := Color(0.45, 0.7, 0.4)
 const COLOR_PIEDRA_FIJA := Color(0.2, 0.4, 0.2)
 const COLOR_JUGADOR := Color(0.95, 0.55, 0.2)
@@ -60,11 +59,6 @@ func reiniciar() -> void:
 ## Intenta mover al jugador una casilla en la dirección dada (en coordenadas del mundo).
 func mover(dir: Vector2i) -> void:
 	var destino := jugador + dir
-	if celda(destino) == "S":
-		espiritual = not espiritual
-		plano_cambiado.emit(espiritual)
-		queue_redraw()
-		return
 	if not espiritual:
 		var i := piedra_en(destino)
 		if i >= 0 and not piedras[i]["flota"] and not _empujar(i, dir):
@@ -74,6 +68,20 @@ func mover(dir: Vector2i) -> void:
 		queue_redraw()
 		if celda(jugador) == "E":
 			completada.emit()
+
+
+## Habilidad del jugador: pasar de un plano al otro.
+## Volver al plano normal sobre el vacío o el agua es caer, y la sala se reinicia.
+## Volver encima de una piedra no se permite.
+func cambiar_plano() -> void:
+	if espiritual and not _transitable_en_plano(jugador, false):
+		if piedra_en(jugador) < 0:
+			reiniciar()
+			caida.emit()
+		return
+	espiritual = not espiritual
+	plano_cambiado.emit(espiritual)
+	queue_redraw()
 
 
 func celda(c: Vector2i) -> String:
@@ -98,12 +106,16 @@ func imagen_en(c: Vector2i) -> bool:
 
 
 func transitable(c: Vector2i) -> bool:
+	return _transitable_en_plano(c, espiritual)
+
+
+func _transitable_en_plano(c: Vector2i, en_espiritual: bool) -> bool:
 	var t := celda(c)
-	if t == "#" or t == "S":
+	if t == "#":
 		return false
-	if espiritual:
-		# Los originales son fantasmas; las imágenes son plataformas sólidas.
-		return imagen_en(c) or t in [".", "=", "E"]
+	if en_espiritual:
+		# Se atraviesan objetos y agua; el vacío solo se cruza sobre un reflejo.
+		return imagen_en(c) or t in [".", "=", "E", "~"]
 	var i := piedra_en(c)
 	if i >= 0:
 		return piedras[i]["flota"]
@@ -148,11 +160,6 @@ func _draw() -> void:
 				_dibujar_casilla_espiritual(c)
 			else:
 				draw_rect(_rect(c), COLOR_CASILLA[celda(c)])
-			if celda(c) == "S":
-				if espiritual:
-					draw_circle(_centro(c), TAM * 0.35, CELESTE, false, 2.0)
-				else:
-					draw_circle(_centro(c), TAM * 0.35, COLOR_ESTATUA)
 	if espiritual:
 		transformacion.dibujar(self, TAM, tamano, CELESTE)
 	for p in piedras:

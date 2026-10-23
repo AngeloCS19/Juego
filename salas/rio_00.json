@@ -1,0 +1,18 @@
+{
+	"nombre": "El paso celeste",
+	"mapa": [
+		"#######",
+		"#..E..#",
+		"#vvvvv#",
+		"~~~=~~~",
+		"#.....#",
+		"#.....#",
+		"#######"
+	],
+	"jugador": [1, 5],
+	"plano_espiritual": { "tipo": "reflexion", "eje": "horizontal", "valor": 3 },
+	"piedras": [
+		{ "pos": [3, 4], "fija": true }
+	],
+	"solucion": "PRRUUUU"
+}
