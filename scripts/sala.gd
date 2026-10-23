@@ -58,19 +58,34 @@ func reiniciar() -> void:
 	queue_redraw()
 
 
-## Intenta mover al jugador una casilla en la dirección dada (en coordenadas del mundo).
+## Gira al jugador hacia la dirección dada (en coordenadas del mundo) y avanza una casilla
+## si se puede. Contra una piedra solo gira: para moverla se usa empujar_enfrente().
 func mover(dir: Vector2i) -> void:
 	mirando = dir
-	var destino := jugador + dir
-	if not espiritual:
-		var i := piedra_en(destino)
-		if i >= 0 and not piedras[i]["flota"] and not _empujar(i, dir):
-			return
-	if transitable(destino):
-		jugador = destino
-		queue_redraw()
-		if celda(jugador) == "E":
-			completada.emit()
+	queue_redraw()
+	if transitable(jugador + dir):
+		_avanzar(dir)
+
+
+## ¿Hay enfrente una piedra que se pueda intentar empujar?
+func hay_empujable_enfrente() -> bool:
+	var i := piedra_en(jugador + mirando)
+	return not espiritual and i >= 0 and not piedras[i]["fija"] and not piedras[i]["flota"]
+
+
+## Empuja la piedra que el jugador mira y avanza detrás de ella.
+func empujar_enfrente() -> bool:
+	if not hay_empujable_enfrente() or not _empujar(piedra_en(jugador + mirando), mirando):
+		return false
+	_avanzar(mirando)
+	return true
+
+
+func _avanzar(dir: Vector2i) -> void:
+	jugador += dir
+	queue_redraw()
+	if celda(jugador) == "E":
+		completada.emit()
 
 
 ## Habilidad del jugador: pasar de un plano al otro.
