@@ -13,18 +13,22 @@ signal caida
 
 const TAM := 48.0  # píxeles por casilla
 
-# Colores provisionales: la paleta definitiva se decide cuando haya una base jugable.
-const COLOR_CASILLA := {
-	"#": Color(0.22, 0.2, 0.18),
-	".": Color(0.55, 0.5, 0.4),
-	"~": Color(0.2, 0.45, 0.7),
-	"=": Color(0.45, 0.32, 0.2),
-	"v": Color(0.04, 0.04, 0.06),
-	"E": Color(0.85, 0.7, 0.3),
+# Sprites SVG de res://assets/sprites/ (ver docs/sprites.md).
+const TEX_CASILLA := {
+	"#": preload("res://assets/sprites/muro.svg"),
+	".": preload("res://assets/sprites/piso.svg"),
+	"~": preload("res://assets/sprites/agua.svg"),
+	"=": preload("res://assets/sprites/puente.svg"),
+	"v": preload("res://assets/sprites/vacio.svg"),
+	"E": preload("res://assets/sprites/salida.svg"),
 }
-const COLOR_PIEDRA := Color(0.45, 0.7, 0.4)
-const COLOR_PIEDRA_FIJA := Color(0.2, 0.4, 0.2)
-const COLOR_JUGADOR := Color(0.95, 0.55, 0.2)
+const TEX_PIEDRA := preload("res://assets/sprites/piedra.svg")
+const TEX_PIEDRA_FIJA := preload("res://assets/sprites/piedra_fija.svg")
+const TEX_JUGADOR := preload("res://assets/sprites/jugador.svg")
+# shortcut: un solo anillo (reflexión); cuando haya más transformaciones, que cada una elija el suyo.
+const TEX_ANILLO_REFLEJO := preload("res://assets/sprites/anillo_reflejo.svg")
+# Solo para dibujar la salida fantasma del plano espiritual.
+const COLOR_SALIDA := Color(0.85, 0.7, 0.3)
 const CELESTE := Color(0.55, 0.85, 1.0)
 
 var datos: Dictionary
@@ -188,33 +192,29 @@ func _draw() -> void:
 			if espiritual:
 				_dibujar_casilla_espiritual(c)
 			else:
-				draw_rect(_rect(c), COLOR_CASILLA[celda(c)])
+				draw_texture_rect(TEX_CASILLA[celda(c)], _rect(c), false)
 	if espiritual:
 		transformacion.dibujar(self, TAM, tamano, CELESTE)
 	for p in piedras:
 		if espiritual:
-			draw_circle(_centro(p["pos"]), TAM * 0.35, Color(CELESTE, 0.2))
+			# Los objetos pasan a ser translúcidos y celestes: el mismo sprite, teñido.
+			var r_fantasma := Rect2(_centro(p["pos"]) - Vector2.ONE * TAM * 0.5, Vector2.ONE * TAM)
+			draw_texture_rect(TEX_PIEDRA_FIJA if p["fija"] else TEX_PIEDRA, r_fantasma, false, Color(CELESTE, 0.3))
 			if p["marcada"]:
-				draw_circle(_centro(transformacion.aplicar(p["pos"])), TAM * 0.4, Color(CELESTE, 0.85))
+				var r_imagen := Rect2(_centro(transformacion.aplicar(p["pos"])) - Vector2.ONE * TAM * 0.5, Vector2.ONE * TAM)
+				draw_texture_rect(TEX_PIEDRA_FIJA if p["fija"] else TEX_PIEDRA, r_imagen, false, Color(CELESTE, 0.85))
 			continue
-		if p["fija"]:
-			_dibujar_piedra_fija(p["pos"])
-		else:
-			draw_circle(_centro(p["pos"]), TAM * (0.45 if p["flota"] else 0.38), COLOR_PIEDRA)
+		var escala := 1.18 if p["flota"] else 1.0  # una piedra en el agua se ve un poco más grande
+		var lado := TAM * escala
+		var r := Rect2(_centro(p["pos"]) - Vector2.ONE * lado * 0.5, Vector2.ONE * lado)
+		draw_texture_rect(TEX_PIEDRA_FIJA if p["fija"] else TEX_PIEDRA, r, false)
 		if p["marcada"]:
-			draw_circle(_centro(p["pos"]), TAM * 0.47, CELESTE, false, 3.0)
-	var color_jugador := Color.WHITE if espiritual else COLOR_JUGADOR
-	draw_circle(_centro(jugador), TAM * 0.3, color_jugador)
-	# Un punto hacia donde mira, para saber qué piedra apuntan las habilidades.
-	draw_circle(_centro(jugador) + Vector2(mirando) * TAM * 0.3, TAM * 0.08, Color.BLACK)
-
-
-## Las piedras fijas son bloques cuadrados con raíces, para que no se confundan con las que se empujan.
-func _dibujar_piedra_fija(c: Vector2i) -> void:
-	var centro := _centro(c)
-	for esquina in [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]:
-		draw_line(centro, centro + esquina * TAM * 0.46, COLOR_PIEDRA_FIJA, 3.0)
-	draw_rect(Rect2(centro - Vector2.ONE * TAM * 0.3, Vector2.ONE * TAM * 0.6), COLOR_PIEDRA_FIJA)
+			draw_texture_rect(TEX_ANILLO_REFLEJO, r, false)
+	# El sprite del jugador apunta hacia arriba: se gira hacia donde mira.
+	draw_set_transform(_centro(jugador), Vector2(mirando).angle() + PI / 2)
+	var lado_j := TAM * 0.9
+	draw_texture_rect(TEX_JUGADOR, Rect2(-Vector2.ONE * lado_j * 0.5, Vector2.ONE * lado_j), false, Color.WHITE if not espiritual else Color(CELESTE, 1.0))
+	draw_set_transform(Vector2.ZERO)
 
 
 ## En el plano espiritual el piso se desvanece y solo queda la cuadrícula.
@@ -226,6 +226,6 @@ func _dibujar_casilla_espiritual(c: Vector2i) -> void:
 		"~":
 			draw_rect(r, Color(CELESTE, 0.12))
 		"E":
-			draw_rect(r.grow(-4), Color(COLOR_CASILLA["E"], 0.6), false, 2.0)
+			draw_rect(r.grow(-4), Color(COLOR_SALIDA, 0.6), false, 2.0)
 	if celda(c) != "v":
 		draw_rect(r, Color(CELESTE, 0.25), false, 1.0)
