@@ -354,6 +354,6 @@ func _dibujar_casilla_espiritual(c: Vector2i) -> void:
 		"^":
 			draw_rect(r, Color(COLOR_LAVA, 0.25))
 		"E":
-			draw_arc(_centro(c), TAM * 0.4, 0.0, TAU, 32, Color(COLOR_SALIDA, 0.6), 2.0)
+			draw_arc(_centro(c), TAM * 0.32, 0.0, TAU, 32, Color(COLOR_SALIDA, 0.6), 2.0)
 	if celda(c) != "v":
 		draw_rect(r, Color(CELESTE, 0.25), false, 1.0)
