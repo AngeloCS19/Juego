@@ -25,6 +25,10 @@ El juego se diseña para PC y para celular, así que todo se puede hacer con tec
 
 Habilidades: **Traspasar** cambia de plano; **Reflejo** marca la piedra que tienes enfrente.
 
+### Modo debug (solo para el desarrollador)
+
+Al jugar desde el editor (F5) aparece arriba a la derecha un botón rojo **Debug**. Abre un menú para saltar a cualquier sala y para activar **Todas las habilidades** (vale para todas las salas hasta que lo desactives; la sala se reinicia al cambiarlo). El botón solo existe si `OS.is_debug_build()` es verdadero: en el editor sí, y en una exportación para jugadores, con "Export With Debug" desactivado, no. El código está en `_crear_menu_debug()` de `main.gd`.
+
 ## Cómo está organizado
 
 ```

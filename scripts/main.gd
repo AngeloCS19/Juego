@@ -15,6 +15,7 @@ const FONDO_NORMAL := Color(0.1, 0.09, 0.08)
 const FONDO_ESPIRITUAL := Color(0.03, 0.06, 0.12)
 const UMBRAL_DESLIZAR := 30.0  # píxeles: un toque que se mueve menos que esto no es deslizar
 const TIEMPO_EMPUJE := 0.3  # segundos que hay que sostener la dirección para empujar una piedra
+const ID_HABILIDADES := 1000  # opción "Todas las habilidades" del menú debug; las salas usan su índice
 const TECLAS_DIRECCION := {
 	KEY_UP: Vector2i.UP, KEY_W: Vector2i.UP, KEY_DOWN: Vector2i.DOWN, KEY_S: Vector2i.DOWN,
 	KEY_LEFT: Vector2i.LEFT, KEY_A: Vector2i.LEFT, KEY_RIGHT: Vector2i.RIGHT, KEY_D: Vector2i.RIGHT,
@@ -29,6 +30,7 @@ var _dedo_abajo := false
 var _dir_dedo := Vector2i.ZERO  # dirección (en pantalla) que el dedo sostiene, si deslizó o tocó una casilla vecina
 var _empuje := 0.0  # cuánto tiempo lleva sostenida la dirección hacia una piedra
 var _tween_giro: Tween
+var _todas_habilidades := false  # modo debug: todas las habilidades en cualquier sala
 
 @onready var pivote: Node2D = $Pivote
 @onready var etiqueta: Label = $Interfaz/Etiqueta
@@ -62,9 +64,45 @@ func _crear_controles_tactiles() -> void:
 	var usar := BarraHabilidades.crear_boton("Usar", func(): barra.usar(sala), BarraHabilidades.COLOR_ACTIVA)
 	usar.custom_minimum_size = Vector2(120, 96)
 
+	if OS.is_debug_build():
+		acciones.add_child(_crear_menu_debug())
+
 	_en_esquina(pantalla, barra, Control.PRESET_BOTTOM_LEFT)
 	_en_esquina(pantalla, acciones, Control.PRESET_TOP_RIGHT)
 	_en_esquina(pantalla, usar, Control.PRESET_BOTTOM_RIGHT)
+
+
+## Menú solo para el desarrollador: saltar a cualquier sala y desbloquear todas las habilidades.
+## OS.is_debug_build() es verdadero al jugar desde el editor (F5) y falso en una exportación
+## final ("Export With Debug" desactivado), así que los jugadores nunca lo ven.
+func _crear_menu_debug() -> MenuButton:
+	var menu := MenuButton.new()
+	menu.text = "Debug"
+	menu.flat = false
+	menu.custom_minimum_size = BarraHabilidades.TAM_BOTON
+	menu.focus_mode = Control.FOCUS_NONE
+	menu.add_theme_font_size_override("font_size", 22)
+	BarraHabilidades._estilo(menu, Color(0.9, 0.3, 0.3), 2)
+	var lista := menu.get_popup()
+	lista.add_theme_font_size_override("font_size", 26)  # opciones grandes para el dedo
+	lista.add_theme_constant_override("v_separation", 18)
+	lista.add_check_item("Todas las habilidades", ID_HABILIDADES)
+	lista.add_separator()
+	for i in SALAS.size():
+		var datos: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SALAS[i]))
+		lista.add_item("Sala %d · %s" % [i + 1, datos["nombre"]], i)
+	lista.id_pressed.connect(_on_menu_debug.bind(lista))
+	return menu
+
+
+func _on_menu_debug(id: int, lista: PopupMenu) -> void:
+	if id == ID_HABILIDADES:
+		_todas_habilidades = not _todas_habilidades
+		lista.set_item_checked(lista.get_item_index(id), _todas_habilidades)
+	else:
+		indice = id
+		set_process_unhandled_input(true)  # por si ya se había terminado el templo
+	_cargar_sala()
 
 
 func _en_esquina(padre: Control, nodo: Control, esquina: Control.LayoutPreset) -> void:
@@ -90,7 +128,8 @@ func _cargar_sala() -> void:
 	sala.plano_cambiado.connect(_on_plano_cambiado)
 	sala.caida.connect(_on_caida)
 	pivote.add_child(sala)
-	barra.configurar(sala.datos.get("habilidades", ["traspasar", "reflejo"]))
+	var todas := ["traspasar", "reflejo"]
+	barra.configurar(todas if _todas_habilidades else sala.datos.get("habilidades", todas))
 	_on_plano_cambiado(false)
 
 
@@ -203,6 +242,8 @@ func _on_plano_cambiado(espiritual: bool) -> void:
 	RenderingServer.set_default_clear_color(FONDO_ESPIRITUAL if espiritual else FONDO_NORMAL)
 	etiqueta.text = "Sala %d · %s · Plano %s\nMover: flechas o deslizar · Habilidad: 1-9 · Usar: Espacio o botón Usar" % [
 		indice + 1, sala.datos["nombre"], "espiritual" if espiritual else "normal"]
+	if _todas_habilidades:
+		etiqueta.text += "\nDEBUG: todas las habilidades"
 
 
 func _on_caida() -> void:
