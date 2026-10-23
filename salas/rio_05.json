@@ -1,0 +1,21 @@
+{
+	"nombre": "Lejos del eje",
+	"mapa": [
+		"#########",
+		"#...E...#",
+		"#vvvvvvv#",
+		"#.......#",
+		"#.......#",
+		"~~~~~~~~~",
+		"#.......#",
+		"#.......#",
+		"#.......#",
+		"#########"
+	],
+	"jugador": [2, 8],
+	"plano_espiritual": { "tipo": "reflexion", "eje": "horizontal", "valor": 5 },
+	"piedras": [
+		{ "pos": [4, 7] }
+	],
+	"solucion": "UURRDEFUPUUUUU"
+}
