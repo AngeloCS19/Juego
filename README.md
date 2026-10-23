@@ -86,6 +86,8 @@ El eje pasa por el centro de una fila o columna de casillas. Con un eje horizont
 
 Regla de diseño: **una mecánica nueva por sala**, presentada sin texto de tutorial; las salas siguientes la combinan. Nada de "plataformas" visuales que regalen la respuesta: el jugador debe razonar dónde cae el reflejo.
 
+La tabla sigue el orden del juego, que lo decide la lista `SALAS` de `main.gd` y no el número del archivo.
+
 | Sala | Archivo | Qué enseña |
 |---|---|---|
 | Cruzar el río | `rio_00.json` | Solo Traspasar: en el plano espiritual el agua se cruza. |
@@ -97,6 +99,7 @@ Regla de diseño: **una mecánica nueva por sala**, presentada sin texto de tuto
 | El río que baja | `rio_06.json` | Eje vertical: el reflejo queda a la izquierda o a la derecha, en la misma fila. |
 | El río torcido | `rio_07.json` | Eje diagonal: reflejar intercambia la columna y la fila de la piedra, `(x, y)` → `(y, x)`. Se combina con empujar. |
 | La otra orilla | `rio_08.json` | La piedra está del otro lado del río: hay que cruzar, acomodarla allá y su reflejo vuelve a tu lado. (Boceto de Angelo.) |
+| El eje escondido | `rio_12.json` | Sala en C: el río queda en un brazo y la piedra en otro, pero su reflejo aparece del otro lado del muro. El eje sigue existiendo aunque no se vea el río. (Boceto de Angelo.) |
 | El rincón | `rio_09.json` | Sala en L con río antidiagonal: `(x, y)` → `(10 − y, 10 − x)`. Empujar en dos direcciones. (Boceto de Angelo.) |
 | Dos ríos | `rio_10.json` | Dos ejes: cada piedra marcada tiene un reflejo por cada río. (Boceto de Angelo.) |
 | La lava | `rio_11.json` | Sin plano espiritual: la lava solo se cruza empujando una piedra para hacer un puente. (Boceto de Angelo.) |

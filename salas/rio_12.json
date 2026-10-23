@@ -1,0 +1,22 @@
+{
+	"nombre": "El eje escondido",
+	"mapa": [
+		"#############",
+		"#.......v...#",
+		"#.......v.E.#",
+		"#.......v...#",
+		"#....########",
+		"~~~~~########",
+		"#....########",
+		"#...........#",
+		"#...........#",
+		"#...........#",
+		"#############"
+	],
+	"jugador": [10, 8],
+	"plano_espiritual": { "tipo": "reflexion", "eje": "horizontal", "valor": 5 },
+	"piedras": [
+		{ "pos": [2, 8] }
+	],
+	"solucion": "ULLLLLLLLLDREEEEEEFULLLUPUUUURRRRRR"
+}
