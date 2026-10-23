@@ -22,6 +22,13 @@ El juego se diseña para PC y para celular, así que todo se puede hacer con tec
 | Usar la habilidad activa | Espacio | Botón **Usar**, o tocar al personaje |
 | Reiniciar la sala | R | Botón **Reiniciar** |
 | Girar la cámara 90° | Q / E | Botones **Girar** |
+| Abrir el menú (pausa y dificultad) | Esc | Botón **Menú** |
+
+### Menús (`menu.gd`)
+
+Una sola ventana, `Menu`, sirve para tres cosas: el **menú inicial** (Jugar o Continuar, Empezar de nuevo, Dificultad), la **pausa** (Esc o el botón Menú) y la **derrota**. Perder (caer al vacío o al agua, o que Narciso te venza) siempre muestra la ventana de derrota, con **Reintentar** (la sala, la fase o el tramo ya volvió a empezar: ese es el punto de control) y **Menú inicial**.
+
+Mientras el menú está abierto el juego se pausa con `get_tree().paused = true`. Para que los botones sigan funcionando, `Main` usa `process_mode = ALWAYS`, y `Pivote`, que contiene la sala, usa `PAUSABLE`: así la sala y su reloj se detienen.
 
 Habilidades: **Traspasar** cambia de plano; **Reflejo** marca la piedra que tienes enfrente.
 
@@ -38,6 +45,7 @@ scripts/sala.gd           Reglas de una sala y cómo se dibuja
 scripts/sala_jefe.gd      Narciso, el jefe (extiende Sala)
 scripts/sala_huida.gd     Los tramos de la huida (extiende Sala)
 scripts/sala_altar.gd     El altar de Narciso, afuera del templo (extiende Sala)
+scripts/menu.gd           Ventana de menú inicial, pausa y derrota
 scripts/barra_habilidades.gd  Barra de habilidades (abajo a la izquierda)
 scripts/habilidades/
   habilidad.gd            Molde general de cualquier habilidad
@@ -76,7 +84,7 @@ La sala no aparece en el árbol porque `main.gd` la crea por código (`Sala.new(
 - En el **plano normal**, las piedras son obstáculos: caminar contra una solo te gira hacia ella. Para empujarla hay que mirarla y sostener la dirección `TIEMPO_EMPUJE` segundos (`_process()` en `main.gd` mide el tiempo y llama a `sala.empujar_enfrente()`). Las redondas verde claro se pueden empujar; los bloques cuadrados con raíces están fijos. Una piedra empujada al agua queda flotando y se puede pisar.
 - En el **plano espiritual**, el piso se desvanece y queda la cuadrícula. Las piedras originales se vuelven fantasmas que se pueden atravesar, el agua se puede cruzar y el vacío solo sobre un reflejo celeste. La lava nunca se cruza en este plano. Los muros siempre bloquean.
 - La **lava** es lo opuesto del río: no se sobrevuela en el plano espiritual (ni sobre un reflejo). Solo se cruza en el plano normal, empujando una piedra a la lava: queda flotando, fija para siempre, y se pisa como un puente. Siempre tiene su eje de reflexión, como el río. La piedra hundida se tiñe de rojo, se puede marcar con Reflejo y, como está sobre el eje de la lava, su reflejo en ese eje cae en el mismo lugar (un punto invariante).
-- **Prendas de Narciso:** cuatro salas guardan una prenda (`prenda` en el JSON). Es de un espíritu: solo existe en el plano espiritual. La salida está sellada hasta recogerla, y `main.gd` cuenta las prendas al salir de cada sala (`prendas`) para el altar del final.
+- **Prendas de Narciso:** cuatro salas guardan una prenda (`prenda` en el JSON). Es de un espíritu: solo existe en el plano espiritual. Son **opcionales**: la salida siempre está abierta. `main.gd` cuenta las prendas que el jugador se llevó al salir de cada sala (`prendas`), y en el altar del final solo aparecen esas.
 - Una sala puede tener varios ejes (`transformaciones` en `sala.gd`): cada piedra marcada aparece reflejada respecto a cada uno.
 - **Cambiar de plano** es una habilidad del jugador (`cambiar_plano()` en `sala.gd`). Si vuelves al plano normal parado sobre el vacío o el agua, caes y la sala se reinicia (señal `caida`). Encima de una piedra no se puede volver.
 - **Solo las piedras marcadas con Reflejo** aparecen reflejadas en el plano espiritual. Una piedra marcada lleva un anillo celeste en el plano normal. El sprite del jugador gira hacia donde mira: esa es la casilla que apuntan las habilidades (`mirando` en `sala.gd`).
@@ -124,8 +132,11 @@ Siguiente paso: más salas que combinen lo anterior (eje vertical o diagonal con
 Narciso flota en el plano espiritual, del otro lado del río, y lanza piedras a la mitad del jugador (una sombra avisa dónde caen; si caen encima, quitan un corazón). Para golpearlo hay que marcar una de esas piedras y **traspasar** cuando su reflejo cae justo donde está él: se ve a sí mismo, se paraliza y pierde pétalos de su corona. El diseño completo está en el [documento del jefe](https://claude.ai/artifact/3weD4Fmp1SKHYEJssgtUGg).
 
 - `SalaJefe` **extiende** `Sala`: hereda las reglas (moverse, empujar, marcar, traspasar) y solo agrega lo del jefe. `Sala.desde_archivo()` elige la clase según `"tipo": "jefe"` en el JSON.
-- **Turnos.** Cada acción del jugador llama a `_accion()`, que corre un `_turno()`. En las salas de puzzle `_turno()` no hace nada; en el jefe, Narciso avanza por su `camino` y lanza piedras. Así, en dificultad **normal** el mundo espera al jugador.
-- **Dificultad difícil.** `usar_tiempo_real()` crea un `Timer` (un nodo de Godot que avisa cada cierto tiempo) que llama a `_turno()` cada `RITMO_DIFICIL` segundos aunque el jugador no se mueva. El botón Normal/Difícil solo aparece donde Narciso actúa (jefe y huida); tras 5 derrotas seguidas en difícil se sugiere normal.
+- **Turnos.** En el juego, Narciso se mueve solo: `usar_tiempo_real()` crea un `Timer` (un nodo de Godot que avisa cada cierto tiempo) que llama a `_turno()` cada `RITMO_NORMAL` (1 s) o `RITMO_DIFICIL` (0,6 s) segundos. En cada turno avanza por su `camino`, lanza piedras y las sombras se acercan.
+- **Dificultad.** Solo cambia la velocidad de Narciso (y lo que tardan en caer sus piedras); las salas de puzzle son iguales. Se elige en el menú; tras 5 derrotas seguidas en difícil, la ventana de derrota sugiere normal.
+- **Pruebas.** Sin reloj, cada acción del jugador corre un turno (`_accion()`). Las pruebas juegan así, para que la `solucion` dé siempre el mismo resultado.
+- **Arena simétrica.** El lado del jugador es el espejo exacto del de Narciso: si Narciso está en su fila del fondo, la piedra va en tu última fila.
+- **Romper piedras.** Cada `CADA_ROMPER` turnos Narciso rompe las piedras sin marcar y las vuelve a lanzar, así que quedarse quieto no sirve.
 - **Fases.** El JSON trae una lista `fases`; cada una tiene su mapa, eje, `camino`, `cada` (turnos por paso), `lanzamientos`, `cada_lanzamiento` y `golpes`. Reiniciar repite solo la fase actual.
 - Solo puede haber **dos piedras marcadas** a la vez en el jefe, para que no baste con marcar todas y traspasar al azar.
 
@@ -133,7 +144,7 @@ Narciso flota en el plano espiritual, del otro lado del río, y lanza piedras a 
 
 Al perder su corona, Narciso enfurece. Cada tramo es una sala corta (`"tipo": "huida"`) con algo que el jugador ya sabe hacer: nada nuevo bajo presión.
 
-- Narciso recorre su `camino` (casillas en orden), empieza después de `espera` turnos y avanza una casilla cada `cada` turnos. Usa los mismos turnos que el jefe, así que la dificultad funciona igual: en normal avanza cuando el jugador actúa, en difícil con el reloj.
+- Narciso recorre su `camino` (casillas en orden), empieza después de `espera` turnos y avanza una casilla cada `cada` turnos. Usa el mismo reloj que el jefe, así que la dificultad funciona igual: más lento en normal, más rápido en difícil.
 - Cada casilla de piso que deja atrás se vuelve lava: el código cambia la letra en `mapa`, una copia del mapa del JSON. Por eso al reiniciar la lava desaparece.
 - Si alcanza al jugador, emite `derrota` (la misma señal que usa el jefe) y solo se repite ese tramo.
 
@@ -143,7 +154,9 @@ Después de la huida el jugador sale del templo (`"exterior": true` dibuja el pi
 
 - En el plano espiritual se ve el **reflejo vestido**: la estatua de cabeza en el estanque y, en celeste tenue, dónde va cada prenda (`reflejo_vestido`).
 - Las prendas son piedras con `"prenda"`: se empujan como piedras, pero no al agua. La estatua (`estatua`) es una piedra fija.
-- Se gana cuando cada prenda está **marcada** con Reflejo y su reflejo cae en su casilla. Entonces el alma de Narciso descansa y crece un narciso donde estaba la estatua.
+- Solo aparecen las prendas que el jugador recogió (`usar_prendas()`, que llama `main.gd`). El reflejo vestido siempre muestra las cuatro, para que se note cuáles faltan.
+- Cuando las cuatro prendas están **marcadas** con Reflejo y su reflejo cae en su casilla, el alma de Narciso descansa y crece un narciso donde estaba la estatua (señal `descanso`).
+- La salida lleva al siguiente templo aunque el altar quede incompleto: las prendas son opcionales.
 
 ## Crear una sala nueva sin programar
 
@@ -158,7 +171,7 @@ v  vacío     E  salida    ^  lava
 - `plano_espiritual`: qué transformación aplica. Por ahora `"tipo": "reflexion"` con `"eje"` (`horizontal`, `vertical`, `diagonal`, `antidiagonal`) y `"valor"`. Si la sala tiene dos ejes, va una lista con una transformación por eje (mira `rio_10.json`).
 - `piedras`: posición de cada piedra; `"fija": true` si no se puede empujar.
 - `habilidades` (opcional): qué habilidades tiene el jugador en esa sala, por ejemplo `["traspasar"]`. Si no aparece, tiene todas.
-- `prenda` (opcional): una prenda de Narciso, `{ "nombre": "sandalias", "pos": [x, y] }`. Solo se ve y se recoge en el plano espiritual, y la salida queda sellada (oscura) hasta tenerla. Nombres: `sandalias`, `cinto`, `tunica`, `corona`.
+- `prenda` (opcional): una prenda de Narciso, `{ "nombre": "sandalias", "pos": [x, y] }`. Solo se ve y se recoge en el plano espiritual. Es opcional: la salida está abierta aunque no se recoja. Nombres: `sandalias`, `cinto`, `tunica`, `corona`.
 - `tipo` (opcional): `"jefe"`, `"huida"` o `"altar"` para las salas de Narciso; cada una tiene sus propias claves (ver arriba). Sin `tipo` es una sala de puzzle.
 - `exterior` (opcional): `true` dibuja el piso como pasto, para las salas al aire libre.
 - `solucion`: una secuencia de teclas que la resuelve (U arriba, D abajo, L izquierda, R derecha, P usar Traspasar, F usar Reflejo). Las pruebas la usan para comprobar que la sala tiene solución.

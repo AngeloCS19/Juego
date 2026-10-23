@@ -9,12 +9,23 @@ extends Sala
 ##   "estatua": casilla de la estatua (una piedra fija que se dibuja como Narciso)
 ##   piedras con "prenda": las prendas, que se empujan como piedras
 ##   "reflejo_vestido": {"prenda": casilla} donde el reflejo vestido muestra cada prenda
-## Gana cuando todas las prendas están marcadas y su reflejo cae en su casilla.
+## Las prendas son opcionales: main.gd llama a usar_prendas() con las que el jugador recogió,
+## y la salida ("E") lleva al siguiente templo aunque el altar quede sin completar.
+## Narciso descansa cuando las cuatro prendas están marcadas y su reflejo cae en su casilla.
 
 const TEX_ESTATUA := preload("res://assets/sprites/estatua.svg")
 const TEX_FLOR := preload("res://assets/sprites/flor_narciso.svg")
 
+signal descanso  # las cuatro prendas están en su lugar
+
 var en_paz := false
+
+
+## Deja en el altar solo las prendas que el jugador trae.
+func usar_prendas(nombres: Array[String]) -> void:
+	datos = datos.duplicate()
+	datos["piedras"] = datos["piedras"].filter(func(p): return p["prenda"] in nombres)
+	reiniciar()
 
 
 func reiniciar() -> void:
@@ -38,17 +49,16 @@ func _turno() -> void:
 	if not en_paz and _vestida():
 		en_paz = true
 		queue_redraw()
-		completada.emit()
+		descanso.emit()
 
 
 func _vestida() -> bool:
 	var destinos: Dictionary = datos["reflejo_vestido"]
+	var puestas := 0
 	for p in piedras:
-		if p["prenda"] == "":
-			continue
-		if not p["marcada"] or transformaciones[0].aplicar(p["pos"]) != _vec(destinos[p["prenda"]]):
-			return false
-	return true
+		if p["prenda"] != "" and p["marcada"] and transformaciones[0].aplicar(p["pos"]) == _vec(destinos[p["prenda"]]):
+			puestas += 1
+	return puestas == destinos.size()
 
 
 func _tex_piedra(p: Dictionary) -> Texture2D:

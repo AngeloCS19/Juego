@@ -4,7 +4,7 @@
 	"exterior": true,
 	"mapa": [
 		"###########",
-		"#.........#",
+		"#.........E",
 		"#.........#",
 		"#.........#",
 		"#.........#",
@@ -31,5 +31,5 @@
 		"cinto": [4, 9],
 		"sandalias": [5, 8]
 	},
-	"solucion": "UUUREEEFLLLDDREEDRUEFDRRRRRULEEEFRURRULEEULDEF"
+	"solucion": "UUUREEEFLLLDDREEDRUEFDRRRRRULEEEFRURRULEEULDEFURRRR"
 }

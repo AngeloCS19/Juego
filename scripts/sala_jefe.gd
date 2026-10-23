@@ -14,6 +14,7 @@ extends Sala
 ## "solucion" la juega en dificultad normal (un turno por acción).
 
 signal golpeado
+signal rompio  # Narciso rompió las piedras sin marcar
 
 const TEX_NARCISO := preload("res://assets/sprites/narciso.svg")
 const CORAZONES := 3
@@ -21,6 +22,7 @@ const AVISO := 2  # turnos que se ve la sombra antes de que caiga una piedra
 const ATURDIDO := 3  # turnos que Narciso se queda quieto después de un golpe
 const MAX_PIEDRAS := 4  # para que la arena no se llene
 const MAX_MARCADAS := 2  # así no basta con marcar todas las piedras y traspasar al azar
+const CADA_ROMPER := 15  # cada cuántos turnos rompe las piedras sin marcar (así no basta con esperar)
 const NARANJA := Color(1.0, 0.55, 0.2)
 
 var todo: Dictionary  # el archivo completo; "datos" es la fase actual
@@ -76,6 +78,8 @@ func _turno() -> void:
 			_caer(s["pos"])
 			if corazones == 0:
 				return  # _caer() ya reinició la fase
+	if _turnos % CADA_ROMPER == 0:
+		_romper()
 	if _turnos % int(datos["cada_lanzamiento"]) == 0 and piedras.size() + sombras.size() < MAX_PIEDRAS:
 		var destino := _vec(datos["lanzamientos"][_lanzadas % datos["lanzamientos"].size()])
 		_lanzadas += 1
@@ -93,6 +97,16 @@ func _caer(c: Vector2i) -> void:
 		return
 	if piedra_en(c) < 0 and celda(c) == ".":
 		piedras.append({"pos": c, "fija": false, "flota": false, "marcada": false})
+
+
+## Rompe las piedras que no están marcadas; después las vuelve a lanzar, porque hay espacio.
+func _romper() -> void:
+	var rotas := piedras.filter(func(p): return not p["marcada"])
+	if rotas.is_empty():
+		return
+	for p in rotas:
+		piedras.erase(p)
+	rompio.emit()
 
 
 ## El golpe ocurre al pasar al plano espiritual: Traspasar es el gatillo.

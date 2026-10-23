@@ -31,7 +31,8 @@ const FONDO_NORMAL := Color(0.1, 0.09, 0.08)
 const FONDO_ESPIRITUAL := Color(0.03, 0.06, 0.12)
 const UMBRAL_DESLIZAR := 30.0  # píxeles: un toque que se mueve menos que esto no es deslizar
 const TIEMPO_EMPUJE := 0.3  # segundos que hay que sostener la dirección para empujar una piedra
-const RITMO_DIFICIL := 0.6  # segundos por turno de Narciso (jefe y huida) en dificultad difícil
+const RITMO_NORMAL := 1.0  # segundos por turno de Narciso (jefe y huida) en dificultad normal
+const RITMO_DIFICIL := 0.6  # en difícil se mueve más rápido y sus piedras caen antes
 const ID_HABILIDADES := 1000  # opción "Todas las habilidades" del menú debug; las salas usan su índice
 const TECLAS_DIRECCION := {
 	KEY_UP: Vector2i.UP, KEY_W: Vector2i.UP, KEY_DOWN: Vector2i.DOWN, KEY_S: Vector2i.DOWN,
@@ -48,10 +49,11 @@ var _dir_dedo := Vector2i.ZERO  # dirección (en pantalla) que el dedo sostiene,
 var _empuje := 0.0  # cuánto tiempo lleva sostenida la dirección hacia una piedra
 var _tween_giro: Tween
 var _todas_habilidades := false  # modo debug: todas las habilidades en cualquier sala
-var dificil := false  # dificultad del jefe: normal es por turnos, difícil en tiempo real
+var dificil := false  # dificultad de Narciso: en las dos se mueve solo, en difícil más rápido
 var _derrotas := 0  # derrotas seguidas ante Narciso en difícil
 var _marcador: Label  # corazones y pétalos durante el jefe
-var _boton_dificultad: Button
+var _menu: Menu
+var _empezada := false  # si ya se tocó Jugar: el menú inicial ofrece Continuar
 var prendas: Array[String] = []  # prendas de Narciso que el jugador ya sacó de su sala
 
 @onready var pivote: Node2D = $Pivote
@@ -59,6 +61,10 @@ var prendas: Array[String] = []  # prendas de Narciso que el jugador ya sacó de
 
 
 func _ready() -> void:
+	# Con un menú abierto el juego se pausa (get_tree().paused). Main y la interfaz siguen
+	# funcionando (ALWAYS) para atender los botones; la sala, dentro de Pivote, se detiene con todo y su reloj.
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	pivote.process_mode = Node.PROCESS_MODE_PAUSABLE
 	var lista: Array[Habilidad] = [Traspasar.new(), Reflejo.new()]
 	barra = BarraHabilidades.new(lista)
 	barra.pedida.connect(_elegir)
@@ -66,6 +72,7 @@ func _ready() -> void:
 	get_viewport().size_changed.connect(_centrar)
 	_centrar()
 	_cargar_sala()
+	_menu_inicio()
 
 
 ## Controles en pantalla para jugar con el dedo (o con el mouse en la PC).
@@ -90,9 +97,9 @@ func _crear_controles_tactiles() -> void:
 	var esquina := VBoxContainer.new()
 	esquina.add_theme_constant_override("separation", 8)
 	esquina.add_child(acciones)
-	_boton_dificultad = BarraHabilidades.crear_boton("", _cambiar_dificultad)
-	_boton_dificultad.size_flags_horizontal = Control.SIZE_SHRINK_END
-	esquina.add_child(_boton_dificultad)
+	var boton_menu := BarraHabilidades.crear_boton("Menú", _menu_pausa)  # en el celular no hay Esc
+	boton_menu.size_flags_horizontal = Control.SIZE_SHRINK_END
+	esquina.add_child(boton_menu)
 	if OS.is_debug_build():
 		var debug := _crear_menu_debug()
 		debug.size_flags_horizontal = Control.SIZE_SHRINK_END
@@ -107,6 +114,9 @@ func _crear_controles_tactiles() -> void:
 	_marcador.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_marcador.add_theme_color_override("font_color", Color(1, 0.85, 0.5))
 	pantalla.add_child(_marcador)  # va justo debajo del texto de arriba (ver _process)
+
+	_menu = Menu.new()
+	$Interfaz.add_child(_menu)  # se agrega al final para quedar encima de todo
 
 
 ## Menú solo para el desarrollador: saltar a cualquier sala y desbloquear todas las habilidades.
@@ -165,15 +175,16 @@ func _cargar_sala() -> void:
 	sala.caida.connect(_on_caida)
 	sala.prenda_recogida.connect(_on_prenda_recogida)
 	pivote.add_child(sala)
-	# La dificultad solo existe donde Narciso actúa: el jefe y la huida.
-	var con_narciso := sala is SalaJefe or sala is SalaHuida
-	_boton_dificultad.visible = con_narciso
-	if con_narciso:
+	# Donde Narciso actúa (jefe y huida) el tiempo corre solo; la dificultad elige qué tan rápido.
+	if sala is SalaJefe or sala is SalaHuida:
 		sala.derrota.connect(_on_derrota)
-		sala.usar_tiempo_real(dificil, RITMO_DIFICIL)
+		sala.usar_tiempo_real(true, _ritmo())
 	if sala is SalaJefe:
 		sala.golpeado.connect(func(): etiqueta.text += "\nNarciso se vio en el reflejo y perdió pétalos.")
-	_pintar_dificultad()
+		sala.rompio.connect(func(): etiqueta.text += "\nNarciso rompió las piedras sin marcar.")
+	if sala is SalaAltar:
+		sala.usar_prendas(prendas)
+		sala.descanso.connect(func(): etiqueta.text += "\nNarciso por fin se ve vestido, y su alma descansa: crece un narciso.")
 	var todas := ["traspasar", "reflejo"]
 	barra.configurar(todas if _todas_habilidades else sala.datos.get("habilidades", todas))
 	_on_plano_cambiado(false)
@@ -182,6 +193,14 @@ func _cargar_sala() -> void:
 # shortcut: teclas fijas en código; pasarlas al Mapa de Entrada del proyecto cuando haya control de mando.
 func _unhandled_input(evento: InputEvent) -> void:
 	if not (evento is InputEventKey and evento.pressed and not evento.echo):
+		return
+	if evento.keycode == KEY_ESCAPE:
+		if _menu.visible:
+			_seguir()
+		else:
+			_menu_pausa()
+		return
+	if _menu.visible:
 		return
 	if evento.keycode in TECLAS_DIRECCION:
 		_mover(TECLAS_DIRECCION[evento.keycode])
@@ -242,6 +261,8 @@ func _casilla_tocada(posicion: Vector2) -> Vector2i:
 func _process(delta: float) -> void:
 	_marcador.text = sala.estado()
 	_marcador.position = etiqueta.position + Vector2(0, etiqueta.size.y)
+	if _menu.visible:
+		return
 	var dir := _a_mundo(_direccion_sostenida())
 	if dir != Vector2i.ZERO and dir == sala.mirando and sala.hay_empujable_enfrente():
 		_empuje += delta
@@ -298,31 +319,84 @@ func _on_plano_cambiado(espiritual: bool) -> void:
 		etiqueta.text += "\nDEBUG: todas las habilidades"
 
 
-func _on_caida() -> void:
-	etiqueta.text += "\nCaíste: volviste al plano normal sobre el vacío o el agua."
+## Abre una ventana del menú y pausa el juego.
+func _abrir(titulo: String, texto: String, opciones: Array) -> void:
+	get_tree().paused = true
+	_dedo_abajo = false
+	_menu.mostrar(titulo, texto, opciones)
 
 
-func _cambiar_dificultad() -> void:
+func _seguir() -> void:
+	_menu.hide()
+	get_tree().paused = false
+
+
+func _menu_inicio() -> void:
+	var opciones := []
+	if _empezada:
+		opciones.append(["Continuar", _seguir])
+		opciones.append(["Empezar de nuevo", _nueva_partida])
+	else:
+		opciones.append(["Jugar", func(): _empezada = true; _seguir()])
+	opciones.append([_texto_dificultad(), _cambiar_dificultad.bind(_menu_inicio)])
+	_abrir("Templo del Río", "", opciones)
+
+
+func _menu_pausa() -> void:
+	_abrir("Pausa", "Esc o el botón Menú abren esta ventana.", [
+		["Seguir", _seguir],
+		[_texto_dificultad(), _cambiar_dificultad.bind(_menu_pausa)],
+		["Menú inicial", _menu_inicio],
+	])
+
+
+## Perder siempre muestra esta ventana. La sala (o la fase, o el tramo) ya volvió a empezar,
+## así que Reintentar solo cierra la ventana: ese es el punto de control.
+func _menu_derrota(motivo: String) -> void:
+	var opciones := [["Reintentar", _seguir], ["Menú inicial", _menu_inicio]]
+	if sala.tiempo_real:  # perdió contra Narciso: puede bajar la velocidad desde aquí
+		opciones.append([_texto_dificultad(), _cambiar_dificultad.bind(_menu_derrota.bind(motivo))])
+	_abrir("Derrota", motivo, opciones)
+
+
+func _nueva_partida() -> void:
+	indice = 0
+	prendas.clear()
+	set_process_unhandled_input(true)  # por si ya se había terminado el templo
+	_cargar_sala()
+	_seguir()
+
+
+func _texto_dificultad() -> String:
+	return "Dificultad: Difícil" if dificil else "Dificultad: Normal"
+
+
+## La dificultad solo cambia la velocidad de Narciso; las salas de puzzle no cambian.
+## "volver" vuelve a dibujar el menú desde donde se cambió, con el texto nuevo.
+func _cambiar_dificultad(volver: Callable) -> void:
 	dificil = not dificil
 	_derrotas = 0
-	sala.usar_tiempo_real(dificil, RITMO_DIFICIL)
-	_pintar_dificultad()
+	if sala.tiempo_real:
+		sala.usar_tiempo_real(true, _ritmo())
+	volver.call()
 
 
-func _pintar_dificultad() -> void:
-	_boton_dificultad.text = "Difícil" if dificil else "Normal"
+func _ritmo() -> float:
+	return RITMO_DIFICIL if dificil else RITMO_NORMAL
+
+
+func _on_caida() -> void:
+	_menu_derrota("Caíste: volviste al plano normal sobre el vacío o el agua.")
 
 
 ## Perder no castiga: después de varias derrotas seguidas en difícil se sugiere normal.
 func _on_derrota() -> void:
-	if sala is SalaHuida:
-		etiqueta.text += "\nNarciso te alcanzó: este tramo empieza otra vez."
-	else:
-		etiqueta.text += "\nNarciso te venció: la fase empieza otra vez."
+	var motivo := "Narciso te alcanzó: este tramo empieza otra vez." if sala is SalaHuida else "Narciso te venció: la fase empieza otra vez."
 	if dificil:
 		_derrotas += 1
 		if _derrotas >= 5:
-			etiqueta.text += "\n¿Muy rápido? Toca el botón Difícil para jugar en Normal, por turnos."
+			motivo += "\n¿Muy rápido? Prueba la dificultad Normal."
+	_menu_derrota(motivo)
 
 
 func _on_prenda_recogida(nombre: String) -> void:
@@ -331,11 +405,12 @@ func _on_prenda_recogida(nombre: String) -> void:
 
 func _on_sala_completada() -> void:
 	# La prenda cuenta al salir de la sala: si el jugador cae y la sala se reinicia, hay que recogerla otra vez.
-	if sala.datos.has("prenda") and not sala.datos["prenda"]["nombre"] in prendas:
+	if sala.datos.has("prenda") and sala.prenda_tomada and not sala.datos["prenda"]["nombre"] in prendas:
 		prendas.append(sala.datos["prenda"]["nombre"])
 	indice += 1
 	if indice < SALAS.size():
 		_cargar_sala.call_deferred()  # diferido: la sala que avisa todavía está ejecutando su código
 	else:
 		set_process_unhandled_input(false)
-		etiqueta.text = "Narciso por fin se ve vestido, y su alma descansa: crece un narciso.\nTemplo del Río completado. Pronto: el espíritu que gira."
+		var cierre := "Narciso descansa en paz." if sala is SalaAltar and sala.en_paz else "El espíritu de Narciso sigue esperando sus prendas junto al estanque."
+		etiqueta.text = cierre + "\nTemplo del Río completado. Pronto: el espíritu que gira."

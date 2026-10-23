@@ -37,8 +37,8 @@ func _init() -> void:
 	# La lava no se sobrevuela en el plano espiritual; se cruza sobre una piedra hundida.
 	_igual(_jugar("rio_11.json", "PRRRR").sala.jugador, Vector2i(4, 1), "la lava bloquea en el plano espiritual")
 	_igual(_jugar("rio_11.json", "DDDREEE").sala.piedras[0]["flota"], true, "una piedra empujada a la lava flota")
-	# La salida queda sellada hasta recoger la prenda, que solo se toma en el plano espiritual.
-	_igual(_jugar("rio_05.json", "UURRDEFUPUUUUU").completada, false, "sin la prenda la salida no se abre")
+	# La prenda es opcional: la salida se abre sin ella. Solo se toma en el plano espiritual.
+	_igual(_jugar("rio_05.json", "UURRDEFUPUUUUU").completada, true, "sin la prenda también se sale")
 	var con_prenda := _jugar("rio_05.json", "RRRULEEULDEFUPUUUUU")
 	_igual(con_prenda.sala.prenda_tomada, true, "la prenda se recoge en el plano espiritual")
 	# Jefe: una piedra que cae encima quita un corazón, y solo hay dos piedras marcadas a la vez.
@@ -47,14 +47,13 @@ func _init() -> void:
 	jefe.mover(Vector2i.DOWN)  # contra el muro: solo gira, pero cuenta como turno
 	_igual(jefe.corazones, 2, "una piedra que cae encima quita un corazón")
 	for x in [5, 6, 8]:
-		jefe.piedras.append({"pos": Vector2i(x, 7), "fija": false, "flota": false, "marcada": false})
-	jefe.jugador = Vector2i(6, 8)
+		jefe.piedras.append({"pos": Vector2i(x, 6), "fija": false, "flota": false, "marcada": false})
 	for x in [5, 6, 8]:
-		jefe.jugador = Vector2i(x, 8)
+		jefe.jugador = Vector2i(x, 7)
 		jefe.mirando = Vector2i.UP
 		jefe.marcar_enfrente()
 	_igual(jefe.piedras.filter(func(p): return p["marcada"]).size(), 2, "el jefe solo permite dos piedras marcadas")
-	_igual(jefe.piedras[jefe.piedra_en(Vector2i(6, 7))]["marcada"] and jefe.piedras[jefe.piedra_en(Vector2i(8, 7))]["marcada"], true, "al marcar una tercera se desmarca la más vieja")
+	_igual(jefe.piedras[jefe.piedra_en(Vector2i(6, 6))]["marcada"] and jefe.piedras[jefe.piedra_en(Vector2i(8, 6))]["marcada"], true, "al marcar una tercera se desmarca la más vieja")
 	creados.append(jefe)
 	# Huida: Narciso deja lava donde pasa, y si alcanza al jugador el tramo vuelve a empezar.
 	var huida := _jugar("rio_huida_1.json", "RRRPPPP")  # tres pasos y cuatro cambios de plano sin moverse
@@ -66,7 +65,14 @@ func _init() -> void:
 	_igual(alcanzado[0], true, "Narciso alcanza al jugador que no huye")
 	_igual(huida.sala.celda(Vector2i(1, 2)), ".", "al reiniciar el tramo la lava desaparece")
 	# Altar: con una prenda sin marcar el reflejo no está completo; las prendas no van al estanque.
-	_igual(_jugar("rio_altar.json", "UUUREEEFLLLDDREEDRUEFDRRRRRULEEEFRURRULEEULDE").completada, false, "el altar pide marcar todas las prendas")
+	_igual(_jugar("rio_altar.json", "UUUREEEFLLLDDREEDRUEFDRRRRRULEEEFRURRULEEULDE").sala.en_paz, false, "el altar pide marcar todas las prendas")
+	_igual(_jugar("rio_altar.json", "UUUREEEFLLLDDREEDRUEFDRRRRRULEEEFRURRULEEULDEF").sala.en_paz, true, "con las cuatro prendas Narciso descansa")
+	# Prendas opcionales: en el altar solo aparecen las recogidas, y se puede salir sin completarlo.
+	var altar: SalaAltar = _jugar("rio_altar.json", "").sala
+	var solo: Array[String] = ["corona", "cinto"]
+	altar.usar_prendas(solo)
+	_igual(altar.piedras.filter(func(p): return p["prenda"] != "").size(), 2, "el altar solo trae las prendas recogidas")
+	_igual(_jugar("rio_altar.json", "UUUURRRRRRRRR").completada, true, "del altar se sale sin completarlo")
 	_igual(_jugar("rio_altar.json", "RRRRRRRRUULDEE").sala.piedras[3]["pos"], Vector2i(8, 5), "una prenda no se empuja al estanque")
 	# Marcar dos veces la desmarca.
 	_igual(_jugar("rio_01.json", "RRUFFPUUUU").completada, false, "Reflejo dos veces desmarca la piedra")

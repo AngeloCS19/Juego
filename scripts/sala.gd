@@ -50,7 +50,7 @@ var jugador: Vector2i
 var piedras: Array[Dictionary] = []  # cada una: {"pos": Vector2i, "fija": bool, "flota": bool, "marcada": bool}
 var mirando := Vector2i.UP  # hacia dónde mira el jugador (la casilla que apuntan las habilidades)
 var espiritual := false
-var prenda_tomada := true  # false mientras la sala tenga una prenda de Narciso sin recoger
+var prenda_tomada := true  # false mientras la sala tenga una prenda de Narciso sin recoger (es opcional)
 var tiempo_real := false  # dificultad difícil en el jefe: los turnos pasan solos
 var _reloj: Timer
 static var _siluetas := {}  # sprite -> su silueta blanca, se calcula una vez
@@ -137,8 +137,7 @@ func _avanzar(dir: Vector2i) -> void:
 	if espiritual and not prenda_tomada and jugador == _vec(datos["prenda"]["pos"]):
 		prenda_tomada = true
 		prenda_recogida.emit(datos["prenda"]["nombre"])
-	# La salida queda sellada hasta recoger la prenda de la sala.
-	if celda(jugador) == "E" and prenda_tomada:
+	if celda(jugador) == "E":
 		completada.emit()
 
 
@@ -295,9 +294,8 @@ func _draw() -> void:
 			if espiritual:
 				_dibujar_casilla_espiritual(c)
 			else:
-				var sellada := celda(c) == "E" and not prenda_tomada
 				var tex: Texture2D = TEX_PASTO if celda(c) == "." and datos.get("exterior", false) else TEX_CASILLA[celda(c)]
-				draw_texture_rect(tex, _rect(c), false, Color(0.35, 0.35, 0.35) if sellada else Color.WHITE)
+				draw_texture_rect(tex, _rect(c), false)
 	if espiritual:
 		for t in transformaciones:
 			t.dibujar(self, TAM, tamano, CELESTE)
@@ -340,6 +338,6 @@ func _dibujar_casilla_espiritual(c: Vector2i) -> void:
 		"^":
 			draw_rect(r, Color(COLOR_LAVA, 0.25))
 		"E":
-			draw_rect(r.grow(-4), Color(COLOR_SALIDA, 0.6 if prenda_tomada else 0.2), false, 2.0)
+			draw_rect(r.grow(-4), Color(COLOR_SALIDA, 0.6), false, 2.0)
 	if celda(c) != "v":
 		draw_rect(r, Color(CELESTE, 0.25), false, 1.0)
