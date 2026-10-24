@@ -534,4 +534,6 @@ func _on_sala_completada() -> void:
 	if indice < SALAS.size():
 		_pasar_de_sala()
 	else:
+		# Fin del templo: una ventana corta en lugar del texto de antes.
 		set_process_unhandled_input(false)
+		_abrir("Templo del Río completado", "", [["Menú inicial", _menu_inicio]])
