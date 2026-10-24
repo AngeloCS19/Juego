@@ -1,2 +1,5 @@
 # Caché que Godot regenera al abrir el proyecto
 .godot/
+
+# Godot crea un .import junto a cada SVG y fuente al abrir el proyecto; los regenera solo, no se suben
+*.import
