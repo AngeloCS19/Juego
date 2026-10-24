@@ -12,6 +12,7 @@ var _ilustracion := TextureRect.new()
 var _fondo := ColorRect.new()
 var _titulo := Label.new()
 var _texto := Label.new()
+var _botones := VBoxContainer.new()
 var _fila := HBoxContainer.new()  # retratos para elegir personaje (solo el menú inicial)
 var _caras: Array[Button] = []
 var _elegido := 0
