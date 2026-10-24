@@ -228,6 +228,8 @@ Después agrega la ruta del archivo a la lista `SALAS` en `scripts/main.gd`.
 - La pantalla recibe los toques sobre el mapa en `_on_toque()`: si el dedo se movió más de `UMBRAL_DESLIZAR` píxeles es un deslizamiento; si no, es un toque sobre una casilla.
 - En `project.godot`, `stretch/aspect="expand"` aprovecha toda la pantalla del celular y `handheld/orientation` la deja horizontal.
 - Los botones tienen `focus_mode = FOCUS_NONE`; si no, Espacio también "presionaría" el último botón tocado.
+- Los botones son **solo iconos** (`assets/sprites/icono_*.svg`). El nombre aparece al lado hasta que el jugador toca ese botón por primera vez; después queda solo como ayuda al pasar el mouse (`tooltip_text`). Lo maneja `crear_boton()` en `barra_habilidades.gd` con un diccionario `static` de botones ya conocidos. El botón **Usar** muestra el icono de la habilidad activa. El icono de cada habilidad se busca por su nombre: `icono_traspasar.svg`, `icono_reflejo.svg`.
+- Arriba a la izquierda solo queda el número y el nombre de la sala; el plano ya lo dice el color del fondo, y los controles se aprenden con los botones.
 
 ## Habilidades
 
