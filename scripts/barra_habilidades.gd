@@ -6,6 +6,7 @@ extends HBoxContainer
 ## Los botones son solo iconos: el nombre aparece al lado hasta que el jugador lo toca la primera vez.
 
 signal pedida(i: int)  # el jugador tocó la habilidad i
+signal nueva(h: Habilidad)  # el jugador consigue una habilidad por primera vez
 
 const COLOR_ACTIVA := Color(0.95, 0.75, 0.3)
 const COLOR_NORMAL := Color(0.4, 0.4, 0.45)
@@ -15,6 +16,8 @@ var habilidades: Array[Habilidad] = []
 var activa := 0
 var boton_usar: Button  # main.gd lo crea; aquí se le cambia el icono por el de la habilidad activa
 var _botones: Array[Button] = []
+var _bloqueada := false  # en el plano espiritual solo Traspasar se puede tocar
+static var _vistas := {}  # habilidades ya anunciadas
 static var _conocidos := {}  # nombres de los botones que el jugador ya tocó: esos ya no muestran texto
 
 
@@ -55,6 +58,9 @@ static func crear_boton(texto: String, accion: Callable, borde := COLOR_NORMAL, 
 func configurar(disponibles: Array) -> void:
 	for h in habilidades:
 		h.disponible = h.nombre.to_lower() in disponibles
+		if h.disponible and not _vistas.has(h.nombre):
+			_vistas[h.nombre] = true
+			nueva.emit(h)
 	if not habilidades[activa].disponible:
 		activa = 0
 	_pintar()
@@ -69,6 +75,12 @@ func elegir(i: int, sala: Sala) -> bool:
 	activa = i
 	_pintar()
 	return true
+
+
+## Apaga (o enciende) todos los botones menos el de la habilidad activa.
+func bloquear(valor: bool) -> void:
+	_bloqueada = valor
+	_pintar()
 
 
 func usar(sala: Sala) -> void:
@@ -90,8 +102,9 @@ func _pintar() -> void:
 	if boton_usar:
 		boton_usar.icon = icono_activa()
 	for i in _botones.size():
-		_botones[i].disabled = not habilidades[i].disponible
-		_botones[i].modulate.a = 1.0 if habilidades[i].disponible else 0.4
+		var libre := habilidades[i].disponible and not (_bloqueada and i != activa)
+		_botones[i].disabled = not libre
+		_botones[i].modulate.a = 1.0 if libre else 0.4
 		_estilo(_botones[i], COLOR_ACTIVA if i == activa else COLOR_NORMAL, 3 if i == activa else 1)
 
 
