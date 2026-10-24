@@ -3,3 +3,7 @@
 
 # Godot crea un .import junto a cada SVG y fuente al abrir el proyecto; los regenera solo, no se suben
 *.import
+
+# Juegos exportados (se generan con Proyecto > Exportar); no se suben
+exportar/*/*
+!exportar/*/.gitkeep
