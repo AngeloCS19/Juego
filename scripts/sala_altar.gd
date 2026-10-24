@@ -11,7 +11,7 @@ extends Sala
 ##   "reflejo_vestido": {"prenda": casilla} donde el reflejo vestido muestra cada prenda
 ## Las prendas son opcionales: main.gd llama a usar_prendas() con las que el jugador recogió,
 ## y la salida ("E") lleva al siguiente templo aunque el altar quede sin completar.
-## Narciso descansa cuando las cuatro prendas están marcadas y su reflejo cae en su casilla.
+## Narciso descansa cuando las cuatro prendas están marcadas, el jugador Traspasa y sus reflejos llegan a su casilla.
 
 const TEX_ESTATUA := preload("res://assets/sprites/estatua.svg")
 const TEX_FLOR := preload("res://assets/sprites/flor_narciso.svg")
@@ -45,11 +45,30 @@ func _empujar(i: int, dir: Vector2i) -> bool:
 	return super(i, dir)
 
 
-func _turno() -> void:
-	if not en_paz and _vestida():
-		en_paz = true
-		queue_redraw()
-		descanso.emit()
+## Narciso descansa solo al Traspasar con las prendas acomodadas, cuando sus reflejos ya llegaron y calzan con las sombras.
+func cambiar_plano() -> void:
+	super()
+	_comprobar()
+
+
+func _process(delta: float) -> void:
+	super(delta)
+	_comprobar()
+
+
+func _comprobar() -> void:
+	if en_paz or not espiritual or not _vestida() or (is_inside_tree() and not _reflejos_llegaron()):
+		return  # fuera del árbol (las pruebas) no hay animación que esperar
+	en_paz = true
+	queue_redraw()
+	descanso.emit()
+
+
+## ¿Ya terminó el viaje de los reflejos (ver "viaje" en sala.gd), más una pausa corta para verlos calzar?
+func _reflejos_llegaron() -> bool:
+	if _t_plano < DURACION_MANCHA * 0.8 + DURACION_REFLEJO + 0.3:
+		return false
+	return piedras.all(func(p): return p.get("t_marca", 9.0) >= DURACION_REFLEJO + 0.3)
 
 
 func _vestida() -> bool:

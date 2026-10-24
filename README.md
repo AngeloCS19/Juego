@@ -200,8 +200,8 @@ Después de la huida el jugador sale del templo (`"exterior": true` dibuja el pi
 - En el plano espiritual se ve el **reflejo vestido**: la estatua de cabeza en el estanque y, en celeste tenue, dónde va cada prenda (`reflejo_vestido`).
 - Las prendas son piedras con `"prenda"`: se empujan como piedras, pero no al agua. La estatua (`estatua`) es una piedra fija.
 - Solo aparecen las prendas que el jugador recogió (`usar_prendas()`, que llama `main.gd`). El reflejo vestido siempre muestra las cuatro, para que se note cuáles faltan.
-- Cuando las cuatro prendas están **marcadas** con Reflejo y su reflejo cae en su casilla, el alma de Narciso descansa y crece un narciso donde estaba la estatua (señal `descanso`).
-- La salida lleva al siguiente templo aunque el altar quede incompleto: las prendas son opcionales.
+- Cuando las cuatro prendas están **marcadas** con Reflejo, el jugador usa **Traspasar** y sus reflejos terminan de viajar y calzan con las sombras, el alma de Narciso descansa y crece un narciso donde estaba la estatua (señal `descanso`). Marcarlas no basta: hay que mirar el reflejo.
+- La salida está detrás de un charco de agua suelto (no es parte del eje del estanque): hay que Traspasar para llegar, así el jugador ve las sombras de las prendas. Se llega a `E` sin volver al plano normal, así que no hay caída. Las prendas son opcionales: se sale aunque el altar quede incompleto.
 
 ## Crear una sala nueva sin programar
 
