@@ -527,6 +527,7 @@ func _eje_vertical() -> bool:
 
 
 func _on_sala_completada() -> void:
+	await get_tree().create_timer(Sala.DURACION_SALIDA).timeout  # primero se ve entrar al personaje en el espejo
 	# La prenda cuenta al salir de la sala: si el jugador cae y la sala se reinicia, hay que recogerla otra vez.
 	if sala.datos.has("prenda") and sala.prenda_tomada and not sala.datos["prenda"]["nombre"] in prendas:
 		prendas.append(sala.datos["prenda"]["nombre"])
