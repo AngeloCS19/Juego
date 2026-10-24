@@ -62,6 +62,7 @@ var _botones_tactiles: Array[Control] = []  # todo lo que solo se ve con pantall
 var _anuncios: Array[Habilidad] = []  # habilidades nuevas esperando su anuncio en el centro
 var _anunciando := false
 var _tutorial_hecho := {}  # salas (ruta) cuyo tutorial visual el jugador ya cumplió
+var _aviso_usar: HBoxContainer  # sala 1 en la PC: "clic / Espacio para usar la habilidad"
 var _barra_jefe: BarraJefe  # vida de Narciso y corazones del jugador, solo en su sala
 var _menu: Menu
 var _dialogo: Dialogo
@@ -73,6 +74,8 @@ const ICONO_REINICIAR := preload("res://assets/sprites/icono_reiniciar.svg")
 const FUENTE_ANUNCIO := preload("res://assets/fuentes/Cinzel-Bold.ttf")
 const DESENFOQUE := preload("res://shaders/desenfoque.gdshader")
 const ICONO_MENU := preload("res://assets/sprites/icono_menu.svg")
+const ICONO_CLIC_IZQ := preload("res://assets/sprites/icono_clic_izq.svg")
+const ICONO_ESPACIO := preload("res://assets/sprites/icono_espacio.svg")
 
 var prendas: Array[String] = []  # prendas de Narciso que el jugador ya sacó de su sala
 
@@ -134,6 +137,10 @@ func _crear_controles_tactiles() -> void:
 	_botones_tactiles = [acciones, boton_menu, usar]
 	_mostrar_botones()
 
+	_aviso_usar = _crear_aviso_usar()
+	_en_esquina(pantalla, _aviso_usar, Control.PRESET_CENTER_BOTTOM)
+	_aviso_usar.position.y -= 96  # encima de la hotbar
+
 	_barra_jefe = BarraJefe.new()
 	pantalla.add_child(_barra_jefe)
 
@@ -145,6 +152,33 @@ func _crear_controles_tactiles() -> void:
 	$Interfaz.add_child(_dialogo)
 	_menu = Menu.new()
 	$Interfaz.add_child(_menu)  # se agrega al final para quedar encima de todo
+
+
+## "[clic izquierdo] / [Espacio] para usar la habilidad": la única pista con texto, porque en la PC
+## no hay botón Usar que tocar. Se muestra mientras dura el tutorial de una sala con "aviso_usar".
+func _crear_aviso_usar() -> HBoxContainer:
+	var fila := HBoxContainer.new()
+	fila.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fila.alignment = BoxContainer.ALIGNMENT_CENTER
+	fila.add_theme_constant_override("separation", 10)
+	for parte in [ICONO_CLIC_IZQ, "/", ICONO_ESPACIO, "para usar la habilidad"]:
+		if parte is Texture2D:
+			var icono := TextureRect.new()
+			icono.texture = parte
+			icono.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icono.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icono.custom_minimum_size = Vector2(parte.get_width(), parte.get_height()) * 0.6
+			fila.add_child(icono)
+		else:
+			var texto := Label.new()
+			texto.text = parte
+			texto.add_theme_font_override("font", FUENTE_ANUNCIO)
+			texto.add_theme_font_size_override("font_size", 26)
+			texto.add_theme_color_override("font_color", Color(0.95, 0.9, 0.8))
+			texto.add_theme_color_override("font_outline_color", Color(0.1, 0.05, 0.02))
+			texto.add_theme_constant_override("outline_size", 8)
+			fila.add_child(texto)
+	return fila
 
 
 ## Menú solo para el desarrollador: saltar a cualquier sala y desbloquear todas las habilidades.
@@ -430,6 +464,7 @@ func _casilla_tocada(posicion: Vector2) -> Vector2i:
 func _process(delta: float) -> void:
 	_barra_jefe.actualizar(sala)
 	_vigilar_tutorial()
+	_aviso_usar.visible = not _tactil and sala.datos.get("tutorial", {}).get("aviso_usar", false) and not _tutorial_hecho.has(SALAS[indice])
 	_ocultar_cursor()
 	if _menu.visible or _dialogo.visible or _cortina.activa():
 		return
