@@ -1,14 +1,18 @@
 class_name Musica
 extends Node
-## Música del Templo del Río (ocarina y marimba). La pieza viene en capas: marimba, bajo y ocarina.
+## Música del juego. Cada pieza viene en capas (el templo: marimba, bajo y ocarina; la huida, una sola).
 ## Cada capa está grabada dos veces con el mismo largo: la del plano normal y la del espiritual
-## (filtrada, con más eco y un brillo cristalino). Las seis suenan siempre a la vez, en sincronía,
+## (filtrada, con más eco y un brillo cristalino). Todas suenan siempre a la vez, en sincronía,
 ## y solo cambia cuáles se oyen: así, al Traspasar la música se cruza sin cortarse.
 ## Los archivos salen de tools/musica/ (ver el README).
 
-const CAPAS := ["marimba", "bajo", "ocarina"]
+const PIEZAS := {
+	"templo": ["templo_marimba", "templo_bajo", "templo_ocarina"],
+	"huida": ["huida"],  # las cuatro melodías de Angelo en flauta, tocadas por la ocarina
+}
 ## Índice de SALAS (main.gd) desde el que suena cada capa: la pieza se arma a lo largo del templo.
 const DESDE := [0, 6, 12]
+const SALIDA := 1.5  # segundos que tarda en apagarse una pieza al cambiar a otra
 const CRUCE := 0.6  # segundos que tarda la música en pasar de un plano al otro
 const ENTRADA := 3.0  # segundos que tarda una capa nueva en entrar
 const SILENCIO := -60.0  # dB: tan bajo que no se oye
@@ -18,6 +22,7 @@ const NOMBRES_VOLUMEN := ["Alta", "Media", "Apagada"]
 var volumen := 0  # índice en VOLUMENES
 var _normal: Array[AudioStreamPlayer] = []
 var _espiritual: Array[AudioStreamPlayer] = []
+var _pieza := ""  # la que suena ("" = silencio)
 var _capas := 0  # cuántas capas se oyen
 var _en_espiritual := false
 var _tween: Tween
@@ -28,9 +33,6 @@ func _ready() -> void:
 	# Un bus de audio propio para la música: el menú cambia su volumen sin tocar los efectos.
 	AudioServer.add_bus()
 	AudioServer.set_bus_name(AudioServer.bus_count - 1, "Musica")
-	for capa in CAPAS:
-		_normal.append(_crear("res://assets/musica/templo_%s_normal.ogg" % capa))
-		_espiritual.append(_crear("res://assets/musica/templo_%s_espiritual.ogg" % capa))
 
 
 func _crear(ruta: String) -> AudioStreamPlayer:
@@ -49,13 +51,29 @@ static func capas_en(indice: int) -> int:
 	return DESDE.filter(func(desde): return indice >= desde).size()
 
 
-## Elige cuántas capas se oyen. Con 0 la música se apaga.
-func tocar(capas: int) -> void:
-	if capas > 0 and not _normal[0].playing:
+## Toca una pieza de PIEZAS ("" = silencio) con sus primeras "capas" capas.
+## Si ya sonaba esa pieza, sigue sin volver a empezar (así la huida no se corta entre tramos).
+func tocar(pieza: String, capas := 99) -> void:
+	if pieza != _pieza:
+		_pieza = pieza
+		_apagar(_normal + _espiritual)
+		_normal.clear()
+		_espiritual.clear()
+		for capa in PIEZAS.get(pieza, []):
+			_normal.append(_crear("res://assets/musica/%s_normal.ogg" % capa))
+			_espiritual.append(_crear("res://assets/musica/%s_espiritual.ogg" % capa))
 		for p in _normal + _espiritual:
 			p.play()  # todas juntas, en el mismo cuadro, para que queden en sincronía
 	_capas = capas
 	_mezclar(ENTRADA)
+
+
+## La pieza anterior se apaga despacio y después se borra.
+func _apagar(viejos: Array[AudioStreamPlayer]) -> void:
+	for p in viejos:
+		var t := create_tween()
+		t.tween_property(p, "volume_db", SILENCIO, SALIDA)
+		t.tween_callback(p.queue_free)
 
 
 ## El jugador cambió de plano: se cruza a la versión del otro plano.
@@ -69,8 +87,10 @@ func plano(espiritual: bool) -> void:
 func _mezclar(duracion: float) -> void:
 	if _tween:
 		_tween.kill()
+	if _normal.is_empty():
+		return  # silencio: no hay nada que mezclar
 	_tween = create_tween().set_parallel()
-	for i in CAPAS.size():
+	for i in _normal.size():
 		var activa := i < _capas
 		_fundir(_normal[i], activa and not _en_espiritual, duracion)
 		_fundir(_espiritual[i], activa and _en_espiritual, duracion)
