@@ -8,6 +8,8 @@ const FLOR := preload("res://assets/sprites/flor_corona.svg")
 const ANCHO := 260.0  # ancho en pantalla de la cabeza
 const ESCALA := ANCHO / 600.0
 const CAFE := Color("#2b1a14")
+const APARECER := preload("res://shaders/aparecer.gdshader")
+const DURACION_APARECER := 1.6
 ## La corona es un arco: elipse de centro (300,335) y radios 205 x 170 (ver docs/sprites.md).
 const CENTRO_ARCO := Vector2(300, 335)
 const RADIOS := Vector2(205, 170)
@@ -17,6 +19,8 @@ var _cabeza := TextureRect.new()
 var _flores: Array[TextureRect] = []  # de izquierda a derecha
 var _vivas: Array[bool] = []
 var _corazones := 0
+var _fundido := ShaderMaterial.new()  # la cabeza y sus flores lo comparten: aparecen juntas de abajo hacia arriba
+var _avance := 0.0  # 0 = oculta, 1 = entera
 
 
 func _init() -> void:
@@ -26,6 +30,8 @@ func _init() -> void:
 	_cabeza.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_cabeza.size = Vector2(600, 330) * ESCALA
 	_cabeza.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_fundido.shader = APARECER
+	_cabeza.material = _fundido
 	_cabeza.self_modulate = Color(0.7, 0.9, 1.0, 0.5)  # self_: no tiñe a las flores, que son sus hijas. Fantasmal, como vista desde el plano celeste; solo las flores son sólidas
 	add_child(_cabeza)
 	hide()
@@ -33,6 +39,17 @@ func _init() -> void:
 
 func _process(_delta: float) -> void:
 	_cabeza.position = Vector2((size.x - ANCHO) / 2, 8)
+	# La línea del fundido sube desde el pie de la cabeza hasta arriba (con margen para la franja suave).
+	var alto := get_viewport_rect().size.y
+	var arriba := _cabeza.global_position.y / alto - 0.06
+	var abajo := (_cabeza.global_position.y + _cabeza.size.y) / alto + 0.06
+	_fundido.set_shader_parameter("borde", lerpf(abajo, arriba, _avance))
+
+
+## Al terminar el primer diálogo del jefe: la cabeza aparece poco a poco, de abajo hacia arriba.
+func aparecer() -> void:
+	if visible and _avance == 0.0:
+		create_tween().tween_property(self, "_avance", 1.0, DURACION_APARECER).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 
 ## Se llama al cargar la sala: solo se ve en la del jefe. Pone una flor por cada pétalo del combate.
@@ -41,6 +58,7 @@ func configurar(sala: Sala) -> void:
 		f.queue_free()
 	_flores.clear()
 	_vivas.clear()
+	_avance = 0.0  # oculta hasta que Narciso termine de hablar
 	visible = sala is SalaJefe
 	if not visible:
 		return
@@ -51,6 +69,7 @@ func configurar(sala: Sala) -> void:
 		var tam := lerpf(80, 100, sin(a))  # las del centro son más grandes
 		var f := TextureRect.new()
 		f.texture = FLOR
+		f.material = _fundido
 		f.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		f.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		f.size = Vector2(tam, tam) * ESCALA

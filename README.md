@@ -47,6 +47,7 @@ scripts/sala_huida.gd     Los tramos de la huida (extiende Sala)
 scripts/sala_altar.gd     El altar de Narciso, afuera del templo (extiende Sala)
 scripts/menu.gd           Ventana de menú inicial, pausa y derrota
 scripts/barra_jefe.gd     Vida de Narciso (su cabeza con una flor por pétalo) y corazones del jugador, solo en la sala del jefe
+shaders/                  Efectos que corren en la tarjeta de video: desenfoque.gdshader (fondo del anuncio) y aparecer.gdshader (la cabeza de Narciso aparece de abajo hacia arriba al terminar su primer diálogo)
 scripts/dialogo.gd        Ventana de diálogo con retrato (estilo Hades)
 scripts/barra_habilidades.gd  Hotbar de habilidades (abajo al centro, siempre visible)
 scripts/habilidades/
