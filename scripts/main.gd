@@ -59,7 +59,9 @@ var dificil := false  # dificultad de Narciso: en las dos se mueve solo, en dif�
 var _derrotas := 0  # derrotas seguidas ante Narciso en difícil
 var _tactil := false  # hay pantalla táctil: se muestran los botones y se juega con toques
 var _botones_tactiles: Array[Control] = []  # todo lo que solo se ve con pantalla táctil
-var _aviso: HBoxContainer  # icono y nombre de una habilidad nueva, para quien juega sin botones
+var _anuncios: Array[Habilidad] = []  # habilidades nuevas esperando su anuncio en el centro
+var _anunciando := false
+var _tutorial_hecho := {}  # salas (ruta) cuyo tutorial visual el jugador ya cumplió
 var _barra_jefe: BarraJefe  # vida de Narciso y corazones del jugador, solo en su sala
 var _menu: Menu
 var _dialogo: Dialogo
@@ -68,6 +70,7 @@ var _empezada := false  # si ya se tocó Jugar: el menú inicial ofrece Continua
 const ICONO_GIRAR_IZQ := preload("res://assets/sprites/icono_girar_izq.svg")
 const ICONO_GIRAR_DER := preload("res://assets/sprites/icono_girar_der.svg")
 const ICONO_REINICIAR := preload("res://assets/sprites/icono_reiniciar.svg")
+const FUENTE_ANUNCIO := preload("res://assets/fuentes/Cinzel-Bold.ttf")
 const ICONO_MENU := preload("res://assets/sprites/icono_menu.svg")
 
 var prendas: Array[String] = []  # prendas de Narciso que el jugador ya sacó de su sala
@@ -83,7 +86,7 @@ func _ready() -> void:
 	var lista: Array[Habilidad] = [Traspasar.new(), Reflejo.new()]
 	barra = BarraHabilidades.new(lista)
 	barra.pedida.connect(_elegir)
-	barra.nueva.connect(_avisar)
+	barra.nueva.connect(_anunciar)
 	_tactil = DisplayServer.is_touchscreen_available() or OS.has_feature("mobile")
 	_crear_controles_tactiles()
 	get_viewport().size_changed.connect(_centrar)
@@ -124,19 +127,11 @@ func _crear_controles_tactiles() -> void:
 		debug.size_flags_horizontal = Control.SIZE_SHRINK_END
 		esquina.add_child(debug)
 
-	_en_esquina(pantalla, barra, Control.PRESET_BOTTOM_LEFT)
+	_en_esquina(pantalla, barra, Control.PRESET_CENTER_BOTTOM)  # la hotbar se ve siempre, también en la PC
 	_en_esquina(pantalla, esquina, Control.PRESET_TOP_RIGHT)
 	_en_esquina(pantalla, usar, Control.PRESET_BOTTOM_RIGHT)
-	_botones_tactiles = [barra, acciones, boton_menu, usar]
+	_botones_tactiles = [acciones, boton_menu, usar]
 	_mostrar_botones()
-
-	# Aviso discreto abajo a la izquierda (donde estaría la barra) para quien juega sin botones.
-	_aviso = HBoxContainer.new()
-	_aviso.add_theme_constant_override("separation", 10)
-	_aviso.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_aviso.modulate.a = 0.0
-	_aviso.process_mode = Node.PROCESS_MODE_PAUSABLE  # su desvanecido espera a que se cierre el menú
-	_en_esquina(pantalla, _aviso, Control.PRESET_BOTTOM_LEFT)
 
 	_barra_jefe = BarraJefe.new()
 	pantalla.add_child(_barra_jefe)
@@ -194,39 +189,75 @@ func _on_menu_debug(id: int, lista: PopupMenu) -> void:
 func _mostrar_botones() -> void:
 	for nodo in _botones_tactiles:
 		nodo.visible = _tactil
-	if _aviso:
-		_aviso.visible = not _tactil
 
 
-## Aviso breve con el icono y el nombre de una habilidad nueva. Con botones no hace falta:
-## el nombre ya está en el botón hasta el primer toque.
-func _avisar(h: Habilidad) -> void:
-	if _tactil:
+## La primera vez que se consigue una habilidad: su nombre grande en medio de la pantalla y luego
+## el icono vuela hasta su casilla de la hotbar. Se hacen de una en una y esperan a que se cierre
+## cualquier menú, diálogo o cortina, para no perderse.
+func _anunciar(h: Habilidad) -> void:
+	_anuncios.append(h)
+	if _anunciando:
 		return
-	for hijo in _aviso.get_children():
-		hijo.queue_free()
+	_anunciando = true
+	await get_tree().process_frame  # el menú inicial y los diálogos se abren justo después de cargar la sala
+	while not _anuncios.is_empty():
+		while _menu.visible or _dialogo.visible or _cortina.activa():
+			await get_tree().process_frame
+		await _mostrar_anuncio(_anuncios.pop_front())
+	_anunciando = false
+
+
+func _mostrar_anuncio(h: Habilidad) -> void:
+	var i := barra.habilidades.find(h)
+	var raiz := Control.new()
+	raiz.set_anchors_preset(Control.PRESET_FULL_RECT)
+	raiz.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	$Interfaz.add_child(raiz)
+	var centro := get_viewport_rect().size / 2
 	var icono := TextureRect.new()
 	icono.texture = load("res://assets/sprites/icono_%s.svg" % h.nombre.to_lower())
 	icono.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icono.custom_minimum_size = Vector2(40, 40)
-	_aviso.add_child(icono)
+	icono.size = Vector2(128, 128)
+	icono.pivot_offset = icono.size / 2
+	icono.position = centro - icono.size / 2 - Vector2(0, 40)
+	raiz.add_child(icono)
 	var nombre := Label.new()
 	nombre.text = h.nombre
-	nombre.add_theme_font_size_override("font_size", 22)
+	nombre.add_theme_font_override("font", FUENTE_ANUNCIO)
+	nombre.add_theme_font_size_override("font_size", 56)
 	nombre.add_theme_color_override("font_color", BarraHabilidades.COLOR_ACTIVA)
-	nombre.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_aviso.add_child(nombre)
-	var t := _aviso.create_tween()
-	t.tween_property(_aviso, "modulate:a", 1.0, 0.3)
-	t.tween_interval(2.5)
-	t.tween_property(_aviso, "modulate:a", 0.0, 1.0)
+	nombre.add_theme_color_override("font_outline_color", Color(0.1, 0.05, 0.02))
+	nombre.add_theme_constant_override("outline_size", 12)
+	nombre.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	nombre.size = Vector2(get_viewport_rect().size.x, 70)
+	nombre.position = Vector2(0, centro.y + 40)
+	raiz.add_child(nombre)
+	raiz.modulate.a = 0.0
+	icono.scale = Vector2.ONE * 0.6
+	var t := create_tween().set_parallel(true)  # aparece (0,3 s), se queda (0,6 s) y vuela (0,6 s)
+	t.tween_property(raiz, "modulate:a", 1.0, 0.3)
+	t.tween_property(icono, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	await t.finished
+	await get_tree().create_timer(0.6).timeout
+	var casilla := barra.casilla(i)
+	var destino := casilla.global_position + casilla.size / 2 - icono.size / 2
+	var v := create_tween().set_parallel(true)
+	v.tween_property(nombre, "modulate:a", 0.0, 0.25)
+	v.tween_property(icono, "position", destino, 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	v.tween_property(icono, "scale", Vector2.ONE * (48.0 / 128.0), 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	await v.finished
+	raiz.queue_free()
+	barra.revelar(i)
 
 
 func _en_esquina(padre: Control, nodo: Control, esquina: Control.LayoutPreset) -> void:
 	padre.add_child(nodo)
 	nodo.set_anchors_and_offsets_preset(esquina, Control.PRESET_MODE_MINSIZE, 16)
 	# Que crezca hacia adentro de la pantalla si su contenido cambia de tamaño.
-	nodo.grow_horizontal = Control.GROW_DIRECTION_BEGIN if esquina in [Control.PRESET_TOP_RIGHT, Control.PRESET_BOTTOM_RIGHT] else Control.GROW_DIRECTION_END
+	if esquina == Control.PRESET_CENTER_BOTTOM:
+		nodo.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	else:
+		nodo.grow_horizontal = Control.GROW_DIRECTION_BEGIN if esquina in [Control.PRESET_TOP_RIGHT, Control.PRESET_BOTTOM_RIGHT] else Control.GROW_DIRECTION_END
 	nodo.grow_vertical = Control.GROW_DIRECTION_BEGIN if esquina in [Control.PRESET_BOTTOM_LEFT, Control.PRESET_BOTTOM_RIGHT] else Control.GROW_DIRECTION_END
 
 
@@ -257,8 +288,38 @@ func _cargar_sala() -> void:
 		sala.descanso.connect(func(): _hablar(sala.datos.get("dialogo_final", [])))
 	var todas := ["traspasar", "reflejo"]
 	barra.configurar(todas if _todas_habilidades else sala.datos.get("habilidades", todas))
+	_iniciar_tutorial()
 	_on_plano_cambiado(false)
 	_hablar(sala.datos.get("dialogo", []))
+
+
+## Tutorial solo visual: la sala dice en "tutorial" qué habilidad brilla (y, si hace falta, en qué piedra).
+## Deja de brillar cuando el jugador hace lo que se le indica, y no vuelve en esa sesión.
+func _iniciar_tutorial() -> void:
+	for h in barra.habilidades:
+		barra.pulsar(h.nombre, false)
+	var t: Dictionary = sala.datos.get("tutorial", {})
+	if t.is_empty() or _tutorial_hecho.has(SALAS[indice]):
+		return
+	barra.pulsar(t["habilidad"], true)
+	if t.has("piedra"):
+		sala.tutorial_piedra = Vector2i(t["piedra"][0], t["piedra"][1])
+
+
+func _vigilar_tutorial() -> void:
+	var t: Dictionary = sala.datos.get("tutorial", {})
+	if t.is_empty() or _tutorial_hecho.has(SALAS[indice]):
+		return
+	var hecho := false
+	if t["habilidad"] == "traspasar":
+		hecho = sala.espiritual
+	else:
+		var i := sala.piedra_en(Vector2i(t["piedra"][0], t["piedra"][1]))
+		hecho = i >= 0 and sala.piedras[i]["marcada"]
+	if hecho:
+		_tutorial_hecho[SALAS[indice]] = true
+		barra.pulsar(t["habilidad"], false)
+		sala.tutorial_piedra = Vector2i(-1, -1)
 
 
 ## Muestra una conversación (líneas del JSON de la sala). El juego queda en pausa mientras dura.
@@ -356,6 +417,7 @@ func _casilla_tocada(posicion: Vector2) -> Vector2i:
 ## Empujar: sostener la dirección hacia una piedra que ya estás mirando.
 func _process(delta: float) -> void:
 	_barra_jefe.actualizar(sala)
+	_vigilar_tutorial()
 	_ocultar_cursor()
 	if _menu.visible or _dialogo.visible or _cortina.activa():
 		return

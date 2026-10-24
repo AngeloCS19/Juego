@@ -12,5 +12,6 @@
 	"jugador": [3, 5],
 	"plano_espiritual": { "tipo": "reflexion", "eje": "horizontal", "valor": 3 },
 	"habilidades": ["traspasar"],
+	"tutorial": { "habilidad": "traspasar" },
 	"solucion": "PUUUU"
 }

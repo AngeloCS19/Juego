@@ -67,6 +67,7 @@ var jugador: Vector2i
 var piedras: Array[Dictionary] = []  # cada una: {"pos": Vector2i, "fija": bool, "flota": bool, "marcada": bool, "variante": int}
 var mirando := Vector2i.UP  # hacia dónde mira el jugador (la casilla que apuntan las habilidades)
 var espiritual := false
+var tutorial_piedra := Vector2i(-1, -1)  # piedra que brilla para indicar dónde usar Reflejo (tutorial); (-1, -1): ninguna
 var prenda_tomada := true  # false mientras la sala tenga una prenda de Narciso sin recoger (es opcional)
 static var personaje := 0  # índice en TEX_PERSONAJES; static: lo comparten todas las salas
 var tiempo_real := false  # dificultad difícil en el jefe: los turnos pasan solos
@@ -422,6 +423,13 @@ func _draw() -> void:
 		if p["marcada"]:
 			var salto := 1.0 + 0.35 * maxf(0.0, 1.0 - p.get("t_marca", 1.0) / 0.25)  # aparece grande y se asienta
 			draw_texture_rect(TEX_ANILLO_REFLEJO, Rect2(centro - r.size * salto * 0.5, r.size * salto), false)
+	if not espiritual and tutorial_piedra.x >= 0:
+		var i := piedra_en(tutorial_piedra)
+		if i >= 0 and not piedras[i]["marcada"]:
+			var k := 0.5 + 0.5 * sin(_t * TAU / 1.1)  # pulso de tamaño y brillo
+			var c: Vector2 = piedras[i].get("vis", _centro(tutorial_piedra))
+			draw_circle(c, TAM * (0.55 + 0.2 * k), Color(1, 0.85, 0.4, 0.15 + 0.25 * k))
+			draw_arc(c, TAM * (0.58 + 0.2 * k), 0, TAU, 40, Color(1, 0.88, 0.5, 0.5 + 0.5 * k), 3.0)
 	if espiritual and not prenda_tomada:
 		draw_texture_rect(TEX_PRENDA[datos["prenda"]["nombre"]], _rect(_vec(datos["prenda"]["pos"])).grow(-4), false)
 	var tex_jugador: Texture2D = TEX_PERSONAJES[personaje]
