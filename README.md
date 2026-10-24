@@ -48,7 +48,7 @@ scripts/sala_altar.gd     El altar de Narciso, afuera del templo (extiende Sala)
 scripts/menu.gd           Ventana de menú inicial, pausa y derrota
 scripts/barra_jefe.gd     Vida de Narciso (su cabeza con una flor por pétalo) y corazones del jugador, solo en la sala del jefe
 scripts/dialogo.gd        Ventana de diálogo con retrato (estilo Hades)
-scripts/barra_habilidades.gd  Barra de habilidades (abajo a la izquierda)
+scripts/barra_habilidades.gd  Hotbar de habilidades (abajo al centro, siempre visible)
 scripts/habilidades/
   habilidad.gd            Molde general de cualquier habilidad
   traspasar.gd            Cambiar de plano
@@ -233,13 +233,15 @@ Después agrega la ruta del archivo a la lista `SALAS` en `scripts/main.gd`.
 - En `project.godot`, `stretch/aspect="expand"` aprovecha toda la pantalla del celular y `handheld/orientation` la deja horizontal.
 - Los botones tienen `focus_mode = FOCUS_NONE`; si no, Espacio también "presionaría" el último botón tocado.
 - Los botones son **solo iconos** (`assets/sprites/icono_*.svg`). El nombre aparece al lado hasta que el jugador toca ese botón por primera vez; después queda solo como ayuda al pasar el mouse (`tooltip_text`). Lo maneja `crear_boton()` en `barra_habilidades.gd` con un diccionario `static` de botones ya conocidos. El botón **Usar** muestra el icono de la habilidad activa. El icono de cada habilidad se busca por su nombre: `icono_traspasar.svg`, `icono_reflejo.svg`.
-- Los botones **solo se ven con pantalla táctil** (`DisplayServer.is_touchscreen_available()` o Android/iOS). En la PC se juega con teclado: el **clic izquierdo** usa la habilidad (como Espacio) y el cursor se oculta mientras se juega (`_ocultar_cursor()`); solo se ve con un menú abierto. En el editor, el menú Debug tiene "Botones táctiles" para probarlos (y el cursor se ve cerca de ese botón).
-- Casi no hay texto en pantalla. Con botones, el nombre de una habilidad nueva se ve en su botón hasta el primer toque; sin botones, `_avisar()` muestra abajo a la izquierda su icono y nombre un momento (señal `nueva` de la barra).
-- En el plano espiritual los botones de las demás habilidades se ven apagados (`barra.bloquear()`), sin mensaje.
+- Los botones (menos la hotbar) **solo se ven con pantalla táctil** (`DisplayServer.is_touchscreen_available()` o Android/iOS). En la PC se juega con teclado: el **clic izquierdo** usa la habilidad (como Espacio) y el cursor se oculta mientras se juega (`_ocultar_cursor()`); solo se ve con un menú abierto. En el editor, el menú Debug tiene "Botones táctiles" para probarlos (y el cursor se ve cerca de ese botón).
+- Casi no hay texto en pantalla. La **hotbar** (`BarraHabilidades`) está abajo al centro, en PC y en celular: una casilla cuadrada por habilidad desbloqueada, con su icono y el número de su tecla (1, 2…) en la esquina inferior izquierda. La activa tiene borde dorado grueso y brillo; las demás se ven más oscuras. En el celular las casillas se tocan para elegir.
+- La primera vez que se consigue una habilidad (señal `nueva` de la barra), `_anunciar()` muestra su nombre grande en medio (Cinzel, dorado, con el icono), y el icono vuela hasta su casilla, que aparece al llegar (`revelar()`). Espera a que se cierre el menú, el diálogo o la cortina, y varios anuncios van de uno en uno.
+- **Tutorial visual** (sin texto): la sala puede traer `"tutorial": {"habilidad": "traspasar"}` o `{"habilidad": "reflejo", "piedra": [x, y]}`. Esa casilla de la hotbar brilla dilatándose (`barra.pulsar()`) y, si hay `piedra`, la sala dibuja un pulso alrededor de ella (`tutorial_piedra`). Deja de brillar cuando el jugador usa Traspasar o marca esa piedra (`_vigilar_tutorial()` en `main.gd`).
+- En el plano espiritual las casillas de las demás habilidades se ven oscuras (`barra.bloquear()`), sin mensaje.
 
 ## Habilidades
 
-El jugador tiene una barra de habilidades y solo una está activa a la vez (con borde dorado). Espacio usa la activa. Mientras una habilidad sigue en curso no se puede elegir otra: por ejemplo, estando en el plano espiritual con Traspasar no puedes cambiar a Reflejo (su botón se ve apagado).
+El jugador tiene una hotbar de habilidades y solo una está activa a la vez (con borde dorado). Espacio usa la activa. Mientras una habilidad sigue en curso no se puede elegir otra: por ejemplo, estando en el plano espiritual con Traspasar no puedes cambiar a Reflejo (su casilla se ve oscura).
 
 - `Habilidad` es el molde: tiene `nombre`, `disponible`, `usar(sala)` y `en_curso(sala)`.
 - `Traspasar` es la primera: `usar()` llama a `sala.cambiar_plano()` y `en_curso()` responde si estás en el plano espiritual.

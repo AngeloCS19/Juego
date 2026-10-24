@@ -14,5 +14,6 @@
 	"piedras": [
 		{ "pos": [3, 4], "fija": true }
 	],
+	"tutorial": { "habilidad": "reflejo", "piedra": [3, 4] },
 	"solucion": "RRUFPUUUU"
 }
