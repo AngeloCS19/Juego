@@ -116,6 +116,7 @@ La ventana pausa el juego (como el menú). El texto aparece letra por letra con 
 
 - **Entre salas** (`cortina.gd`): un espejo que se cierra. Dos mitades oscuras avanzan hasta juntarse en el eje de la sala que termina (una línea punteada celeste); con la pantalla tapada se carga la sala siguiente y el espejo se abre. Si el eje es vertical (o la cámara está girada), se cierra de lado. Usa un `Tween` con pasos en fila: cerrar, `tween_callback` (cargar la sala), esperar, abrir.
 - **Al Traspasar** (`_dibujar_mancha()` en `sala.gd`): una mancha de tinta del color del plano nuevo se expande desde el jugador hasta cubrir toda la pantalla y se desvanece. El borde es un círculo deformado por una suma de ondas (`sin`) con amplitudes y desfases al azar, así que nunca sale igual. Se dibuja con `draw_colored_polygon`.
+- **Al Reiniciar** (`rebobinar()` en `cortina.gd`, botón Reiniciar o tecla R): en el centro aparece una flecha circular crema con contorno café, da una vuelta hacia atrás (como rebobinando) y se desvanece, mientras la sala vuelve a su inicio. Es un `Tween` sobre la variable `flecha` (de 0 a 1); `_dibujar_flecha()` calcula el giro, el saltito y la transparencia a partir de ese número.
 
 ### Animaciones (`sala.gd`)
 
