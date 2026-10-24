@@ -19,6 +19,7 @@ const PERSONAJES := {
 		# Cursiva fina y elegante, de libro antiguo: Narciso es vanidoso y refinado.
 		"fuente": preload("res://assets/fuentes/CormorantGaramond-SemiBoldItalic.ttf"),
 		"tamano": 36,
+		"voz": "narciso",  # sus sílabas: assets/sonidos/voz_narciso_0..4.ogg, notas de su escala
 		"animos": {
 			"sereno": {"retrato": preload("res://assets/retratos/narciso_retrato.svg")},
 			"enojado": {"retrato": preload("res://assets/retratos/narciso_retrato_enojado.svg")},
@@ -29,6 +30,8 @@ const PERSONAJES := {
 ## Los nombres van en mayúsculas romanas, como grabados en piedra.
 const FUENTE_NOMBRE := preload("res://assets/fuentes/Cinzel-Bold.ttf")
 const LETRAS_POR_SEGUNDO := 45.0
+const LETRAS_POR_SILABA := 3  # cada cuántas letras suena una sílaba de la voz
+const SILABAS := 5  # archivos voz_<personaje>_0..4
 const ORO := Color(0.91, 0.73, 0.31)
 
 var _lineas: Array = []
@@ -38,6 +41,8 @@ var _nombre := Label.new()
 var _titulo := Label.new()
 var _texto := RichTextLabel.new()  # Rich: permite efectos como [shake]
 var _escribir: Tween
+var _voz := ""  # personaje cuya voz suena mientras se escribe ("" = sin voz)
+var _dichas := 0  # letras que ya tuvieron su sílaba
 
 
 func _init() -> void:
@@ -128,10 +133,22 @@ func _mostrar_linea() -> void:
 	if animo.get("tiembla", false):
 		texto = "[color=#7a1a10][shake rate=25.0 level=10 connected=1]%s[/shake][/color]" % texto
 	_texto.text = texto
+	_voz = quien.get("voz", "")
+	_dichas = 0
 	# El texto aparece letra por letra: visible_ratio va de 0 (nada) a 1 (todo).
 	_texto.visible_ratio = 0.0
 	_escribir = create_tween()
 	_escribir.tween_property(_texto, "visible_ratio", 1.0, _texto.get_total_character_count() / LETRAS_POR_SEGUNDO)
+
+
+## Mientras el texto se escribe, suena la voz del personaje: una sílaba al azar de su escala
+## cada LETRAS_POR_SILABA letras, como en Undertale.
+func _process(_delta: float) -> void:
+	if _voz == "" or not _escribir or not _escribir.is_running():
+		return
+	if _texto.visible_characters >= _dichas + LETRAS_POR_SILABA:
+		_dichas = _texto.visible_characters
+		Sonido.tocar("voz_%s_%d" % [_voz, randi() % SILABAS])
 
 
 func _gui_input(evento: InputEvent) -> void:

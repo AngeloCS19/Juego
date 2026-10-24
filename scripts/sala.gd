@@ -162,22 +162,36 @@ func empujar_enfrente() -> bool:
 	if not hay_empujable_enfrente() or not _empujar(piedra_en(jugador + mirando), mirando):
 		return false
 	_duracion_jugador = DURACION_EMPUJE  # el jugador avanza al paso de la piedra
-	_avanzar(mirando)
+	Sonido.tocar("empujar")
+	_avanzar(mirando, false)
 	_accion()
 	return true
 
 
-func _avanzar(dir: Vector2i) -> void:
+## "paso": si suena el paso (al empujar suena la piedra).
+func _avanzar(dir: Vector2i, paso := true) -> void:
 	jugador += dir
 	queue_redraw()
+	if paso:
+		Sonido.tocar(_sonido_paso(), 0.0, randf_range(0.9, 1.1))  # cada paso un poco distinto
 	# Las prendas son de un espíritu: solo se ven y se recogen en el plano espiritual.
 	if espiritual and not prenda_tomada and jugador == _vec(datos["prenda"]["pos"]):
 		prenda_tomada = true
 		_prenda_nombre = datos["prenda"]["nombre"]
 		_prenda_t = 0.0
+		Sonido.tocar("prenda")
 	if celda(jugador) == "E":
 		_salida_t = 0.0  # main.gd espera DURACION_SALIDA para pasar de sala
+		Sonido.tocar("salida")
 		completada.emit()
+
+
+## El paso suena según el piso: madera en el puente, pasto afuera, arenisca en el templo.
+## Un templo nuevo con otro piso solo agrega aquí su caso y su archivo paso_*.ogg.
+func _sonido_paso() -> String:
+	if celda(jugador) == "=":
+		return "paso_madera"
+	return "paso_pasto" if datos.get("exterior", false) else "paso_arenisca"
 
 
 ## Habilidad del jugador: pasar de un plano al otro.
@@ -188,10 +202,12 @@ func cambiar_plano() -> void:
 		if piedra_en(jugador) < 0:
 			_caida_en = _visto("jugador", jugador)
 			_caida_t = 0.0
+			Sonido.tocar("caer")
 			reiniciar()
 			caida.emit()
 		return
 	espiritual = not espiritual
+	Sonido.tocar("traspasar" if espiritual else "volver")
 	_t_plano = 0.0  # al entrar, los reflejos viajan desde su piedra
 	_nueva_mancha()
 	plano_cambiado.emit(espiritual)
@@ -206,6 +222,8 @@ func marcar_enfrente() -> bool:
 	if i < 0:
 		return false
 	piedras[i]["marcada"] = not piedras[i]["marcada"]
+	# Marcar: una nota cristalina. Desmarcar: la misma, más baja y suave.
+	Sonido.tocar("reflejo", 0.0 if piedras[i]["marcada"] else -8.0, 1.0 if piedras[i]["marcada"] else 0.84)
 	piedras[i]["t_marca"] = 0.0  # el anillo aparece con un salto y el reflejo viaja
 	queue_redraw()
 	_accion()
@@ -340,6 +358,8 @@ func _empujar(i: int, dir: Vector2i) -> bool:
 			pass
 		"~", "^":
 			p["flota"] = true  # una piedra en el agua o la lava queda flotando y se puede pisar
+			if celda(destino) == "^":
+				Sonido.tocar("lava")
 		_:
 			return false
 	p["pos"] = destino

@@ -46,7 +46,8 @@ scripts/sala_jefe.gd      Narciso, el jefe (extiende Sala)
 scripts/sala_huida.gd     Los tramos de la huida (extiende Sala)
 scripts/sala_altar.gd     El altar de Narciso, afuera del templo (extiende Sala)
 scripts/menu.gd           Ventana de menú inicial, pausa y derrota
-scripts/musica.gd         Música del templo: capas, cruce al Traspasar y volumen
+scripts/musica.gd         Música: piezas por capas y cruce al Traspasar
+scripts/sonido.gd         Efectos de sonido (Sonido.tocar) y volumen de música y efectos
 scripts/barra_jefe.gd     Vida de Narciso (su cabeza con una flor por pétalo) y corazones del jugador, solo en la sala del jefe
 shaders/                  Efectos que corren en la tarjeta de video: desenfoque.gdshader (fondo del anuncio) y aparecer.gdshader (la cabeza de Narciso aparece de abajo hacia arriba al terminar su primer diálogo)
 scripts/dialogo.gd        Ventana de diálogo con retrato (estilo Hades)
@@ -61,12 +62,13 @@ scripts/transformaciones/
 salas/rio_00.json ...     Cada sala, descrita como datos
 assets/sprites/           Dibujos SVG (ver docs/sprites.md y docs/arte.md)
 assets/retratos/          Retratos grandes para los diálogos
-assets/musica/            Música grabada (.ogg), sale de tools/musica/
+assets/musica/            Música grabada (.ogg), sale de tools/musica/render.js
+assets/sonidos/           Efectos de sonido (.ogg), salen de tools/musica/efectos.js
 tests/test_reflexion.gd   Pruebas automáticas
 tools/solver.py           Buscador de soluciones para diseñar salas (Python)
 tools/formatear.py        Escribe una sala con su "solucion"
 tools/gen_jefe.gd         Genera la "solucion" del jefe
-tools/musica/             Bocetos de sonido (sonido.html) y el script que graba la música (render.js)
+tools/musica/             Bocetos de sonido (sonido.html) y los scripts que graban la música (render.js) y los efectos (efectos.js)
 ```
 
 ### Los nodos de la escena
@@ -141,11 +143,31 @@ La música del Templo del Río es de ocarina y marimba, con tres motivos que se 
 
 - **Capas.** La pieza viene separada en marimba, bajo y ocarina, y se arma a lo largo del templo: al inicio solo suena la marimba, el bajo entra en la sala 7 y la ocarina en la 13 (`Musica.DESDE`, índices de `SALAS`). Una capa nueva entra despacio (`ENTRADA`, 3 s).
 - **Los dos planos.** Cada capa está grabada dos veces, con el mismo largo: plano normal y plano espiritual (filtrada, con más eco y un brillo cristalino). Los seis `AudioStreamPlayer` empiezan juntos y suenan siempre en sincronía; `musica.gd` solo cambia cuáles se oyen. Al Traspasar se cruza de una versión a la otra en `CRUCE` (0,6 s), así la música no se corta. El cruce mueve el volumen lineal, no los dB, para que a mitad de camino no baje.
-- **Bus de audio.** La música va por su propio bus, `Musica` (en Godot, un bus es un canal de la mezcla con su propio volumen). El botón **Música** del menú lo pasa por Alta, Media y Apagada sin tocar el resto del sonido.
+- **Bus de audio.** La música va por su propio bus, `Musica`, y los efectos por `Efectos` (en Godot, un bus es un canal de la mezcla con su propio volumen). Los botones **Música** y **Efectos** del menú pasan cada uno por Alta, Media y Apagada (`Sonido.cambiar_volumen()`).
 - **La huida** tiene su pieza (`PIEZAS["huida"]`): las cuatro melodías que Angelo grabó en flauta dulce (principal y tres variantes, una tras otra, 18 compases a 100 pulsos por minuto), tocadas por la ocarina sobre arpegios y tambor. Cada nota se ataca y solo la anacrusa va ligada. Como los tres tramos piden la misma pieza, `tocar()` no la vuelve a empezar al pasar de un tramo a otro. Al cambiar de pieza, la anterior se apaga en `SALIDA` (1,5 s).
 - **El jefe** (`jefe_normal` y `jefe_dificil`): el tema del templo en re menor armónico con un bombo y un bajo que imponen. El bombo da un golpe por cada paso de Narciso, así que hay una grabación por dificultad, cada una a su velocidad; cambiar la dificultad cambia de grabación. Tiene tres capas y cada fase suma una (`tocar(pieza, sala.fase + 1)`): la base, el arpegio de la ocarina y más tambores con el bajo en corcheas.
 - **El altar**: el mismo arpegio de la ocarina, lento y suave, con el río y un colchón.
 - **De dónde salen los archivos.** `tools/musica/sonido.html` es la página de bocetos (se puede abrir en el navegador). `node tools/musica/render.js` toca esos mismos bocetos sin sonar, en un navegador sin ventana, y graba los `.ogg` en `assets/musica/` (`node tools/musica/render.js huida` graba solo esa pieza). Lo que suena después del final (el eco) se suma al inicio, así el bucle empalma sin salto. Necesita Playwright y ffmpeg.
+
+### Efectos de sonido (`sonido.gd`)
+
+Cualquier script toca un efecto con `Sonido.tocar("empujar")` (opcional: volumen en dB y `tono`, que es la velocidad: 1,2 suena más agudo). `Sonido` es una clase con funciones `static`: no hace falta un nodo en la escena. Cada llamada crea un `AudioStreamPlayer` con `autoplay` que se borra solo al terminar (señal `finished`), así suenan varios a la vez. Se agrega al árbol con `call_deferred` porque puede llamarse en medio de otra operación del árbol.
+
+| Momento | Dónde | Archivo |
+|---|---|---|
+| Paso (según el piso) | `_avanzar()` y `_sonido_paso()` en `sala.gd` | `paso_arenisca`, `paso_madera` (puente), `paso_pasto` (afuera) |
+| Empujar | `empujar_enfrente()` | `empujar` (puerta de piedra, 0,3 s) |
+| Hundir en lava | `_empujar()` | `lava` |
+| Marcar / desmarcar | `marcar_enfrente()` | `reflejo` (al desmarcar, más grave y bajo) |
+| Traspasar / volver | `cambiar_plano()` | `traspasar`, `volver` (el mismo, al revés) |
+| Caer | `cambiar_plano()` | `caer` |
+| Prenda, salida | `_avanzar()` | `prenda`, `salida` |
+| Narciso lanza, cae la piedra, te golpea | `_turno()` y `_caer()` en `sala_jefe.gd` | `silbido` (el último turno antes de caer), `piedra_cae`, `dano` |
+| Narciso se ve a sí mismo | `_revisar_golpe()` | `golpe_narciso` |
+| Voz de Narciso | `_process()` en `dialogo.gd` | `voz_narciso_0..4`: una sílaba al azar cada 3 letras; cada personaje tiene su `"voz"` en `PERSONAJES` |
+| Botones | `crear_boton()` y la hotbar | `boton` (Usar no suena: ya suena la habilidad) |
+
+Los archivos salen de `node tools/musica/efectos.js`, que toca en `sonido.html` las versiones que eligió Angelo y deja cada una a su volumen (`PICO`: los pasos, la voz y los botones más bajos que las acciones). Un templo nuevo con otro piso agrega su caso en `_sonido_paso()` y su `paso_*.ogg`. En las pruebas no suena nada: corren antes de que exista el árbol.
 
 ### La matemática (`reflexion.gd`)
 

@@ -28,6 +28,10 @@ func _init() -> void:
 			for plano in ["normal", "espiritual"]:
 				_igual(load("res://assets/musica/%s_%s.ogg" % [capa, plano]) is AudioStreamOggVorbis, true, "música %s %s" % [capa, plano])
 
+	# Cada efecto que el código pide tiene su archivo.
+	for nombre in ["empujar", "prenda", "salida", "paso_arenisca", "paso_madera", "paso_pasto", "caer", "traspasar", "volver", "reflejo", "lava", "silbido", "dano", "piedra_cae", "golpe_narciso", "boton", "voz_narciso_0", "voz_narciso_4"]:
+		_igual(load("res://assets/sonidos/%s.ogg" % nombre) is AudioStreamOggVorbis, true, "sonido " + nombre)
+
 	for ruta in DirAccess.get_files_at("res://salas"):
 		if ruta.ends_with(".json"):
 			var r := _jugar(ruta, "")

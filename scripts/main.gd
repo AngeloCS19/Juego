@@ -116,7 +116,7 @@ func _crear_controles_tactiles() -> void:
 	acciones.add_child(BarraHabilidades.crear_boton("Girar", _girar.bind(1), BarraHabilidades.COLOR_NORMAL, ICONO_GIRAR_DER))
 	acciones.add_child(BarraHabilidades.crear_boton("Reiniciar", _reiniciar, BarraHabilidades.COLOR_NORMAL, ICONO_REINICIAR))
 	# Usar muestra el icono de la habilidad activa (la barra lo cambia al elegir otra).
-	var usar := BarraHabilidades.crear_boton("Usar", func(): barra.usar(sala), BarraHabilidades.COLOR_ACTIVA, barra.icono_activa())
+	var usar := BarraHabilidades.crear_boton("Usar", func(): barra.usar(sala), BarraHabilidades.COLOR_ACTIVA, barra.icono_activa(), false)
 	usar.custom_minimum_size = Vector2(120, 96)
 	usar.add_theme_constant_override("icon_max_width", 72)
 	barra.boton_usar = usar
@@ -565,7 +565,8 @@ func _menu_inicio() -> void:
 	else:
 		opciones.append(["Jugar", func(): _empezada = true; _seguir()])
 	opciones.append([_texto_dificultad(), _cambiar_dificultad.bind(_menu_inicio)])
-	opciones.append([musica.texto_volumen(), func(): musica.cambiar_volumen(); _menu_inicio()])
+	opciones.append([Sonido.texto_volumen("Musica", "Música"), func(): Sonido.cambiar_volumen("Musica"); _menu_inicio()])
+	opciones.append([Sonido.texto_volumen("Efectos", "Efectos"), func(): Sonido.cambiar_volumen("Efectos"); _menu_inicio()])
 	_abrir("Espejismo", "", opciones, true, RETRATOS_PERSONAJE)
 
 
@@ -573,7 +574,8 @@ func _menu_pausa() -> void:
 	_abrir("Pausa", "", [
 		["Seguir", _seguir],
 		[_texto_dificultad(), _cambiar_dificultad.bind(_menu_pausa)],
-		[musica.texto_volumen(), func(): musica.cambiar_volumen(); _menu_pausa()],
+		[Sonido.texto_volumen("Musica", "Música"), func(): Sonido.cambiar_volumen("Musica"); _menu_pausa()],
+		[Sonido.texto_volumen("Efectos", "Efectos"), func(): Sonido.cambiar_volumen("Efectos"); _menu_pausa()],
 		["Menú inicial", _menu_inicio],
 	])
 
