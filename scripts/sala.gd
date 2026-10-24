@@ -55,6 +55,8 @@ const COLOR_LAVA := Color(0.95, 0.4, 0.2)
 const DURACION_PASO := 0.12  # segundos que tarda en verse un paso o un empujón
 const DURACION_REFLEJO := 0.6  # lo que tarda el reflejo en viajar al otro lado del eje: se ve, es lo que se aprende
 const DURACION_CAIDA := 0.6  # main.gd espera esto antes de abrir la ventana de derrota
+const DURACION_SALIDA := 0.6  # el personaje entra al espejo; main.gd espera esto antes de la cortina
+const DURACION_PRENDA := 1.0  # la prenda sube sobre la cabeza y se desvanece
 const DURACION_MANCHA := 0.5  # la mancha de tinta que se expande al Traspasar
 
 var datos: Dictionary
@@ -75,6 +77,9 @@ var _angulo := 0.0  # ángulo dibujado del jugador
 var _t_plano := 0.0  # tiempo desde que se entró al plano espiritual
 var _caida_t := DURACION_CAIDA  # tiempo desde la última caída (DURACION_CAIDA o más: no está cayendo)
 var _caida_en := Vector2.ZERO
+var _salida_t := DURACION_SALIDA  # tiempo desde que llegó al espejo (DURACION_SALIDA o más: no está entrando)
+var _prenda_t := DURACION_PRENDA
+var _prenda_nombre := ""
 var _mancha_t := DURACION_MANCHA
 var _mancha_en := Vector2.ZERO
 var _mancha_onda: Array[Vector3] = []  # la forma de esta mancha: (amplitud, ondas por vuelta, desfase)
@@ -121,6 +126,7 @@ func reiniciar() -> void:
 	jugador = _vec(datos["jugador"])
 	mirando = Vector2i.UP
 	prenda_tomada = not datos.has("prenda")
+	_salida_t = DURACION_SALIDA
 	piedras.clear()
 	for p in datos.get("piedras", []):
 		piedras.append({"pos": _vec(p["pos"]), "fija": p.get("fija", false), "flota": false, "marcada": false, "variante": piedras.size()})
@@ -163,8 +169,11 @@ func _avanzar(dir: Vector2i) -> void:
 	# Las prendas son de un espíritu: solo se ven y se recogen en el plano espiritual.
 	if espiritual and not prenda_tomada and jugador == _vec(datos["prenda"]["pos"]):
 		prenda_tomada = true
-		prenda_recogida.emit(datos["prenda"]["nombre"])
+		_prenda_nombre = datos["prenda"]["nombre"]
+		_prenda_t = 0.0
+		prenda_recogida.emit(_prenda_nombre)
 	if celda(jugador) == "E":
+		_salida_t = 0.0  # main.gd espera DURACION_SALIDA para pasar de sala
 		completada.emit()
 
 
@@ -200,15 +209,18 @@ func marcar_enfrente() -> bool:
 	return true
 
 
-## Mientras se ve la caída el jugador no puede actuar. Fuera del árbol de escenas (las pruebas) nunca se espera.
+## Mientras se ve la caída o la entrada al espejo el jugador no puede actuar.
+## Fuera del árbol de escenas (las pruebas) nunca se espera.
 func cayendo() -> bool:
-	return is_inside_tree() and _caida_t < DURACION_CAIDA
+	return is_inside_tree() and (_caida_t < DURACION_CAIDA or _salida_t < DURACION_SALIDA)
 
 
 func _process(delta: float) -> void:
 	_t += delta
 	_t_plano += delta
 	_caida_t += delta
+	_salida_t += delta
+	_prenda_t += delta
 	_mancha_t += delta
 	_seguir("jugador", _centro(jugador), delta)
 	_angulo = lerp_angle(_angulo, Vector2(mirando).angle() + PI / 2, minf(1.0, delta * 20.0))
@@ -423,6 +435,10 @@ func _draw() -> void:
 	# El sprite del jugador apunta hacia arriba: se gira hacia donde mira.
 	# Al caminar da un saltito: crece un poco a mitad de paso.
 	var pos := _visto("jugador", jugador)
+	var entrada := _salida_t / DURACION_SALIDA
+	if entrada < 1.0:
+		_dibujar_entrada(pos, entrada, _silueta(tex_jugador) if espiritual else tex_jugador)
+		return
 	var a_mitad := pos.distance_to(_centro(jugador)) / TAM
 	draw_set_transform(pos, _angulo, Vector2.ONE * (1.0 + 0.1 * sin(clampf(a_mitad, 0.0, 1.0) * PI)))
 	var lado_j := TAM * 0.9
@@ -430,7 +446,35 @@ func _draw() -> void:
 		tex_jugador = _silueta(tex_jugador)
 	draw_texture_rect(tex_jugador, Rect2(-Vector2.ONE * lado_j * 0.5, Vector2.ONE * lado_j), false)
 	draw_set_transform(Vector2.ZERO)
+	_dibujar_prenda(pos)
 	_dibujar_mancha()
+
+
+## Entrar al espejo: se desliza al centro, se achica y se desvanece con un brillo del cristal.
+func _dibujar_entrada(pos: Vector2, k: float, tex: Texture2D) -> void:
+	var centro := _centro(jugador)
+	var brillo := sin(k * PI)
+	draw_circle(centro, TAM * (0.3 + 0.35 * brillo), Color(1.0, 0.95, 0.75, 0.55 * brillo))
+	draw_arc(centro, TAM * (0.2 + 0.4 * k), 0.0, TAU, 32, Color(1.0, 1.0, 0.9, 0.8 * (1.0 - k)), 2.5)
+	draw_set_transform(pos.lerp(centro, minf(1.0, k * 3.0)), _angulo, Vector2.ONE * (1.0 - ease(k, 2.0) * 0.9))
+	draw_texture_rect(tex, Rect2(-Vector2.ONE * TAM * 0.45, Vector2.ONE * TAM * 0.9), false, Color(1, 1, 1, 1.0 - smoothstep(0.4, 1.0, k)))
+	draw_set_transform(Vector2.ZERO)
+
+
+## Al recoger una prenda: aparece sobre la cabeza, flota hacia arriba, crece, brilla y se desvanece.
+func _dibujar_prenda(pos: Vector2) -> void:
+	if _prenda_t >= DURACION_PRENDA:
+		return
+	var k := _prenda_t / DURACION_PRENDA
+	var centro := pos + Vector2(0, -TAM * (0.8 + 0.7 * ease(k, 0.5)))
+	var lado := TAM * (0.6 + 0.4 * ease(k, 0.5))
+	var alfa := 1.0 - smoothstep(0.6, 1.0, k)
+	var r := Rect2(centro - Vector2.ONE * lado * 0.5, Vector2.ONE * lado)
+	draw_circle(centro, lado * 0.7, Color(1.0, 0.9, 0.5, 0.35 * sin(k * PI) * alfa))
+	draw_texture_rect(TEX_PRENDA[_prenda_nombre], r, false, Color(1, 1, 1, alfa))
+	var destello := maxf(0.0, 1.0 - absf(k - 0.4) / 0.2)  # un brillo breve a mitad del vuelo
+	if destello > 0.0:
+		draw_texture_rect(_silueta(TEX_PRENDA[_prenda_nombre]), r, false, Color(1, 1, 1, 0.8 * destello))
 
 
 ## El agua se mueve sin dejar de ser lisa: dos brillos tenues que ondulan despacio, cada casilla
@@ -444,16 +488,31 @@ func _animar_agua(c: Vector2i) -> void:
 		draw_line(o + Vector2(TAM * 0.18, y), o + Vector2(TAM * 0.82, y), Color(0.81, 0.92, 0.95, alfa), 2.5)
 
 
-## La lava burbujea: cada casilla tiene un par de burbujas que suben y se apagan, en ciclo.
+## Lava espesa: en cada casilla hay dos "puestos" de burbuja. Cada puesto repite un ciclo lento (2 a 4 s):
+## la burbuja crece despacio en un punto de la casilla y revienta con un anillo. En cada ciclo nuevo
+## el punto cambia; sale de la casilla, el puesto y el número de ciclo (no hay azar real, así no parpadea).
 func _animar_lava(c: Vector2i) -> void:
 	var o := _rect(c).position
-	var fase := c.x * 2.1 + c.y * 1.7
 	for i in 2:
-		var ciclo := fmod(_t * 0.6 + fase + i * 0.5, 1.0)  # de 0 (abajo) a 1 (arriba, apagada)
-		var x := TAM * (0.3 + 0.4 * fmod(fase + i, 1.0))
-		var y := TAM * (0.85 - ciclo * 0.6)
-		var radio := TAM * 0.07 * sin(ciclo * PI)  # crece y se apaga
-		draw_circle(o + Vector2(x, y), maxf(0.0, radio), Color(1.0, 0.83, 0.42, 0.7 * sin(ciclo * PI)))
+		var periodo := 2.0 + 2.0 * _azar(c, i, -1, 0)
+		var t := _t / periodo + _azar(c, i, -1, 1)  # el desfase es propio de cada casilla y puesto
+		var ciclo := floori(t)
+		var k := t - ciclo  # de 0 a 1 dentro del ciclo
+		var p := o + Vector2(_azar(c, i, ciclo, 2), _azar(c, i, ciclo, 3)) * TAM * 0.5 + Vector2.ONE * TAM * 0.25
+		var maximo := TAM * (0.09 + 0.07 * _azar(c, i, ciclo, 4))
+		if k < 0.8:
+			var g := ease(k / 0.8, 0.6)  # se infla despacio
+			draw_circle(p, maximo * g, Color(0.99, 0.62, 0.28, 0.45))
+			draw_arc(p, maximo * g, 0.0, TAU, 16, Color(1.0, 0.83, 0.42, 0.75), 1.5)
+			draw_circle(p + Vector2(-0.3, -0.3) * maximo * g, maximo * g * 0.25, Color(1.0, 0.9, 0.6, 0.6))
+		else:
+			var r := (k - 0.8) / 0.2  # revienta: un anillo que se abre y se apaga
+			draw_arc(p, maximo * (1.0 + 0.8 * r), 0.0, TAU, 16, Color(1.0, 0.83, 0.42, 0.7 * (1.0 - r)), 1.5)
+
+
+## Número pseudoaleatorio de 0 a 1 que depende solo de la casilla, el puesto, el ciclo y un "canal".
+func _azar(c: Vector2i, puesto: int, ciclo: int, canal: int) -> float:
+	return fposmod(sin(c.x * 12.9898 + c.y * 78.233 + puesto * 37.719 + ciclo * 4.581 + canal * 19.19) * 43758.5453, 1.0)
 
 
 ## Al Traspasar, una mancha de tinta del color del plano nuevo se expande desde el jugador.
