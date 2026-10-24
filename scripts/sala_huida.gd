@@ -39,8 +39,8 @@ func _turno() -> void:
 
 
 ## En tiempo real el jugador también puede chocar con Narciso al caminar hacia él.
-func _avanzar(dir: Vector2i) -> void:
-	super(dir)
+func _avanzar(dir: Vector2i, paso := true) -> void:
+	super(dir, paso)
 	_alcanzar()
 
 

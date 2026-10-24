@@ -39,6 +39,7 @@ func _init(p_habilidades: Array[Habilidad]) -> void:
 		boton.tooltip_text = habilidades[i].nombre
 		boton.focus_mode = Control.FOCUS_NONE
 		boton.pressed.connect(pedida.emit.bind(i))
+		boton.pressed.connect(Sonido.tocar.bind("boton"))
 		var estilo := StyleBoxFlat.new()
 		estilo.bg_color = Color(0.05, 0.04, 0.05, 0.85)
 		estilo.set_corner_radius_all(6)
@@ -62,10 +63,13 @@ func _init(p_habilidades: Array[Habilidad]) -> void:
 
 ## Botón con el estilo del juego. Lo usa la barra y también main.gd para los demás controles.
 ## Con icono, "texto" es el nombre: se ve solo hasta el primer toque, y queda como ayuda al pasar el mouse.
-static func crear_boton(texto: String, accion: Callable, borde := COLOR_NORMAL, icono: Texture2D = null) -> Button:
+## "sonar": si suena el toque de botón (Usar no, porque ya suena la habilidad).
+static func crear_boton(texto: String, accion: Callable, borde := COLOR_NORMAL, icono: Texture2D = null, sonar := true) -> Button:
 	var boton := Button.new()
 	boton.text = texto
 	boton.custom_minimum_size = TAM_BOTON
+	if sonar:
+		boton.pressed.connect(Sonido.tocar.bind("boton"))
 	if icono:
 		boton.icon = icono
 		boton.tooltip_text = texto

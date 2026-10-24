@@ -21,10 +21,7 @@ const SALIDA := 1.5  # segundos que tarda en apagarse una pieza al cambiar a otr
 const CRUCE := 0.6  # segundos que tarda la música en pasar de un plano al otro
 const ENTRADA := 3.0  # segundos que tarda una capa nueva en entrar
 const SILENCIO := -60.0  # dB: tan bajo que no se oye
-const VOLUMENES := [0.0, -10.0, SILENCIO]  # Alta, Media, Apagada (dB del bus "Musica")
-const NOMBRES_VOLUMEN := ["Alta", "Media", "Apagada"]
 
-var volumen := 0  # índice en VOLUMENES
 var _normal: Array[AudioStreamPlayer] = []
 var _espiritual: Array[AudioStreamPlayer] = []
 var _pieza := ""  # la que suena ("" = silencio)
@@ -36,8 +33,7 @@ var _tween: Tween
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS  # sigue sonando con el menú abierto
 	# Un bus de audio propio para la música: el menú cambia su volumen sin tocar los efectos.
-	AudioServer.add_bus()
-	AudioServer.set_bus_name(AudioServer.bus_count - 1, "Musica")
+	Sonido.bus("Musica")
 
 
 func _crear(ruta: String) -> AudioStreamPlayer:
@@ -107,15 +103,3 @@ func _fundir(p: AudioStreamPlayer, oir: bool, duracion: float) -> void:
 	var hacia := 1.0 if oir else 0.0
 	_tween.tween_method(func(v: float): p.volume_db = linear_to_db(maxf(v, 0.001)), db_to_linear(p.volume_db), hacia, duracion)
 
-
-## Pasa al siguiente volumen (Alta, Media, Apagada) y devuelve su nombre para el menú.
-func cambiar_volumen() -> String:
-	volumen = (volumen + 1) % VOLUMENES.size()
-	var bus := AudioServer.get_bus_index("Musica")
-	AudioServer.set_bus_volume_db(bus, VOLUMENES[volumen])
-	AudioServer.set_bus_mute(bus, VOLUMENES[volumen] == SILENCIO)
-	return texto_volumen()
-
-
-func texto_volumen() -> String:
-	return "Música: " + NOMBRES_VOLUMEN[volumen]

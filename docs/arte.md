@@ -64,7 +64,7 @@ Bocetos en `tools/musica/sonido.html` (la misma página que Angelo escuchó).
 | Pasos | Según la superficie: arenisca, madera, pasto. Cada templo nuevo agrega las suyas. |
 | Voz de Narciso | Sílabas con su timbre (como Undertale): cada personaje que hable tiene su voz, como su tipografía. |
 | Volumen | Música y efectos por separado en el menú. |
-| De dónde salen | Música por código; efectos físicos (piedra, pasos, agua, lava) de bibliotecas libres CC0; efectos musicales por código. |
+| De dónde salen | Todo por código, desde `tools/musica/sonido.html` (las versiones que eligió Angelo). La idea era traer los efectos físicos (piedra, pasos, agua, lava) de bibliotecas libres CC0, pero la red del entorno de Claude no llega a esas páginas; se pueden cambiar después reemplazando el `.ogg` con el mismo nombre. *(hechos los efectos, PR de efectos)* |
 
 ## Sonido y música (la dirección original)
 

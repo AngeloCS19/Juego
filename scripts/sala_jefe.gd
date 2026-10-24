@@ -83,6 +83,8 @@ func _turno() -> void:
 		narciso = _vec(datos["camino"][_paso])
 	for s in sombras.duplicate():
 		s["turnos"] -= 1
+		if s["turnos"] == 1:
+			Sonido.tocar("silbido")  # la piedra ya viene: silba mientras cae el último turno
 		if s["turnos"] <= 0:
 			sombras.erase(s)
 			_caer(s["pos"])
@@ -103,11 +105,13 @@ func _turno() -> void:
 ## Cae una piedra lanzada. Si cae sobre el jugador, pierde un corazón y la piedra se rompe.
 func _caer(c: Vector2i) -> void:
 	if c == jugador:
+		Sonido.tocar("dano")
 		corazones -= 1
 		if corazones == 0:
 			reiniciar()
 			derrota.emit()
 		return
+	Sonido.tocar("piedra_cae")
 	if piedra_en(c) < 0 and celda(c) == ".":
 		piedras.append({"pos": c, "fija": false, "flota": false, "marcada": false, "variante": piedras.size()})
 
@@ -140,6 +144,7 @@ func _revisar_golpe(donde: Vector2i) -> void:
 	if not acierto:
 		return
 	golpes -= 1
+	Sonido.tocar("golpe_narciso")
 	_aturdido = ATURDIDO
 	_golpe_t = 0.0
 	if golpes > 0:
