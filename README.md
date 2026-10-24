@@ -1,6 +1,6 @@
 # Juego Didáctico
 
-Juego de puzzles con vista cenital donde se aprende matemática sin darse cuenta. El jugador cambia entre el plano normal y un plano espiritual que transforma los objetos sagrados. Cada templo enseña una transformación del plano (programa del MEP, 8.º año). El primero es el **Templo del Río**: reflexión respecto a un eje.
+Juego de puzzles con vista cenital donde se aprende matemática sin darse cuenta. El jugador cambia entre el plano normal y un plano espiritual que transforma los objetos sagrados. Cada templo enseña una transformación del plano (programa del MEP, 8.º año). El juego se llama **Espejismo**. El primero es el **Templo del Río**: reflexión respecto a un eje.
 
 ## Cómo abrirlo
 
@@ -70,7 +70,7 @@ Si abres `main.tscn` en Godot verás este árbol:
 
 - **Main** (Node2D) tiene el script `main.gd`. Es el director: carga salas y escucha el teclado.
 - **Pivote** (Node2D) es un punto en el centro de la pantalla. La sala se coloca dentro de él, así que girar el pivote gira toda la sala. Así funciona la rotación de cámara.
-- **Interfaz** (CanvasLayer) es una capa que no gira ni se mueve con el mundo. Dentro está **Etiqueta** (Label), el texto de arriba.
+- **Interfaz** (CanvasLayer) es una capa que no gira ni se mueve con el mundo. Dentro van los botones, el menú y los diálogos; ya no hay texto fijo arriba.
 
 La sala no aparece en el árbol porque `main.gd` la crea por código (`Sala.desde_archivo()`) cada vez que empieza una sala nueva. El menú (`Menu`) también se crea por código, dentro de **Interfaz**.
 
@@ -230,11 +230,13 @@ Después agrega la ruta del archivo a la lista `SALAS` en `scripts/main.gd`.
 - En `project.godot`, `stretch/aspect="expand"` aprovecha toda la pantalla del celular y `handheld/orientation` la deja horizontal.
 - Los botones tienen `focus_mode = FOCUS_NONE`; si no, Espacio también "presionaría" el último botón tocado.
 - Los botones son **solo iconos** (`assets/sprites/icono_*.svg`). El nombre aparece al lado hasta que el jugador toca ese botón por primera vez; después queda solo como ayuda al pasar el mouse (`tooltip_text`). Lo maneja `crear_boton()` en `barra_habilidades.gd` con un diccionario `static` de botones ya conocidos. El botón **Usar** muestra el icono de la habilidad activa. El icono de cada habilidad se busca por su nombre: `icono_traspasar.svg`, `icono_reflejo.svg`.
-- Arriba a la izquierda solo queda el número y el nombre de la sala; el plano ya lo dice el color del fondo, y los controles se aprenden con los botones.
+- Los botones **solo se ven con pantalla táctil** (`DisplayServer.is_touchscreen_available()` o Android/iOS). En la PC se juega con teclado: el **clic izquierdo** usa la habilidad (como Espacio) y el cursor se oculta mientras se juega (`_ocultar_cursor()`); solo se ve con un menú abierto. En el editor, el menú Debug tiene "Botones táctiles" para probarlos (y el cursor se ve cerca de ese botón).
+- Casi no hay texto en pantalla. Con botones, el nombre de una habilidad nueva se ve en su botón hasta el primer toque; sin botones, `_avisar()` muestra abajo a la izquierda su icono y nombre un momento (señal `nueva` de la barra).
+- En el plano espiritual los botones de las demás habilidades se ven apagados (`barra.bloquear()`), sin mensaje.
 
 ## Habilidades
 
-El jugador tiene una barra de habilidades y solo una está activa a la vez (con borde dorado). Espacio usa la activa. Mientras una habilidad sigue en curso no se puede elegir otra: por ejemplo, estando en el plano espiritual con Traspasar no puedes cambiar a Reflejo.
+El jugador tiene una barra de habilidades y solo una está activa a la vez (con borde dorado). Espacio usa la activa. Mientras una habilidad sigue en curso no se puede elegir otra: por ejemplo, estando en el plano espiritual con Traspasar no puedes cambiar a Reflejo (su botón se ve apagado).
 
 - `Habilidad` es el molde: tiene `nombre`, `disponible`, `usar(sala)` y `en_curso(sala)`.
 - `Traspasar` es la primera: `usar()` llama a `sala.cambiar_plano()` y `en_curso()` responde si estás en el plano espiritual.

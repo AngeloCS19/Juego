@@ -35,6 +35,7 @@ const TIEMPO_EMPUJE := 0.3  # segundos que hay que sostener la dirección para e
 const RITMO_NORMAL := 1.0  # segundos por turno de Narciso (jefe y huida) en dificultad normal
 const RITMO_DIFICIL := 0.6  # en difícil se mueve más rápido y sus piedras caen antes
 const ID_HABILIDADES := 1000  # opción "Todas las habilidades" del menú debug; las salas usan su índice
+const ID_TACTIL := 1001  # opción "Botones táctiles" del menú debug
 const TECLAS_DIRECCION := {
 	KEY_UP: Vector2i.UP, KEY_W: Vector2i.UP, KEY_DOWN: Vector2i.DOWN, KEY_S: Vector2i.DOWN,
 	KEY_LEFT: Vector2i.LEFT, KEY_A: Vector2i.LEFT, KEY_RIGHT: Vector2i.RIGHT, KEY_D: Vector2i.RIGHT,
@@ -52,6 +53,9 @@ var _tween_giro: Tween
 var _todas_habilidades := false  # modo debug: todas las habilidades en cualquier sala
 var dificil := false  # dificultad de Narciso: en las dos se mueve solo, en difícil más rápido
 var _derrotas := 0  # derrotas seguidas ante Narciso en difícil
+var _tactil := false  # hay pantalla táctil: se muestran los botones y se juega con toques
+var _botones_tactiles: Array[Control] = []  # todo lo que solo se ve con pantalla táctil
+var _aviso: HBoxContainer  # icono y nombre de una habilidad nueva, para quien juega sin botones
 var _marcador: Label  # corazones y pétalos durante el jefe
 var _menu: Menu
 var _dialogo: Dialogo
@@ -65,7 +69,6 @@ const ICONO_MENU := preload("res://assets/sprites/icono_menu.svg")
 var prendas: Array[String] = []  # prendas de Narciso que el jugador ya sacó de su sala
 
 @onready var pivote: Node2D = $Pivote
-@onready var etiqueta: Label = $Interfaz/Etiqueta
 
 
 func _ready() -> void:
@@ -76,6 +79,8 @@ func _ready() -> void:
 	var lista: Array[Habilidad] = [Traspasar.new(), Reflejo.new()]
 	barra = BarraHabilidades.new(lista)
 	barra.pedida.connect(_elegir)
+	barra.nueva.connect(_avisar)
+	_tactil = DisplayServer.is_touchscreen_available() or OS.has_feature("mobile")
 	_crear_controles_tactiles()
 	get_viewport().size_changed.connect(_centrar)
 	_centrar()
@@ -91,7 +96,6 @@ func _crear_controles_tactiles() -> void:
 	pantalla.set_anchors_preset(Control.PRESET_FULL_RECT)
 	pantalla.gui_input.connect(_on_toque)
 	$Interfaz.add_child(pantalla)
-	$Interfaz/Etiqueta.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var acciones := HBoxContainer.new()
 	acciones.add_theme_constant_override("separation", 8)
@@ -119,6 +123,16 @@ func _crear_controles_tactiles() -> void:
 	_en_esquina(pantalla, barra, Control.PRESET_BOTTOM_LEFT)
 	_en_esquina(pantalla, esquina, Control.PRESET_TOP_RIGHT)
 	_en_esquina(pantalla, usar, Control.PRESET_BOTTOM_RIGHT)
+	_botones_tactiles = [barra, acciones, boton_menu, usar]
+	_mostrar_botones()
+
+	# Aviso discreto abajo a la izquierda (donde estaría la barra) para quien juega sin botones.
+	_aviso = HBoxContainer.new()
+	_aviso.add_theme_constant_override("separation", 10)
+	_aviso.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_aviso.modulate.a = 0.0
+	_aviso.process_mode = Node.PROCESS_MODE_PAUSABLE  # su desvanecido espera a que se cierre el menú
+	_en_esquina(pantalla, _aviso, Control.PRESET_BOTTOM_LEFT)
 
 	_marcador = Label.new()
 	_marcador.add_theme_font_size_override("font_size", 22)
@@ -150,6 +164,8 @@ func _crear_menu_debug() -> MenuButton:
 	lista.add_theme_font_size_override("font_size", 26)  # opciones grandes para el dedo
 	lista.add_theme_constant_override("v_separation", 18)
 	lista.add_check_item("Todas las habilidades", ID_HABILIDADES)
+	lista.add_check_item("Botones táctiles", ID_TACTIL)
+	lista.set_item_checked(lista.get_item_index(ID_TACTIL), _tactil)
 	lista.add_separator()
 	for i in SALAS.size():
 		var datos: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SALAS[i]))
@@ -162,10 +178,47 @@ func _on_menu_debug(id: int, lista: PopupMenu) -> void:
 	if id == ID_HABILIDADES:
 		_todas_habilidades = not _todas_habilidades
 		lista.set_item_checked(lista.get_item_index(id), _todas_habilidades)
+	elif id == ID_TACTIL:
+		_tactil = not _tactil
+		lista.set_item_checked(lista.get_item_index(id), _tactil)
+		_mostrar_botones()
+		return
 	else:
 		indice = id
 		set_process_unhandled_input(true)  # por si ya se había terminado el templo
 	_cargar_sala()
+
+
+## Los botones solo se ven con pantalla táctil; en la PC se juega con el teclado.
+func _mostrar_botones() -> void:
+	for nodo in _botones_tactiles:
+		nodo.visible = _tactil
+	if _aviso:
+		_aviso.visible = not _tactil
+
+
+## Aviso breve con el icono y el nombre de una habilidad nueva. Con botones no hace falta:
+## el nombre ya está en el botón hasta el primer toque.
+func _avisar(h: Habilidad) -> void:
+	if _tactil:
+		return
+	for hijo in _aviso.get_children():
+		hijo.queue_free()
+	var icono := TextureRect.new()
+	icono.texture = load("res://assets/sprites/icono_%s.svg" % h.nombre.to_lower())
+	icono.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icono.custom_minimum_size = Vector2(40, 40)
+	_aviso.add_child(icono)
+	var nombre := Label.new()
+	nombre.text = h.nombre
+	nombre.add_theme_font_size_override("font_size", 22)
+	nombre.add_theme_color_override("font_color", BarraHabilidades.COLOR_ACTIVA)
+	nombre.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_aviso.add_child(nombre)
+	var t := _aviso.create_tween()
+	t.tween_property(_aviso, "modulate:a", 1.0, 0.3)
+	t.tween_interval(2.5)
+	t.tween_property(_aviso, "modulate:a", 0.0, 1.0)
 
 
 func _en_esquina(padre: Control, nodo: Control, esquina: Control.LayoutPreset) -> void:
@@ -197,13 +250,9 @@ func _cargar_sala() -> void:
 		sala.usar_tiempo_real(true, _ritmo())
 	if sala is SalaJefe:
 		sala.fase_nueva.connect(func(): _hablar(sala.datos.get("dialogo", [])))
-		sala.golpeado.connect(func(): etiqueta.text += "\nNarciso se vio en el reflejo y perdió pétalos.")
-		sala.rompio.connect(func(): etiqueta.text += "\nNarciso rompió las piedras sin marcar.")
 	if sala is SalaAltar:
 		sala.usar_prendas(prendas)
-		sala.descanso.connect(func():
-			etiqueta.text += "\nNarciso por fin se ve vestido, y su alma descansa: crece un narciso."
-			_hablar(sala.datos.get("dialogo_final", [])))
+		sala.descanso.connect(func(): _hablar(sala.datos.get("dialogo_final", [])))
 	var todas := ["traspasar", "reflejo"]
 	barra.configurar(todas if _todas_habilidades else sala.datos.get("habilidades", todas))
 	_on_plano_cambiado(false)
@@ -262,15 +311,17 @@ func _reiniciar() -> void:
 
 
 func _elegir(i: int) -> void:
-	if not barra.elegir(i, sala) and i < barra.habilidades.size() and barra.habilidades[i].disponible:
-		_on_plano_cambiado(sala.espiritual)
-		etiqueta.text += "\nTermina la habilidad activa antes de elegir otra."
+	barra.elegir(i, sala)  # en el plano espiritual los demás botones se ven apagados: no hay texto
 
 
 ## Deslizar mueve una casilla en esa dirección. Tocar una casilla vecina mueve hacia ella,
 ## y tocar al personaje usa la habilidad activa.
 ## Mantener el dedo después de deslizar, o sobre una casilla vecina, cuenta como sostener esa dirección.
 func _on_toque(evento: InputEvent) -> void:
+	if not _tactil:  # en la PC el clic izquierdo usa la habilidad, como Espacio
+		if evento is InputEventMouseButton and evento.pressed and evento.button_index == MOUSE_BUTTON_LEFT:
+			barra.usar(sala)
+		return
 	if evento is InputEventMouseMotion and _dedo_abajo and _dir_dedo == Vector2i.ZERO:
 		var arrastre: Vector2 = evento.position - _inicio_toque
 		if arrastre.length() >= UMBRAL_DESLIZAR:
@@ -303,7 +354,8 @@ func _casilla_tocada(posicion: Vector2) -> Vector2i:
 ## Empujar: sostener la dirección hacia una piedra que ya estás mirando.
 func _process(delta: float) -> void:
 	_marcador.text = sala.estado()
-	_marcador.position = etiqueta.position + Vector2(0, etiqueta.size.y)
+	_marcador.position = Vector2(16, 12)
+	_ocultar_cursor()
 	if _menu.visible or _dialogo.visible or _cortina.activa():
 		return
 	var dir := _a_mundo(_direccion_sostenida())
@@ -314,6 +366,16 @@ func _process(delta: float) -> void:
 			sala.empujar_enfrente()
 	else:
 		_empuje = 0.0
+
+
+## El mouse no apunta a nada mientras se juega: solo se ve con un menú abierto.
+## En el editor se deja ver cerca del botón Debug (arriba a la derecha), que sí se usa con el mouse.
+func _ocultar_cursor() -> void:
+	var jugando := not _menu.visible and not _tactil
+	if jugando and OS.is_debug_build():
+		var v := get_viewport()
+		jugando = v.get_mouse_position().x < v.get_visible_rect().size.x - 260 or v.get_mouse_position().y > 120
+	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN if jugando else Input.MOUSE_MODE_VISIBLE
 
 
 ## Dirección en pantalla que el jugador mantiene presionada (teclado o dedo), o cero.
@@ -352,13 +414,7 @@ func _girar(sentido: int) -> void:
 
 func _on_plano_cambiado(espiritual: bool) -> void:
 	RenderingServer.set_default_clear_color(FONDO_ESPIRITUAL if espiritual else FONDO_NORMAL)
-	etiqueta.text = "Sala %d · %s" % [indice + 1, sala.datos["nombre"]]  # el plano ya lo dice el color del fondo
-	if not prendas.is_empty():
-		etiqueta.text += "\nPrendas de Narciso: %d de 4" % prendas.size()
-	if sala is SalaHuida:
-		etiqueta.text += "\n¡El templo se derrumba! Narciso te persigue y deja lava a su paso."
-	if _todas_habilidades:
-		etiqueta.text += "\nDEBUG: todas las habilidades"
+	barra.bloquear(espiritual)  # mientras dura Traspasar, las demás habilidades se apagan
 
 
 ## Abre una ventana del menú y pausa el juego.
@@ -382,7 +438,7 @@ func _menu_inicio() -> void:
 		opciones.append(["Jugar", func(): _empezada = true; _seguir()])
 	opciones.append([_texto_dificultad(), _cambiar_dificultad.bind(_menu_inicio)])
 	opciones.append(["Personaje: " + PERSONAJES[Sala.personaje], _cambiar_personaje])
-	_abrir("Templo del Río", "", opciones, true)
+	_abrir("Espejismo", "", opciones, true)
 
 
 func _menu_pausa() -> void:
@@ -437,7 +493,7 @@ func _ritmo() -> float:
 
 func _on_caida() -> void:
 	await get_tree().create_timer(Sala.DURACION_CAIDA).timeout  # primero se ve caer al personaje
-	_menu_derrota("Caíste: volviste al plano normal sobre el vacío o el agua.")
+	_menu_derrota("¡No puedes pararte sobre agua o el vacío!")
 
 
 ## Perder no castiga: después de varias derrotas seguidas en difícil se sugiere normal.
@@ -451,7 +507,7 @@ func _on_derrota() -> void:
 
 
 func _on_prenda_recogida(nombre: String) -> void:
-	etiqueta.text += "\nEncontraste una prenda de Narciso: %s." % nombre
+	pass  # la animación de la prenda la agrega otra parte; aquí ya no hay texto
 
 
 ## Cambia a la sala "indice" con la transición de espejo, que se cierra sobre el eje de la sala que termina.
@@ -479,5 +535,3 @@ func _on_sala_completada() -> void:
 		_pasar_de_sala()
 	else:
 		set_process_unhandled_input(false)
-		var cierre := "Narciso descansa en paz." if sala is SalaAltar and sala.en_paz else "El espíritu de Narciso sigue esperando sus prendas junto al estanque."
-		etiqueta.text = cierre + "\nTemplo del Río completado. Pronto: el espíritu que gira."
