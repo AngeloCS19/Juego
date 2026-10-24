@@ -13,9 +13,7 @@ extends Sala
 ##   "golpes":       cuántos golpes aguanta esa fase
 ## "solucion" la juega en dificultad normal (un turno por acción).
 
-signal golpeado
 signal fase_nueva
-signal rompio  # Narciso rompió las piedras sin marcar
 
 const TEX_NARCISO := preload("res://assets/sprites/narciso.svg")
 const CORAZONES := 3
@@ -121,7 +119,6 @@ func _romper() -> void:
 		return
 	for p in rotas:
 		piedras.erase(p)
-	rompio.emit()
 
 
 ## El golpe ocurre al pasar al plano espiritual: Traspasar es el gatillo.
@@ -145,7 +142,6 @@ func _revisar_golpe(donde: Vector2i) -> void:
 	golpes -= 1
 	_aturdido = ATURDIDO
 	_golpe_t = 0.0
-	golpeado.emit()
 	if golpes > 0:
 		queue_redraw()
 	elif fase + 1 < todo["fases"].size():
@@ -183,10 +179,6 @@ func petalos() -> int:
 	for i in range(fase + 1, todo["fases"].size()):
 		total += int(todo["fases"][i]["golpes"])
 	return total
-
-
-func estado() -> String:
-	return "Corazones: %s · Pétalos de Narciso: %d" % ["♥".repeat(corazones), petalos()]
 
 
 func _draw() -> void:

@@ -64,6 +64,15 @@ func _init() -> void:
 		huida.sala.cambiar_plano()  # quedarse quieto: Narciso llega
 	_igual(alcanzado[0], true, "Narciso alcanza al jugador que no huye")
 	_igual(huida.sala.celda(Vector2i(1, 2)), ".", "al reiniciar el tramo la lava desaparece")
+	# En tiempo real Narciso no da turno al caminar: chocar con él también es perder.
+	var choque: SalaHuida = Sala.desde_archivo("res://salas/rio_huida_1.json")
+	choque.tiempo_real = true
+	var chocado := [false]
+	choque.derrota.connect(func(): chocado[0] = true)
+	choque.narciso = choque.jugador + Vector2i.RIGHT
+	choque.mover(Vector2i.RIGHT)
+	_igual(chocado[0], true, "caminar hacia Narciso en tiempo real es perder")
+	creados.append(choque)
 	# Altar: con una prenda sin marcar el reflejo no está completo; las prendas no van al estanque.
 	_igual(_jugar("rio_altar.json", "UUUREEEFLLLDDREEDRUEFDRRRRRULEEEFRURRULEEULDEP").sala.en_paz, false, "el altar pide marcar todas las prendas")
 	_igual(_jugar("rio_altar.json", "UUUREEEFLLLDDREEDRUEFDRRRRRULEEEFRURRULEEULDEF").sala.en_paz, false, "marcadas pero sin Traspasar no hay descanso")
