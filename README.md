@@ -26,7 +26,7 @@ El juego se diseña para PC y para celular, así que todo se puede hacer con tec
 
 ### Menús (`menu.gd`)
 
-Una sola ventana, `Menu`, sirve para tres cosas: el **menú inicial** (Jugar o Continuar, Empezar de nuevo, Dificultad, y tres retratos para elegir el personaje: niño, niña o espíritu; el elegido lleva borde dorado y se cambia tocándolo, con el mouse o con izquierda/derecha), la **pausa** (Esc o el botón Menú) y la **derrota**. Perder (caer al vacío o al agua, o que Narciso te venza) siempre muestra la ventana de derrota, con **Reintentar** (la sala, la fase o el tramo ya volvió a empezar: ese es el punto de control) y **Menú inicial**. El título va en Cinzel (mayúsculas romanas), y los textos y botones en un recuadro oscuro con borde dorado. El **menú inicial** muestra detrás una ilustración fija del templo (`assets/ilustracion_templo.svg`): el frontón sobre columnas, el río cruzando al frente y la luna reflejada en el agua, igual que Narciso se refleja. La pausa y la derrota solo oscurecen la sala.
+Una sola ventana, `Menu`, sirve para tres cosas: el **menú inicial** (Jugar o Continuar, Empezar de nuevo, Dificultad, Música, y tres retratos para elegir el personaje: niño, niña o espíritu; el elegido lleva borde dorado y se cambia tocándolo, con el mouse o con izquierda/derecha), la **pausa** (Esc o el botón Menú) y la **derrota**. Perder (caer al vacío o al agua, o que Narciso te venza) siempre muestra la ventana de derrota, con **Reintentar** (la sala, la fase o el tramo ya volvió a empezar: ese es el punto de control) y **Menú inicial**. El título va en Cinzel (mayúsculas romanas), y los textos y botones en un recuadro oscuro con borde dorado. El **menú inicial** muestra detrás una ilustración fija del templo (`assets/ilustracion_templo.svg`): el frontón sobre columnas, el río cruzando al frente y la luna reflejada en el agua, igual que Narciso se refleja. La pausa y la derrota solo oscurecen la sala.
 
 Mientras el menú está abierto el juego se pausa con `get_tree().paused = true`. Para que los botones sigan funcionando, `Main` usa `process_mode = ALWAYS`, y `Pivote`, que contiene la sala, usa `PAUSABLE`: así la sala y su reloj se detienen.
 
@@ -46,6 +46,7 @@ scripts/sala_jefe.gd      Narciso, el jefe (extiende Sala)
 scripts/sala_huida.gd     Los tramos de la huida (extiende Sala)
 scripts/sala_altar.gd     El altar de Narciso, afuera del templo (extiende Sala)
 scripts/menu.gd           Ventana de menú inicial, pausa y derrota
+scripts/musica.gd         Música del templo: capas, cruce al Traspasar y volumen
 scripts/barra_jefe.gd     Vida de Narciso (su cabeza con una flor por pétalo) y corazones del jugador, solo en la sala del jefe
 shaders/                  Efectos que corren en la tarjeta de video: desenfoque.gdshader (fondo del anuncio) y aparecer.gdshader (la cabeza de Narciso aparece de abajo hacia arriba al terminar su primer diálogo)
 scripts/dialogo.gd        Ventana de diálogo con retrato (estilo Hades)
@@ -60,10 +61,12 @@ scripts/transformaciones/
 salas/rio_00.json ...     Cada sala, descrita como datos
 assets/sprites/           Dibujos SVG (ver docs/sprites.md y docs/arte.md)
 assets/retratos/          Retratos grandes para los diálogos
+assets/musica/            Música grabada (.ogg), sale de tools/musica/
 tests/test_reflexion.gd   Pruebas automáticas
 tools/solver.py           Buscador de soluciones para diseñar salas (Python)
 tools/formatear.py        Escribe una sala con su "solucion"
 tools/gen_jefe.gd         Genera la "solucion" del jefe
+tools/musica/             Bocetos de sonido (sonido.html) y el script que graba la música (render.js)
 ```
 
 ### Los nodos de la escena
@@ -122,7 +125,7 @@ La ventana pausa el juego (como el menú). El texto aparece letra por letra con 
 
 ### Animaciones (`sala.gd`)
 
-Las reglas cambian al instante; las animaciones solo cambian el **dibujo**. Así las pruebas no tienen que esperar nada. Cada cuadro, `_process(delta)` acerca la posición *dibujada* (`_vis`, y `"vis"` en cada piedra) a la posición *real* a velocidad fija (`DURACION_PASO` por casilla). Si la diferencia es grande (la sala se reinició), salta de una vez.
+Las reglas cambian al instante; las animaciones solo cambian el **dibujo**. Así las pruebas no tienen que esperar nada. Cada cuadro, `_process(delta)` acerca la posición *dibujada* (`_vis`, y `"vis"` en cada piedra) a la posición *real* a velocidad fija (`DURACION_PASO`, 0,12 s por casilla; un empujón es más lento, `DURACION_EMPUJE`, 0,3 s, lo que dura el sonido de la piedra que se arrastra). Si la diferencia es grande (la sala se reinició), salta de una vez.
 
 - **Caminar y empujar:** el personaje y la piedra se deslizan; el personaje crece un poco a mitad del paso, como un saltito.
 - **Reflejo:** al marcar, el anillo aparece grande y se asienta. Al entrar al plano espiritual, cada reflejo viaja (`DURACION_REFLEJO`, 0,6 s) en línea recta desde su piedra hasta su lugar al otro lado del eje, cruzándolo en ángulo recto: sale rápido y frena al llegar. Empieza cuando la mancha de Traspasar ya casi pasó, para que no la tape: es lo más importante de ver.
@@ -131,6 +134,16 @@ Las reglas cambian al instante; las animaciones solo cambian el **dibujo**. Así
 - **Entrar al espejo:** al llegar a la salida el personaje se desliza al centro del espejo, se achica y se desvanece con un brillo (`DURACION_SALIDA`, 0,6 s). `completada` se emite igual y al instante; `main.gd` espera esa duración antes de la cortina, y mientras tanto `cayendo()` (que cubre la caída y la entrada) bloquea al jugador.
 - **Prenda:** al recogerla, su sprite aparece sobre la cabeza, sube, crece, brilla y se desvanece (`DURACION_PRENDA`, 1 s), sin texto (`_dibujar_prenda()`).
 - **Agua y lava:** siguen siendo sprites lisos, pero encima se dibuja un movimiento suave. El agua tiene dos brillos tenues que ondulan despacio (`_animar_agua()`). La lava es espesa (`_animar_lava()`): cada casilla tiene dos puestos de burbuja con un ciclo de 2 a 4 s; la burbuja crece despacio en un punto de la casilla, revienta con un anillo y en el ciclo siguiente aparece en otro punto (`_azar()` saca ese punto de la casilla, el puesto y el número de ciclo). Cada casilla usa su posición como fase, así el río no parpadea todo a la vez. Se dibujan solo en el plano normal, cada cuadro, porque `_process` ya llama a `queue_redraw()`.
+
+### Música (`musica.gd`)
+
+La música del Templo del Río es de ocarina y marimba, con tres motivos que se alternan (unos 65 s antes de repetirse). Las decisiones de Angelo están en `docs/arte.md`.
+
+- **Capas.** La pieza viene separada en marimba, bajo y ocarina, y se arma a lo largo del templo: al inicio solo suena la marimba, el bajo entra en la sala 7 y la ocarina en la 13 (`Musica.DESDE`, índices de `SALAS`). Una capa nueva entra despacio (`ENTRADA`, 3 s).
+- **Los dos planos.** Cada capa está grabada dos veces, con el mismo largo: plano normal y plano espiritual (filtrada, con más eco y un brillo cristalino). Los seis `AudioStreamPlayer` empiezan juntos y suenan siempre en sincronía; `musica.gd` solo cambia cuáles se oyen. Al Traspasar se cruza de una versión a la otra en `CRUCE` (0,6 s), así la música no se corta. El cruce mueve el volumen lineal, no los dB, para que a mitad de camino no baje.
+- **Bus de audio.** La música va por su propio bus, `Musica` (en Godot, un bus es un canal de la mezcla con su propio volumen). El botón **Música** del menú lo pasa por Alta, Media y Apagada sin tocar el resto del sonido.
+- **El jefe, la huida y el altar** todavía no tienen su música: ahí no suena nada.
+- **De dónde salen los archivos.** `tools/musica/sonido.html` es la página de bocetos (se puede abrir en el navegador). `node tools/musica/render.js` toca esos mismos bocetos sin sonar, en un navegador sin ventana, y graba los seis `.ogg` en `assets/musica/`. Lo que suena después del final (el eco) se suma al inicio, así el bucle empalma sin salto. Necesita Playwright y ffmpeg.
 
 ### La matemática (`reflexion.gd`)
 

@@ -1,0 +1,511 @@
+<title>Sonido de Espejismo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Cormorant+Garamond:ital,wght@1,500&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Cuaderno de sonido del templo, de noche: barra fija con volumen y plano, luego música, efectos, momentos y preguntas. Tema oscuro fijo a propósito (como el cuaderno de estilo). */
+:root {
+  --bg: #17100d; --panel: #241914; --hi: #33241c; --line: #4a3427; --fg: #f0e4cf; --muted: #b8a186;
+  --oro: #e7b94e; --celeste: #8cd9ff; --lava: #f07a32;
+  --display: "Cinzel", "Trajan Pro", Georgia, serif;
+  --narciso: "Cormorant Garamond", Georgia, serif;
+  --body: "Atkinson Hyperlegible", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--bg); color: var(--fg); }
+body { font: 16px/1.55 var(--body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 64px; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+main { max-width: 1000px; margin: 0 auto; display: grid; gap: 36px; }
+h1 { font: 700 clamp(30px, 5vw, 46px)/1.1 var(--display); letter-spacing: .04em; margin: 0; text-wrap: balance; }
+h2 { font: 600 22px/1.2 var(--display); letter-spacing: .05em; margin: 0; color: var(--oro); text-wrap: balance; }
+p { margin: 0; max-width: 68ch; }
+.sub { color: var(--muted); }
+header, section { display: grid; gap: 14px; }
+.cita { font: italic 500 21px/1.35 var(--narciso); color: var(--oro); }
+
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; background: rgba(36,25,20,.96); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+.bar label { color: var(--muted); font-size: 14px; letter-spacing: .1em; text-transform: uppercase; }
+input[type=range] { accent-color: var(--oro); width: 130px; }
+button { font: 700 15px var(--body); color: var(--fg); background: var(--hi); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; cursor: pointer; min-height: 44px; }
+button:focus-visible, .pick input:focus-visible + span { outline: 2px solid var(--celeste); outline-offset: 2px; }
+button[aria-pressed="true"] { background: var(--celeste); color: #0b1a24; border-color: var(--celeste); }
+#plano[aria-pressed="true"] { box-shadow: 0 0 14px var(--celeste); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 12px; align-items: start; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 8px; min-width: 0; }
+.card.elegido { border-color: var(--oro); }
+.card h3 { margin: 0; font: 700 17px/1.3 var(--body); display: flex; justify-content: space-between; gap: 8px; }
+.card h3 small { color: var(--oro); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; align-self: center; }
+.cuando { color: var(--muted); font-size: 14px; }
+.vars { display: flex; flex-wrap: wrap; gap: 8px; }
+.var { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.var .play { border: 0; border-radius: 0; display: flex; align-items: center; gap: 6px; }
+.var .play.on { background: var(--oro); color: #2b1a14; }
+.var .play svg { width: 11px; height: 11px; }
+.pick { display: flex; align-items: center; padding: 0 10px; cursor: pointer; color: var(--muted); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; border-left: 1px solid var(--line); }
+.pick input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.pick span { padding: 2px 5px; border-radius: 4px; }
+.pick input:checked + span { color: #2b1a14; background: var(--oro); }
+.desc { color: var(--fg); font-size: 14px; min-height: 1.4em; }
+
+.tabla { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 15px; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 13px var(--display); letter-spacing: .08em; color: var(--oro); background: var(--panel); }
+td:first-child { font-weight: 700; white-space: nowrap; }
+tr.grupo td { font: 600 14px var(--display); letter-spacing: .08em; color: var(--celeste); background: #1d1511; }
+.pri { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; border-radius: 4px; padding: 1px 6px; white-space: nowrap; }
+.pri.a { background: var(--oro); color: #2b1a14; } .pri.b { border: 1px solid var(--muted); color: var(--muted); }
+
+.preg { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; }
+.preg h3 { margin: 0; font: 700 17px/1.35 var(--body); }
+.preg h3 span { font-family: var(--display); color: var(--oro); margin-right: 8px; }
+.ops { display: flex; flex-wrap: wrap; gap: 8px; }
+.ops button { font-weight: 400; text-align: left; }
+.preg .nota { font-size: 14px; color: var(--muted); }
+.resumen { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); background: #2a1d16; border: 1px solid var(--oro); border-radius: 10px; padding: 14px; display: grid; gap: 10px; }
+.resumen textarea { width: 100%; min-height: 80px; font: 15px/1.4 var(--body); background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 8px; }
+.fila { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+#codigo { font-family: ui-monospace, monospace; color: var(--celeste); overflow-wrap: anywhere; }
+</style>
+
+<main>
+<header>
+  <h1>Sonido de Espejismo</h1>
+  <p class="sub">Propuestas de música y efectos para el Templo del Río. Todo lo que suena aquí se genera con código en el navegador, así que es solo un boceto: la idea, no la calidad final. Toca ▶ para escuchar y «Usar» en la versión que te guste. Con <b>Plano espiritual</b> arriba oyes cómo cambiaría la música al Traspasar.</p>
+  <p class="cita">El mundo responde; nunca regaña.</p>
+  <p><b>Ronda 3:</b> cambió La huida (base más baja, ocarina ligada y dos variantes de la melodía) y la Puerta de piedra de Empujar (B) dura 0,3 s, como el empujón en el juego.</p>
+  <p class="sub">La regla de <code>docs/arte.md</code> sigue en pie: nada de bocinas de error ni campanitas de «¡correcto!», y todo se entiende con el sonido apagado (en clase muchos juegan en silencio).</p>
+</header>
+
+<div class="bar">
+  <label for="vol">Volumen</label>
+  <input id="vol" type="range" min="0" max="100" value="60">
+  <button id="plano" type="button" aria-pressed="false">Plano espiritual</button>
+  <button id="parar" type="button">Parar música</button>
+</div>
+
+<section>
+  <h2>Música</h2>
+  <p class="sub">Deja sonar una y toca <b>Plano espiritual</b>: es la misma pieza, filtrada, con más eco y un brillo cristalino. El cambio no corta la música, se cruza.</p>
+  <div class="grid" id="musica"></div>
+</section>
+
+<section>
+  <h2>Efectos</h2>
+  <p class="sub">Con audífonos se nota mejor el Reflejo: el sonido original suena a un lado y su reflejo al otro.</p>
+  <div class="grid" id="efectos"></div>
+</section>
+
+<section>
+  <h2>Preguntas</h2>
+  <div id="preguntas" style="display:grid;gap:14px"></div>
+</section>
+
+<section>
+  <h2>Momentos que necesitan sonido</h2>
+  <p class="sub"><span class="pri a">Primero</span> son los que se oyen en cada sala; <span class="pri b">Después</span> pueden esperar a una segunda tanda.</p>
+  <div class="tabla"><table>
+    <thead><tr><th>Momento</th><th>Cuándo pasa</th><th>Idea</th><th>Orden</th></tr></thead>
+    <tbody id="momentos"></tbody>
+  </table></div>
+</section>
+
+<div class="resumen">
+  <div class="fila"><strong>Tus respuestas:</strong> <span id="codigo">(toca opciones)</span></div>
+  <label for="notas" class="sub">Comentarios (juegos o canciones de referencia, lo que no te gustó):</label>
+  <textarea id="notas" placeholder="Ej.: me gusta la música de Journey, el Reflejo con eco invertido pero más corto…"></textarea>
+  <div class="fila"><button id="copiar" type="button">Copiar resumen</button><span id="ok" class="sub" role="status"></span></div>
+</div>
+</main>
+
+<script>
+(() => {
+"use strict";
+// ---------- Motor de audio ----------
+let AC = null, master, rev, busN, busE, sfx;
+const vol = () => Number(document.getElementById("vol").value) / 100 * .9;
+const nf = n => 440 * Math.pow(2, (n - 69) / 12);
+let espiritual = false;
+
+function ac() {
+  if (!AC) {
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+    const comp = AC.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4; comp.connect(AC.destination);
+    master = AC.createGain(); master.gain.value = vol(); master.connect(comp);
+    // eco: respuesta al impulso de ruido que decae (una sala de piedra grande)
+    rev = AC.createConvolver();
+    const largo = AC.sampleRate * 3.2, imp = AC.createBuffer(2, largo, AC.sampleRate);
+    for (let c = 0; c < 2; c++) { const d = imp.getChannelData(c); for (let i = 0; i < largo; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / largo, 3); }
+    rev.buffer = imp; const revOut = AC.createGain(); revOut.gain.value = .55; rev.connect(revOut); revOut.connect(master);
+    // plano normal: seco y cálido; plano espiritual: filtrado y con mucho eco
+    busN = AC.createGain(); busN.connect(master); const envN = AC.createGain(); envN.gain.value = .25; busN.connect(envN); envN.connect(rev);
+    busE = AC.createGain(); const lp = AC.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 1100;
+    busE.connect(lp); const secoE = AC.createGain(); secoE.gain.value = .45; lp.connect(secoE); secoE.connect(master); lp.connect(rev);
+    const brillo = AC.createGain(); brillo.gain.value = .9; busE.brillo = brillo; brillo.connect(rev); brillo.connect(master);
+    sfx = AC.createGain(); sfx.connect(master); const envS = AC.createGain(); envS.gain.value = .3; sfx.connect(envS); envS.connect(rev);
+    cruzar(true);
+  }
+  if (AC.state === "suspended") AC.resume();
+  return AC;
+}
+const now = () => AC.currentTime;
+function cruzar(inmediato) {
+  if (!AC) return;
+  const t = now(), k = inmediato ? .001 : .6;
+  busN.gain.setTargetAtTime(espiritual ? 0 : 1, t, k);
+  busE.gain.setTargetAtTime(espiritual ? 1 : 0, t, k);
+  busE.brillo.gain.setTargetAtTime(espiritual ? .9 : 0, t, k);
+}
+function env(g, t, a, v, dur) { g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(v, t + a); g.gain.exponentialRampToValueAtTime(.0001, t + dur); }
+function salida(nodo, o) {
+  let n = nodo;
+  if (o.pan !== undefined && AC.createStereoPanner) { const p = AC.createStereoPanner(); p.pan.value = o.pan; n.connect(p); n = p; }
+  if (o.musica) { n.connect(busN); n.connect(busE); } else n.connect(o.a_eco ? rev : sfx);
+}
+// tono con envolvente; o: {a, lp, hp, pan, vib, musica, a_eco}
+function tono(tipo, f0, f1, dur, v, d = 0, o = {}) {
+  const t = now() + d, os = AC.createOscillator(), g = AC.createGain();
+  os.type = tipo; os.frequency.setValueAtTime(f0, t); if (f1 !== f0) os.frequency.exponentialRampToValueAtTime(Math.max(1, f1), t + dur);
+  env(g, t, o.a || .005, v, dur);
+  let n = os;
+  if (o.lp) { const f = AC.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = o.lp; n.connect(f); n = f; }
+  if (o.vib) { const l = AC.createOscillator(), lg = AC.createGain(); l.frequency.value = o.vib; lg.gain.value = o.vibAmt || 4; l.connect(lg); lg.connect(os.frequency); l.start(t); l.stop(t + dur + .05); }
+  n.connect(g); salida(g, o); os.start(t); os.stop(t + dur + .05);
+}
+let nbuf = null;
+function ruido(dur, v, tipo = "lowpass", f0 = 2000, f1 = f0, d = 0, o = {}) {
+  if (!nbuf) { nbuf = AC.createBuffer(1, AC.sampleRate * 2, AC.sampleRate); const c = nbuf.getChannelData(0); for (let i = 0; i < c.length; i++) c[i] = Math.random() * 2 - 1; }
+  const t = now() + d, s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+  s.buffer = nbuf; s.loop = true; f.type = tipo; f.frequency.setValueAtTime(f0, t); if (f1 !== f0) f.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+  if (o.q) f.Q.value = o.q;
+  env(g, t, o.a || .003, v, dur);
+  s.connect(f); f.connect(g); salida(g, o); s.start(t, Math.random()); s.stop(t + dur + .05);
+}
+// ---------- Instrumentos ----------
+const M = { musica: true };
+// en el plano espiritual cada nota suma su octava aguda, solo hacia el bus espiritual
+function brillo(f, dur, v, d) { const t = now() + d, os = AC.createOscillator(), g = AC.createGain(); os.type = "sine"; os.frequency.value = f * 2; env(g, t, .01, v * .35, dur); os.connect(g); g.connect(busE.brillo); os.start(t); os.stop(t + dur + .05); }
+const lira = (n, v = .14, d = 0, pan = 0) => { const f = nf(n); tono("triangle", f, f, 1.8, v, d, { ...M, pan }); tono("sine", f * 2, f * 2, .9, v * .3, d, { ...M, pan }); brillo(f, 1.8, v, d); };
+const campana = (n, v = .08, d = 0, pan = 0) => { const f = nf(n); tono("sine", f, f, 1.6, v, d, { ...M, pan }); tono("sine", f * 2.76, f * 2.76, .5, v * .35, d, { ...M, pan }); tono("sine", f * 5.4, f * 5.4, .2, v * .15, d, { ...M, pan }); brillo(f, 1.6, v, d); };
+const marimba = (n, v = .16, d = 0) => { const f = nf(n); tono("sine", f, f, .7, v, d, M); tono("sine", f * 4, f * 4, .12, v * .3, d, M); brillo(f, .7, v * .6, d); };
+const ocarina = (n, dur, v = .07, d = 0) => { const f = nf(n); tono("sine", f, f, dur, v, d, { ...M, a: .08, vib: 5, vibAmt: 3 }); ruido(dur, v * .25, "bandpass", f, f, d, { ...M, q: 8, a: .08 }); brillo(f, dur, v, d); };
+const pad = (notas, dur, v = .025, d = 0) => notas.forEach((n, i) => [-6, 6].forEach(dt => tono("sawtooth", nf(n), nf(n), dur, v, d, { ...M, a: dur * .4, lp: 700 }))) ;
+const bajo = (n, dur, v = .12, d = 0) => tono("sine", nf(n), nf(n), dur, v, d, { ...M, a: .05 });
+const tambor = (v = .5, d = 0) => { tono("sine", 120, 45, .35, v, d, M); ruido(.15, v * .2, "lowpass", 400, 400, d, M); };
+
+// Río de fondo: ruido suave que ondula
+let rio = null;
+function empezarRio(v = .05) {
+  pararRio();
+  const s = AC.createBufferSource(); ruido(.01, .0001); s.buffer = nbuf; s.loop = true;
+  const f = AC.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 650; f.Q.value = .8;
+  const g = AC.createGain(); g.gain.value = 0; g.gain.setTargetAtTime(v, now(), 1);
+  const l = AC.createOscillator(), lg = AC.createGain(); l.frequency.value = .18; lg.gain.value = v * .5; l.connect(lg); lg.connect(g.gain);
+  const lf = AC.createOscillator(), lfg = AC.createGain(); lf.frequency.value = .07; lfg.gain.value = 250; lf.connect(lfg); lfg.connect(f.frequency);
+  s.connect(f); f.connect(g); g.connect(busN); g.connect(busE); s.start(); l.start(); lf.start();
+  rio = { g, nodos: [s, l, lf] };
+}
+function pararRio() { if (!rio) return; const r = rio; rio = null; r.g.gain.setTargetAtTime(0, now(), .3); setTimeout(() => r.nodos.forEach(n => n.stop()), 1500); }
+
+// ---------- Música ----------
+// D dórico (re, mi, fa, sol, la, si, do): suena antiguo, ni alegre ni triste
+const ACORDES = [[50, 57, 62, 65, 69], [48, 55, 60, 64, 67], [43, 50, 55, 59, 62], [45, 52, 57, 60, 64]];
+const ARP = [0, 2, 1, 3, 2, 4, 3, 1];
+const PENTA = [62, 64, 67, 69, 72, 74, 76, 79];
+const NARCISO = [62, 65, 69, 73, 74]; // re, fa, la, do#, re: el motivo de Narciso
+const MUSICA = [
+  { id: "m_templo2", nombre: "Templo del Río (ocarina y marimba)", cuando: "Ronda 2: mismo instrumento y timbre, otros motivos; el río de fondo más bajo.", v: [
+    ["Motivo 1 (el de la primera ronda)", { paso: .34, rio: .012, fn: s => ocaMar(s, 0) }],
+    ["Motivo 2: la ocarina sube y descansa arriba", { paso: .34, rio: .012, fn: s => ocaMar(s, 1) }],
+    ["Motivo 3: la marimba baja y la ocarina responde", { paso: .34, rio: .012, fn: s => ocaMar(s, 2) }],
+    ["Los tres alternándose, como sonaría en el juego (cambia cada ~22 s)", { paso: .34, rio: .012, fn: s => ocaMar(s % 64, (s >> 6) % 3) }],
+  ] },
+  { id: "m_jefe", nombre: "Narciso (jefe)", cuando: "Las tres fases del jefe. Sube un escalón por fase.", v: [
+    ["Tema del templo, insistente, con tambor (fase 2)", { paso: .3, fn: s => { const c = ACORDES[(s >> 3) % 4]; lira(c[ARP[s % 8]] + 12, .1); if (s % 4 === 0) tambor(.45); if (s % 8 === 6) tambor(.25); if (s % 16 === 0) bajo(c[0] - 12, 4.5, .14); if (s % 32 === 0) NARCISO.forEach((n, i) => ocarina(n + 12, .5, .05, i * .3)); } }],
+    ["Pulso al ritmo de Narciso: un golpe por cada paso suyo (normal, 1 s)", { paso: .25, fn: s => pulso(s, 4) }],
+    ["El mismo pulso en difícil (0,6 s): la música te dice su velocidad", { paso: .15, fn: s => pulso(s, 4) }],
+  ] },
+  { id: "m_huida3", nombre: "La huida", cuando: "Ronda 3: la base más baja y la ocarina ligada, una sola respiración cada dos compases.", v: [
+    ["Melodía de la ronda 2, ligada", { paso: .18, fn: s => { huida(s); frase(s, 0); } }],
+    ["Con adornos en medio", { paso: .18, fn: s => { huida(s); frase(s, 1); } }],
+    ["Empieza arriba y baja", { paso: .18, fn: s => { huida(s); frase(s, 2); } }],
+    ["Las tres alternándose, una por vuelta", { paso: .18, fn: s => { huida(s); frase(s % 64, (s >> 6) % 3); } }],
+  ] },
+  { id: "m_altar", nombre: "El altar", cuando: "Afuera del templo, con la estatua de Narciso. La pieza completa por primera vez.", v: [
+    ["Completa y en calma: lira, ocarina y colchón", { paso: .5, rio: .04, fn: s => { const c = ACORDES[(s >> 3) % 4]; lira(c[ARP[s % 8]] + 12, .08); if (s % 8 === 0) { pad(c.slice(0, 4), 4.2, .018); bajo(c[0] - 12, 4); } const mel = [69, -1, 72, 74, 72, -1, 69, -1, 67, -1, 69, 65, 67, -1, -1, -1]; const m = mel[s % 16]; if (m > 0 && (s >> 4) % 2) ocarina(m + 12, .9, .05); } }],
+    ["Solo la lira, muy despacio, con el motivo de Narciso que ya no duele", { paso: .7, fn: s => { const c = ACORDES[(s >> 3) % 4]; lira(c[ARP[s % 8]] + 12, .08); if (s % 32 === 16) NARCISO.slice(0, 4).forEach((n, i) => lira(n + 24, .06, i * .5)); } }],
+  ] },
+];
+// ocarina y marimba: [ostinato de la marimba, melodía de la ocarina (índices de PENTA, -1 = silencio), bajos]
+const MOTIVOS = [
+  [[0, 2, 4, 2, 1, 3, 4, 3], [4, -1, 5, -1, 3, -1, -1, -1, 2, -1, 3, -1, 1, -1, -1, -1], [50]],
+  [[0, 3, 1, 4, 0, 3, 2, 4], [2, -1, -1, 4, 5, -1, -1, -1, 6, -1, 5, -1, -1, -1, -1, -1], [50, 48]],
+  [[4, 2, 0, 2, 3, 1, 0, 1], [-1, -1, -1, -1, 6, -1, 5, -1, 4, -1, 2, -1, 3, -1, -1, -1], [45, 50]],
+];
+function ocaMar(s, k) {
+  const [o, mel, b] = MOTIVOS[k];
+  if (s % 2 === 0) marimba(PENTA[o[(s >> 1) % 8]] - 12, .12);
+  if (s % 16 === 0) bajo(b[(s >> 4) % b.length], 5, .1);
+  const m = mel[(s >> 1) % 16];
+  if (s % 2 === 0 && m >= 0) ocarina(PENTA[m] + 12, 1.2, .06);
+}
+function huida(s) { const c = ACORDES[(s >> 3) % 2 ? 3 : 0]; lira(c[ARP[s % 8]] + 12, .055); if (s % 4 === 0) tambor(.32); if (s % 8 === 0) bajo(c[0] - 12, 1.4, .09); }
+// melodías de la ocarina en la huida: dos respiraciones de 32 pasos (dos compases cada una); [nota, pasos]
+const FRASES = [
+  [[[69, 8], [72, 4], [74, 4], [76, 12], [74, 4]], [[72, 8], [69, 4], [67, 4], [69, 16]]],
+  [[[69, 7], [71, 1], [72, 4], [74, 2], [76, 1], [74, 1], [76, 12], [77, 1], [76, 1], [74, 2]], [[72, 6], [74, 1], [72, 1], [69, 4], [67, 2], [65, 1], [67, 1], [69, 16]]],
+  [[[76, 7], [77, 1], [76, 4], [74, 4], [72, 10], [74, 1], [72, 1], [69, 4]], [[67, 6], [69, 1], [67, 1], [65, 4], [64, 4], [62, 16]]],
+];
+function frase(s, k) { const p = s % 64; if (p === 0 || p === 32) soplo(FRASES[k][p / 32], .18); }
+// una respiración de ocarina: un solo oscilador que se desliza de nota en nota (ligadura)
+function soplo(notas, paso, v = .085) {
+  const t = now(), dur = notas.reduce((a, [, d]) => a + d, 0) * paso;
+  const o = AC.createOscillator(), o2 = AC.createOscillator(), g = AC.createGain(), g2 = AC.createGain();
+  const s = AC.createBufferSource(), bp = AC.createBiquadFilter(), gr = AC.createGain();
+  o.type = o2.type = "sine"; s.buffer = nbuf; s.loop = true; bp.type = "bandpass"; bp.Q.value = 8;
+  let tt = t;
+  for (const [n, d] of notas) { const f = nf(n + 12); [o.frequency, bp.frequency].forEach(x => x.setTargetAtTime(f, tt, .03)); o2.frequency.setTargetAtTime(f * 2, tt, .03); tt += d * paso; }
+  const f0 = nf(notas[0][0] + 12); o.frequency.setValueAtTime(f0, t); bp.frequency.setValueAtTime(f0, t); o2.frequency.setValueAtTime(f0 * 2, t);
+  const l = AC.createOscillator(), lg = AC.createGain(); l.frequency.value = 5; lg.gain.value = 3; l.connect(lg); lg.connect(o.frequency);
+  [[g, v], [gr, v * .22], [g2, v * .3]].forEach(([x, k]) => { x.gain.setValueAtTime(.0001, t); x.gain.exponentialRampToValueAtTime(k, t + .15); x.gain.setValueAtTime(k, t + dur - .4); x.gain.exponentialRampToValueAtTime(.0001, t + dur - .03); });
+  o.connect(g); s.connect(bp); bp.connect(gr); [g, gr].forEach(x => { x.connect(busN); x.connect(busE); }); o2.connect(g2); g2.connect(busE.brillo);
+  [o, o2, s, l].forEach(x => { x.start(t); x.stop(t + dur); });
+}
+// roce de piedra contra piedra: ruido grave que tiembla de forma irregular
+function arrastre(dur, f0, f1, v, d = 0, tiembla = 22) {
+  ruido(.01, .0001);
+  const t = now() + d, s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(), am = AC.createGain();
+  s.buffer = nbuf; s.loop = true; f.type = "bandpass"; f.Q.value = 2.5; f.frequency.setValueAtTime(f0, t); f.frequency.linearRampToValueAtTime(f1, t + dur);
+  const l = AC.createOscillator(), lg = AC.createGain(); l.type = "sawtooth"; l.frequency.setValueAtTime(tiembla, t); l.frequency.linearRampToValueAtTime(tiembla * 1.4, t + dur); lg.gain.value = .5; l.connect(lg); lg.connect(am.gain); am.gain.value = .6;
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(v, t + .06); g.gain.setValueAtTime(v, t + dur - .08); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  s.connect(f); f.connect(am); am.connect(g); salida(g, {}); s.start(t, Math.random()); s.stop(t + dur + .05); l.start(t); l.stop(t + dur + .05);
+  tono("sine", 55, 50, dur, v * .5, d, { a: .06 });
+}
+function pulso(s, cada) {
+  if (s % cada === 0) tambor(.55);
+  if (s % (cada * 4) === 0) bajo(38, 4, .12);
+  if (s % cada === cada / 2) lira(ACORDES[(s / (cada * 4) | 0) % 4][0] + 24, .06);
+}
+
+let reloj = null, paso = 0, botonMusica = null;
+function pararMusica() { clearInterval(reloj); reloj = null; if (AC) pararRio(); if (botonMusica) botonMusica.classList.remove("on"); botonMusica = null; }
+function tocarMusica(def, b) {
+  if (botonMusica === b) { pararMusica(); return; }
+  pararMusica(); ac(); paso = 0; botonMusica = b; b.classList.add("on");
+  if (def.rio) empezarRio(def.rio);
+  const t = () => { try { def.fn(paso++); } catch (e) { console.error(e); } };
+  t(); reloj = setInterval(t, def.paso * 1000);
+}
+
+// ---------- Efectos ----------
+const EFECTOS = [
+  { id: "reflejo", nombre: "Reflejo (marcar una piedra)", cuando: "Al marcar la piedra que miras. Su reflejo aparece del otro lado del eje.", v: [
+    ["Eco invertido: tres notas suben a un lado; su reflejo baja al otro", () => { const eje = 74; [4, 7, 12].forEach((k, i) => campanaS(eje + k, .12, i * .09, -.8)); [4, 7, 12].forEach((k, i) => campanaS(eje - k, .12, .45 + i * .09, .8)); }],
+    ["La misma nota en los dos lados, como un eco", () => { campanaS(81, .14, 0, -.8); campanaS(81, .1, .4, .8); }],
+    ["Una sola nota cristalina", () => campanaS(81, .14, 0, 0)],
+  ] },
+  { id: "traspasar", nombre: "Traspasar (ir al plano espiritual)", cuando: "Mientras la mancha se expande desde el jugador (0,5 s).", v: [
+    ["Respiro con eco que crece", () => { ruido(.9, .25, "bandpass", 300, 2400, 0, { a: .45, q: 1.5 }); ruido(.9, .2, "bandpass", 300, 2400, 0, { a: .45, q: 1.5, a_eco: true }); tono("sine", nf(74), nf(74), 1.6, .06, .4, { a: .1, a_eco: true }); }],
+    ["Campana al revés: crece y se corta", () => { [69, 74, 81].forEach(n => tono("sine", nf(n), nf(n), .55, .09, 0, { a: .5 })); [81, 86].forEach(n => tono("sine", nf(n), nf(n), 1.5, .05, .55, { a_eco: true })); }],
+    ["Acorde que se abre (filtro que sube)", () => [50, 57, 62, 69].forEach(n => [-8, 8].forEach(dt => { const t = now(), o = AC.createOscillator(), f = AC.createBiquadFilter(), g = AC.createGain(); o.type = "sawtooth"; o.frequency.value = nf(n); o.detune.value = dt; f.type = "lowpass"; f.frequency.setValueAtTime(200, t); f.frequency.exponentialRampToValueAtTime(3000, t + .6); env(g, t, .3, .03, 1.4); o.connect(f); f.connect(g); salida(g, {}); o.start(t); o.stop(t + 1.5); }))],
+  ] },
+  { id: "volver2", nombre: "Volver al plano normal", cuando: "Ronda 2: la campana de Traspasar (B), al revés. En el juego será el mismo archivo invertido.", v: [
+    ["Campana al revés, invertida: el eco crece y la campana se apaga", () => { [86, 81].forEach(n => tono("sine", nf(n), nf(n), .6, .05, 0, { a: .55, a_eco: true })); [81, 74, 69].forEach(n => tono("sine", nf(n), nf(n), .6, .09, .6)); }],
+    ["Igual, más corta", () => { [86, 81].forEach(n => tono("sine", nf(n), nf(n), .35, .05, 0, { a: .32, a_eco: true })); [81, 74, 69].forEach(n => tono("sine", nf(n), nf(n), .4, .09, .35)); }],
+  ] },
+  { id: "empujar2", nombre: "Empujar una piedra", cuando: "Ronda 2: como deslizar una losa o arrastrar una puerta de piedra.", v: [
+    ["Losa que se desliza, pareja", () => arrastre(.45, 260, 300, .5)],
+    ["Puerta de piedra: arrastre y un golpe al quedar en su lugar (0,3 s, lo que durará el empujón en el juego)", () => { arrastre(.3, 180, 320, .5); tono("sine", 80, 45, .3, .6, .3); ruido(.15, .3, "lowpass", 600, 200, .3); }],
+    ["Losa pesada con un chirrido de piedra", () => { arrastre(.5, 220, 260, .45, 0, 16); tono("sawtooth", 950, 870, .45, .015, .03, { lp: 2500, vib: 13, vibAmt: 25 }); }],
+    ["A tirones: tres raspones cortos y el golpe", () => { [0, .14, .28].forEach((d, i) => arrastre(.11, 240 + i * 30, 280 + i * 30, .5, d, 30)); tono("sine", 90, 50, .2, .5, .42); }],
+  ] },
+  { id: "girar", nombre: "Caminar contra una piedra (solo girar)", cuando: "Cuando el jugador gira hacia la piedra sin empujarla todavía.", v: [
+    ["Casi nada: un roce muy leve", () => ruido(.08, .08, "lowpass", 700)],
+    ["Silencio", () => {}],
+  ] },
+  { id: "pasos", nombre: "Pasos", cuando: "Decidido: los tres, según la superficie. Cada templo nuevo podrá agregar la suya.", v: [
+    ["Arenisca (salas del templo)", () => [0, .28].forEach(d => ruido(.06, .18, "lowpass", 900, 500, d))],
+    ["Madera (puente)", () => [0, .28].forEach(d => { tono("triangle", 190, 150, .08, .15, d); ruido(.04, .1, "bandpass", 1400, 1400, d, { q: 3 }); })],
+    ["Pasto (altar)", () => [0, .28].forEach(d => ruido(.1, .1, "highpass", 3500, 2500, d, { a: .02 }))],
+  ] },
+  { id: "lava", nombre: "Hundir una piedra en la lava", cuando: "La piedra queda fija y se tiñe de rojo.", v: [
+    ["Siseo y burbujas graves", () => { ruido(1.1, .3, "highpass", 4000, 2500, 0, { a: .02 }); for (let i = 0; i < 6; i++) tono("sine", 90 + Math.random() * 60, 160, .1, .3, .2 + i * .14 + Math.random() * .05); }],
+    ["Golpe sordo y vapor", () => { tono("sine", 90, 40, .3, .6); ruido(1.3, .2, "bandpass", 2500, 6000, .1, { a: .3, q: .7 }); }],
+  ] },
+  { id: "caer", nombre: "Caer al agua o al vacío", cuando: "Volver al plano normal sobre agua o vacío. La sala se reinicia.", v: [
+    ["Tono que baja y se apaga; la sala vuelve con un acorde", () => { tono("sine", 700, 90, 1, .2, 0, { a_eco: true }); [62, 66, 69].forEach((n, i) => lira(n, .08, 1.2 + i * .06)); }],
+    ["Suspiro que se apaga", () => { ruido(1.1, .25, "bandpass", 1800, 200, 0, { a: .05, q: 2 }); [62, 69].forEach((n, i) => lira(n, .07, 1.2 + i * .1)); }],
+    ["Chapuzón suave (para el agua)", () => { ruido(.4, .4, "lowpass", 2500, 300); for (let i = 0; i < 5; i++) tono("sine", 400 + i * 80, 900, .06, .12, .15 + i * .07); }],
+  ] },
+  { id: "prenda", nombre: "Prenda de Narciso", cuando: "La prenda flota, crece y brilla sobre el jugador.", v: [
+    ["El motivo de Narciso en lira", () => NARCISO.forEach((n, i) => lira(n + 12, .12, i * .13))],
+    ["Destello y el motivo en campanitas", () => { ruido(.5, .12, "highpass", 6000, 9000, 0, { a: .05 }); NARCISO.forEach((n, i) => campanaS(n + 24, .08, .1 + i * .1, (i - 2) / 3)); }],
+  ] },
+  { id: "salida", nombre: "Entrar al espejo (salida)", cuando: "El jugador entra al espejo; se encadena con la cortina entre salas.", v: [
+    ["Acorde que se abre hacia arriba", () => [50, 57, 62, 66, 69, 74].forEach((n, i) => lira(n, .11, i * .07))],
+    ["Cristal que resuena", () => { [81, 81.15, 88].forEach(n => tono("sine", nf(n), nf(n), 2.2, .07, 0, { a: .02, a_eco: true })); tono("sine", nf(62), nf(62), 2, .08, .1); }],
+  ] },
+  { id: "voz", nombre: "Voz de Narciso", cuando: "Mientras aparecen sus letras en el diálogo.", v: [
+    ["Sílabas con su timbre (como Undertale o Animal Crossing)", () => { const n = [69, 73, 74, 69, 65, 69, 62, 65, 69, 73, 69]; n.forEach((k, i) => tono("triangle", nf(k), nf(k), .07, .1, i * .075 + (i === 6) * .15, { lp: 2000 })); }],
+    ["Susurro con eco", () => { for (let i = 0; i < 9; i++) ruido(.08, .14, "bandpass", 1000 + Math.random() * 1500, 1200, i * .09, { q: 5, a_eco: i % 3 === 0 }); }],
+    ["Sin voz", () => {}],
+  ] },
+  { id: "golpe", nombre: "Narciso se ve a sí mismo (golpe)", cuando: "El reflejo cae sobre él: se paraliza y pierde flores.", v: [
+    ["Cristal que se quiebra, suave", () => { ruido(.5, .3, "highpass", 5000, 2500); [96, 91, 87, 84].forEach((n, i) => tono("sine", nf(n), nf(n) * .98, .4, .06, .05 + i * .08, { a_eco: true })); }],
+    ["Acorde disonante que se resuelve", () => { [62, 63, 69].forEach(n => tono("triangle", nf(n), nf(n), .8, .07)); [62, 66, 69].forEach(n => tono("triangle", nf(n), nf(n), 1.4, .07, .8)); }],
+  ] },
+  { id: "lanza", nombre: "Narciso lanza una piedra", cuando: "La sombra avisa dónde cae. El jugador debe poder reaccionar sin oírlo.", v: [
+    ["Silbido que baja mientras cae, y el golpe", () => { tono("sine", 1400, 300, .9, .06); tono("sine", 90, 40, .25, .6, .9); ruido(.2, .3, "lowpass", 800, 300, .9); }],
+    ["Solo el golpe", () => { tono("sine", 90, 40, .25, .6); ruido(.2, .3, "lowpass", 800, 300); }],
+  ] },
+  { id: "dano", nombre: "Perder un corazón", cuando: "Una piedra de Narciso cae encima del jugador.", v: [
+    ["Golpe sordo y un latido", () => { ruido(.08, .5, "lowpass", 700); tono("sine", 70, 45, .12, .7, .15); tono("sine", 70, 45, .12, .5, .35); }],
+    ["Una nota grave y triste de lira", () => { lira(50, .16); lira(53, .1, .05); }],
+  ] },
+  { id: "ui", nombre: "Botones y menús", cuando: "Tocar un botón, elegir habilidad, abrir el menú. Siempre más bajo que el juego.", v: [
+    ["Madera pequeña", () => { tono("sine", 620, 560, .05, .15); ruido(.02, .08, "bandpass", 1800, 1800, 0, { q: 3 }); }],
+    ["Piedrita", () => ruido(.03, .2, "bandpass", 2600, 2600, 0, { q: 6 })],
+    ["Cristal muy suave", () => tono("sine", nf(88), nf(88), .25, .04)],
+  ] },
+];
+function campanaS(n, v, d, pan) { const f = nf(n); tono("sine", f, f, 1.4, v, d, { pan }); tono("sine", f * 2.76, f * 2.76, .4, v * .3, d, { pan }); tono("sine", f, f, 1.4, v * .5, d, { pan, a_eco: true }); }
+
+// ---------- Tarjetas ----------
+const PLAY = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1 0l9 5-9 5z" fill="currentColor"></path></svg>';
+const CLAVE = "espejismo-sonido-v1";
+let elegidos = {};
+try { elegidos = JSON.parse(localStorage.getItem(CLAVE) || "{}") || {}; } catch (e) { elegidos = {}; }
+const guardarElegidos = () => { try { localStorage.setItem(CLAVE, JSON.stringify(elegidos)); } catch (e) {} };
+
+function tarjetas(lista, host, esMusica) {
+  for (const it of lista) {
+    const c = document.createElement("article"); c.className = "card"; c.dataset.id = it.id;
+    c.innerHTML = '<h3><span></span><small hidden>elegido</small></h3><p class="cuando"></p><div class="vars"></div><p class="desc"></p>';
+    c.querySelector("h3 span").textContent = it.nombre;
+    c.querySelector(".cuando").textContent = it.cuando;
+    const vars = c.querySelector(".vars"), desc = c.querySelector(".desc");
+    it.v.forEach(([etiqueta, fn], i) => {
+      const L = "ABCD"[i], w = document.createElement("div"); w.className = "var";
+      w.innerHTML = `<button class="play" type="button" aria-label="Escuchar ${it.nombre}, versión ${L}">${PLAY}${L}</button><label class="pick"><input type="radio" name="${it.id}" id="${it.id}-${L}" value="${L}"><span>Usar</span></label>`;
+      const b = w.querySelector(".play");
+      b.addEventListener("click", () => {
+        desc.textContent = L + ": " + etiqueta;
+        if (esMusica) tocarMusica(fn, b);
+        else { ac(); try { fn(); } catch (e) { console.error(e); } b.classList.add("on"); setTimeout(() => b.classList.remove("on"), 200); }
+      });
+      const r = w.querySelector("input");
+      if (elegidos[it.id] === L) r.checked = true;
+      r.addEventListener("change", () => { elegidos[it.id] = L; guardarElegidos(); refrescar(); });
+      vars.append(w);
+    });
+    host.append(c);
+  }
+}
+tarjetas(MUSICA, document.getElementById("musica"), true);
+tarjetas(EFECTOS, document.getElementById("efectos"), false);
+function refrescar() {
+  document.querySelectorAll(".card").forEach(c => { const on = !!elegidos[c.dataset.id]; c.classList.toggle("elegido", on); c.querySelector("small").hidden = !on; });
+  resumen();
+}
+
+// ---------- Momentos ----------
+const MOMENTOS = [
+  ["En cada sala"],
+  ["Pasos", "Cada casilla", "Arenisca, madera en puentes, pasto en el altar", "a"],
+  ["Girar contra una piedra", "Caminar hacia ella sin empujar", "Casi nada", "b"],
+  ["Empujar", "La piedra avanza una casilla", "Roce grave que dura lo que el movimiento", "a"],
+  ["Marcar o desmarcar (Reflejo)", "Usar Reflejo frente a una piedra", "Nota cristalina; desmarcar, la misma nota más apagada", "a"],
+  ["El reflejo viaja", "La piedra reflejada cruza el eje (0,6 s)", "El eco del otro lado (pregunta 4)", "a"],
+  ["Traspasar", "La mancha se expande", "Respiro con eco y la música cruza al plano espiritual", "a"],
+  ["Volver al plano normal", "Soltar Traspasar en piso firme", "El respiro al revés", "a"],
+  ["No se puede volver", "Intentar volver sobre una piedra", "Un golpe ahogado, sin tono de error", "b"],
+  ["Hundir en lava", "La piedra queda fija y roja", "Siseo y burbujas", "a"],
+  ["Caer", "Volver sobre agua o vacío", "Tono que baja; la sala vuelve con un acorde", "a"],
+  ["Reiniciar", "Cortina oscura con la flecha circular", "El mismo acorde suave", "b"],
+  ["Salida", "Entrar al espejo y la cortina entre salas", "Acorde que se abre", "a"],
+  ["Prenda", "Recoger una prenda de Narciso", "Su motivo, corto", "a"],
+  ["Habilidad nueva", "Anuncio con el fondo borroso", "La música baja y suena una frase de la lira", "b"],
+  ["Narciso"],
+  ["Diálogo", "Cada letra de Narciso", "Su voz (pregunta 5)", "a"],
+  ["Lanza una piedra", "Aparece la sombra", "Silbido que baja; la sombra sigue siendo la pista", "a"],
+  ["La piedra cae", "Sobre la arena", "Golpe de piedra", "a"],
+  ["Pierdes un corazón", "Una piedra te cae encima", "Golpe sordo y latido", "a"],
+  ["Se ve a sí mismo", "Su reflejo lo alcanza", "Cristal que se quiebra; pierde flores", "a"],
+  ["Rompe las piedras", "Tras CADA_ROMPER turnos con 4 piedras", "Crujido grande", "b"],
+  ["Fase nueva", "Pierde todas las flores de una fase", "La música sube un escalón", "a"],
+  ["La huida"],
+  ["Enfurece", "Pierde la corona", "Corte brusco a la música de la huida", "a"],
+  ["Lava que avanza", "Cada casilla que Narciso deja atrás", "Burbujeo detrás del jugador", "b"],
+  ["Punto de control", "Llegar al final de un tramo", "La música respira un momento", "b"],
+  ["Te alcanza", "Narciso llega al jugador", "Silencio y ventana de derrota", "a"],
+  ["El altar"],
+  ["Salir del templo", "Primera vez afuera", "Sin eco de piedra; pájaros lejanos", "b"],
+  ["La prenda calza", "Su reflejo cae en la sombra", "Una nota del motivo de Narciso por prenda", "a"],
+  ["Descanso", "Crece el narciso", "La pieza completa por primera vez", "a"],
+  ["Menús"],
+  ["Botones", "Tocar o elegir algo", "Toque corto, más bajo que el juego", "a"],
+  ["Habilidad bloqueada", "Tocar una apagada", "Toque ahogado", "b"],
+  ["Menú inicial y pausa", "Abrir y cerrar", "Música del menú; en pausa la música se filtra", "b"],
+  ["Ventana de derrota", "Perder contra Narciso", "Música detenida, un acorde menor", "a"],
+];
+const tb = document.getElementById("momentos");
+MOMENTOS.forEach(m => {
+  const tr = document.createElement("tr");
+  if (m.length === 1) { tr.className = "grupo"; tr.innerHTML = '<td colspan="4"></td>'; tr.firstChild.textContent = m[0]; }
+  else { tr.innerHTML = "<td></td><td></td><td></td><td></td>"; m.slice(0, 3).forEach((x, i) => tr.children[i].textContent = x); tr.children[3].innerHTML = `<span class="pri ${m[3]}">${m[3] === "a" ? "Primero" : "Después"}</span>`; }
+  tb.append(tr);
+});
+
+// ---------- Preguntas ----------
+const PREGS = [
+  ["Dirección de la música del templo (escucha «Templo del Río»)", ["A Lira y río", "B Caja de música onírica", "C Ocarina y marimba (guiño a Costa Rica)", "D Solo ambiente, música en momentos clave"]],
+  ["Qué pasa con la música al Traspasar", ["A La misma pieza, filtrada y con eco (lo que suena aquí)", "B La misma melodía con otros instrumentos (cristal, coro)", "C La música calla y queda un zumbido celeste"]],
+  ["La música a lo largo del templo", ["A Siempre la pieza completa", "B Se arma por partes: cada pocas salas entra un instrumento y en el altar suena completa por primera vez", "C Una pieza distinta por grupo de salas (río, lava, jefe)"], "La B convierte la música en un recuerdo del viaje sin dar pistas del puzzle."],
+  ["Sonido del Reflejo", ["A Eco invertido: la melodía se refleja (sube de un lado, baja del otro)", "B La misma nota en ambos lados", "C Una sola nota"], "La A es la propia matemática en sonido: invertir una melodía es reflejar las notas respecto a una nota eje. No es una pista: la piedra ya está marcada en pantalla."],
+  ["Voz de Narciso", ["A Sílabas con su timbre", "B Susurro con eco", "C Sin voz"], "Va con su tipografía: cada personaje que hable tendría su propio timbre."],
+  ["Música del jefe", ["A El tema del templo que se intensifica por fase", "B Un pulso al ritmo de los pasos de Narciso", "C Mezcla: el tema arriba y el pulso marcando su ritmo"], "Con B o C la música le dice al jugador qué tan rápido va Narciso (normal o difícil), pero la sombra sigue siendo la pista que importa."],
+  ["Pasos", ["A Siempre, según la superficie", "B Solo en madera y pasto", "C Sin pasos"]],
+  ["Cómo se hacen los sonidos", ["A Claude los genera con código y los guarda como archivos .ogg (como esta página, pero pulidos)", "B Bibliotecas gratuitas de uso libre (CC0, por ejemplo Kenney o Freesound)", "C Mezcla: efectos de bibliotecas y música por código", "D Un músico (tú, un estudiante o un conocido) graba o compone"], "A y C no tienen problemas de derechos y se pueden cambiar en cualquier momento. Con B hay que revisar la licencia de cada sonido."],
+  ["Volumen en el menú", ["A Música y efectos por separado", "B Un solo botón de silencio", "C Las dos cosas"], "En celular el botón de silencio sirve en clase."],
+  ["Por dónde empezar", ["A Los efectos de cada sala", "B La música del templo y su cruce al plano espiritual", "C Las dos cosas en la sala 1, para probar la sensación completa"]],
+];
+const sel = {};
+try { Object.assign(sel, JSON.parse(localStorage.getItem(CLAVE + "-p") || "{}")); } catch (e) {}
+const cont = document.getElementById("preguntas"), codigo = document.getElementById("codigo"), notas = document.getElementById("notas");
+try { notas.value = localStorage.getItem(CLAVE + "-n") || ""; } catch (e) {}
+PREGS.forEach(([q, ops, nota], i) => {
+  const d = document.createElement("div"); d.className = "preg";
+  d.innerHTML = `<h3><span>${i + 1}</span></h3>` + (nota ? '<p class="nota"></p>' : "");
+  d.querySelector("h3").append(q); if (nota) d.querySelector(".nota").textContent = nota;
+  const fila = document.createElement("div"); fila.className = "ops";
+  ops.forEach(o => {
+    const letra = o[0], b = document.createElement("button"); b.type = "button";
+    b.innerHTML = `<b>${letra}</b> `; b.append(o.slice(2)); b.dataset.l = letra;
+    b.setAttribute("aria-pressed", sel[i] === letra);
+    b.onclick = () => { sel[i] = sel[i] === letra ? undefined : letra; fila.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", sel[i] === x.dataset.l)); guardar(); };
+    fila.append(b);
+  });
+  d.append(fila); cont.append(d);
+});
+function textoPregs() { return PREGS.map((_, i) => sel[i] ? `${i + 1}${sel[i]}` : null).filter(Boolean).join(" · "); }
+function textoSonidos() {
+  return [...MUSICA, ...EFECTOS].filter(it => elegidos[it.id]).map(it => `${it.nombre}: ${elegidos[it.id]}`).join("; ");
+}
+function resumen() { const t = textoPregs(), n = Object.keys(elegidos).length; codigo.textContent = (t || "(toca opciones)") + (n ? ` · ${n} sonidos elegidos` : ""); }
+function guardar() { resumen(); try { localStorage.setItem(CLAVE + "-p", JSON.stringify(sel)); localStorage.setItem(CLAVE + "-n", notas.value); } catch (e) {} }
+notas.oninput = guardar; refrescar();
+document.getElementById("copiar").onclick = () => {
+  const s = "Sonido: " + (textoPregs() || "sin preguntas") + (textoSonidos() ? "\nElegidos: " + textoSonidos() : "") + (notas.value.trim() ? "\n" + notas.value.trim() : "");
+  const ok = document.getElementById("ok");
+  const respaldo = () => { notas.value = s; notas.select(); ok.textContent = "Selecciona y copia el texto de la caja."; };
+  try { navigator.clipboard.writeText(s).then(() => ok.textContent = "Copiado. Pégalo en el chat.", respaldo); } catch (e) { respaldo(); }
+};
+
+// ---------- Barra ----------
+document.getElementById("vol").addEventListener("input", () => { if (master) master.gain.value = vol(); });
+document.getElementById("parar").addEventListener("click", pararMusica);
+const bp = document.getElementById("plano");
+bp.addEventListener("click", () => { ac(); espiritual = !espiritual; bp.setAttribute("aria-pressed", espiritual); cruzar(false); });
+})();
+</script>

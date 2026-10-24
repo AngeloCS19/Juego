@@ -21,6 +21,12 @@ func _init() -> void:
 		var p := Vector2i(7, -3)
 		_igual(r.aplicar(r.aplicar(p)), p, "%s: reflejar dos veces vuelve al inicio" % eje)
 
+	# Música: la pieza del templo se arma por capas, y cada capa tiene su versión de cada plano.
+	_igual([Musica.capas_en(0), Musica.capas_en(Musica.DESDE[1]), Musica.capas_en(99)], [1, 2, 3], "capas de la música por sala")
+	for capa in Musica.CAPAS:
+		for plano in ["normal", "espiritual"]:
+			_igual(load("res://assets/musica/templo_%s_%s.ogg" % [capa, plano]) is AudioStreamOggVorbis, true, "música %s %s" % [capa, plano])
+
 	for ruta in DirAccess.get_files_at("res://salas"):
 		if ruta.ends_with(".json"):
 			var r := _jugar(ruta, "")

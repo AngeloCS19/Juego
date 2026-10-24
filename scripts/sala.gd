@@ -51,7 +51,8 @@ const COLOR_SALIDA := Color(0.85, 0.7, 0.3)
 const CELESTE := Color(0.55, 0.85, 1.0)
 const COLOR_LAVA := Color(0.95, 0.4, 0.2)
 # Animaciones: solo cambian el dibujo. Las reglas ya cambiaron al instante, así las pruebas no esperan.
-const DURACION_PASO := 0.12  # segundos que tarda en verse un paso o un empujón
+const DURACION_PASO := 0.12  # segundos que tarda en verse un paso
+const DURACION_EMPUJE := 0.3  # un empujón es más lento: dura lo mismo que el sonido de la piedra que se arrastra
 const DURACION_REFLEJO := 0.6  # lo que tarda el reflejo en viajar al otro lado del eje: se ve, es lo que se aprende
 const DURACION_CAIDA := 0.6  # main.gd espera esto antes de abrir la ventana de derrota
 const DURACION_SALIDA := 0.6  # el personaje entra al espejo; main.gd espera esto antes de la cortina
@@ -75,6 +76,7 @@ var _t := 0.0  # reloj de las animaciones
 var _vis := {}  # posiciones dibujadas (en píxeles); siguen a las reales con suavidad (ver _seguir)
 var _angulo := 0.0  # ángulo dibujado del jugador
 var _t_plano := 0.0  # tiempo desde que se entró al plano espiritual
+var _duracion_jugador := DURACION_PASO  # DURACION_EMPUJE mientras camina detrás de una piedra
 var _caida_t := DURACION_CAIDA  # tiempo desde la última caída (DURACION_CAIDA o más: no está cayendo)
 var _caida_en := Vector2.ZERO
 var _salida_t := DURACION_SALIDA  # tiempo desde que llegó al espejo (DURACION_SALIDA o más: no está entrando)
@@ -144,6 +146,7 @@ func mover(dir: Vector2i) -> void:
 	mirando = dir
 	queue_redraw()
 	if transitable(jugador + dir):
+		_duracion_jugador = DURACION_PASO
 		_avanzar(dir)
 	_accion()
 
@@ -158,6 +161,7 @@ func hay_empujable_enfrente() -> bool:
 func empujar_enfrente() -> bool:
 	if not hay_empujable_enfrente() or not _empujar(piedra_en(jugador + mirando), mirando):
 		return false
+	_duracion_jugador = DURACION_EMPUJE  # el jugador avanza al paso de la piedra
 	_avanzar(mirando)
 	_accion()
 	return true
@@ -221,12 +225,12 @@ func _process(delta: float) -> void:
 	_salida_t += delta
 	_prenda_t += delta
 	_mancha_t += delta
-	_seguir("jugador", _centro(jugador), delta)
+	_seguir("jugador", _centro(jugador), delta, _duracion_jugador)
 	_angulo = lerp_angle(_angulo, Vector2(mirando).angle() + PI / 2, minf(1.0, delta * 20.0))
 	for p in piedras:
 		var destino := _centro(p["pos"])
 		var v: Vector2 = p.get("vis", destino)
-		p["vis"] = destino if v.distance_to(destino) > TAM * 2.5 else v.move_toward(destino, TAM * delta / DURACION_PASO)
+		p["vis"] = destino if v.distance_to(destino) > TAM * 2.5 else v.move_toward(destino, TAM * delta / DURACION_EMPUJE)
 		p["t_marca"] = p.get("t_marca", 1.0) + delta
 	queue_redraw()
 
