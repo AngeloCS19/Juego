@@ -67,6 +67,7 @@ var _barra_jefe: BarraJefe  # vida de Narciso y corazones del jugador, solo en s
 var _menu: Menu
 var _dialogo: Dialogo
 var _cortina: Cortina
+var musica := Musica.new()
 var _empezada := false  # si ya se tocó Jugar: el menú inicial ofrece Continuar
 const ICONO_GIRAR_IZQ := preload("res://assets/sprites/icono_girar_izq.svg")
 const ICONO_GIRAR_DER := preload("res://assets/sprites/icono_girar_der.svg")
@@ -87,6 +88,7 @@ func _ready() -> void:
 	# funcionando (ALWAYS) para atender los botones; la sala, dentro de Pivote, se detiene con todo y su reloj.
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	pivote.process_mode = Node.PROCESS_MODE_PAUSABLE
+	add_child(musica)
 	var lista: Array[Habilidad] = [Traspasar.new(), Reflejo.new()]
 	barra = BarraHabilidades.new(lista)
 	barra.pedida.connect(_elegir)
@@ -335,6 +337,8 @@ func _cargar_sala() -> void:
 	var todas := ["traspasar", "reflejo"]
 	barra.configurar(todas if _todas_habilidades else sala.datos.get("habilidades", todas))
 	_iniciar_tutorial()
+	# El jefe, la huida y el altar tendrán su propia música; por ahora ahí no suena la del templo.
+	musica.tocar(0 if sala is SalaJefe or sala is SalaHuida or sala is SalaAltar else Musica.capas_en(indice))
 	_on_plano_cambiado(false)
 	_hablar(sala.datos.get("dialogo", []))
 
@@ -525,6 +529,7 @@ func _girar(sentido: int) -> void:
 func _on_plano_cambiado(espiritual: bool) -> void:
 	RenderingServer.set_default_clear_color(FONDO_ESPIRITUAL if espiritual else FONDO_NORMAL)
 	barra.bloquear(espiritual)  # mientras dura Traspasar, las demás habilidades se apagan
+	musica.plano(espiritual)
 
 
 ## Abre una ventana del menú y pausa el juego.
@@ -549,6 +554,7 @@ func _menu_inicio() -> void:
 	else:
 		opciones.append(["Jugar", func(): _empezada = true; _seguir()])
 	opciones.append([_texto_dificultad(), _cambiar_dificultad.bind(_menu_inicio)])
+	opciones.append([musica.texto_volumen(), func(): musica.cambiar_volumen(); _menu_inicio()])
 	_abrir("Espejismo", "", opciones, true, RETRATOS_PERSONAJE)
 
 
@@ -556,6 +562,7 @@ func _menu_pausa() -> void:
 	_abrir("Pausa", "", [
 		["Seguir", _seguir],
 		[_texto_dificultad(), _cambiar_dificultad.bind(_menu_pausa)],
+		[musica.texto_volumen(), func(): musica.cambiar_volumen(); _menu_pausa()],
 		["Menú inicial", _menu_inicio],
 	])
 

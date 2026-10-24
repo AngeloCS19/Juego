@@ -17,7 +17,7 @@ Decisiones de Angelo (2026-10-23) para la mejora gráfica. `docs/sprites.md` tie
 | Botones (celular) | **Solo iconos**; el nombre aparece únicamente la primera vez que se ve el botón. |
 | Menú inicial | Ilustración fija del templo con el título. |
 | Pausa | Pantalla completa oscurecida, más bonita que la actual. |
-| Sonido | Después. Abajo queda la dirección. |
+| Sonido | Elegido por Angelo el 2026-10-24 (ver abajo, «Lo elegido en sonido»). |
 
 ## Paleta
 
@@ -46,7 +46,27 @@ Regla: lo que se puede mover (piedra, jugador) es más claro y saturado que el p
 4. Interfaz: botones con iconos, menú inicial ilustrado y pausa nueva. *(hecho)*
 5. Sonido y música (con la dirección de abajo).
 
-## Sonido y música (para después)
+## Lo elegido en sonido (Angelo, 2026-10-24)
+
+Bocetos en `tools/musica/sonido.html` (la misma página que Angelo escuchó).
+
+| Tema | Decisión |
+|---|---|
+| Música del templo | Ocarina y marimba (guiño a las ocarinas precolombinas de Costa Rica), tres motivos que se alternan, río de fondo muy bajo. *(hecha)* |
+| Al Traspasar | La misma pieza, filtrada y con eco; se cruza sin cortar. *(hecha)* |
+| A lo largo del templo | La pieza se arma por capas: marimba, luego bajo, luego ocarina. *(hecha)* |
+| Jefe | El tema del templo, insistente y con tambor, más un pulso al ritmo de los pasos de Narciso. |
+| Huida | Arpegios y tambor (bajos) con una ocarina ligada que lleva la melodía, una respiración cada dos compases. |
+| Altar | Solo la lira, muy despacio, con el motivo de Narciso. |
+| Reflejo | Una sola nota cristalina. |
+| Traspasar / volver | Campana al revés que crece y se corta; volver es el mismo sonido invertido. |
+| Empujar | Puerta de piedra que se arrastra y un golpe al quedar en su lugar (0,3 s, lo que dura el empujón). |
+| Pasos | Según la superficie: arenisca, madera, pasto. Cada templo nuevo agrega las suyas. |
+| Voz de Narciso | Sílabas con su timbre (como Undertale): cada personaje que hable tiene su voz, como su tipografía. |
+| Volumen | Música y efectos por separado en el menú. |
+| De dónde salen | Música por código; efectos físicos (piedra, pasos, agua, lava) de bibliotecas libres CC0; efectos musicales por código. |
+
+## Sonido y música (la dirección original)
 
 La idea general: el sonido acompaña el sueño, nunca regaña. Nada de bocinas de error ni campanitas de "¡correcto!": el mundo responde, y el jugador entiende por la consecuencia.
 
