@@ -5,7 +5,7 @@
 		"#...E...#",
 		"#vvvvvvv#",
 		"#vvvvvvv#",
-		"~~~~=~~~~",
+		"~~~~~~~~~",
 		"#.......#",
 		"#.......#",
 		"#.......#",
@@ -17,5 +17,5 @@
 		{ "pos": [4, 5], "fija": true },
 		{ "pos": [4, 6], "fija": true }
 	],
-	"solucion": "RRFURFPRUUUU"
+	"solucion": "RFURFPURUUU"
 }
