@@ -42,7 +42,9 @@ func rebobinar(eje_vertical: bool, en_medio: Callable) -> Tween:
 	var t := pasar(eje_vertical, en_medio, 0.4)  # tapada un poco más, para ver girar la flecha
 	var giro := create_tween()
 	giro.tween_property(self, "flecha", 1.0, DURACION * 2 + 0.4).from(0.0)
-	t.finished.connect(func(): flecha = -1.0)
+	# Al terminar se quita la flecha, así el paso entre salas vuelve a mostrar el eje.
+	# Va en este mismo Tween: si fuera en "t", este podría terminar después y dejar la flecha puesta.
+	giro.tween_callback(func(): flecha = -1.0)
 	return t
 
 
