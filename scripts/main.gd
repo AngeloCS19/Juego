@@ -57,6 +57,11 @@ var _menu: Menu
 var _dialogo: Dialogo
 var _cortina: Cortina
 var _empezada := false  # si ya se tocó Jugar: el menú inicial ofrece Continuar
+const ICONO_GIRAR_IZQ := preload("res://assets/sprites/icono_girar_izq.svg")
+const ICONO_GIRAR_DER := preload("res://assets/sprites/icono_girar_der.svg")
+const ICONO_REINICIAR := preload("res://assets/sprites/icono_reiniciar.svg")
+const ICONO_MENU := preload("res://assets/sprites/icono_menu.svg")
+
 var prendas: Array[String] = []  # prendas de Narciso que el jugador ya sacó de su sala
 
 @onready var pivote: Node2D = $Pivote
@@ -90,17 +95,20 @@ func _crear_controles_tactiles() -> void:
 
 	var acciones := HBoxContainer.new()
 	acciones.add_theme_constant_override("separation", 8)
-	acciones.add_child(BarraHabilidades.crear_boton("Girar ⟲", _girar.bind(-1)))
-	acciones.add_child(BarraHabilidades.crear_boton("Girar ⟳", _girar.bind(1)))
-	acciones.add_child(BarraHabilidades.crear_boton("Reiniciar", _reiniciar))
-	var usar := BarraHabilidades.crear_boton("Usar", func(): barra.usar(sala), BarraHabilidades.COLOR_ACTIVA)
+	acciones.add_child(BarraHabilidades.crear_boton("Girar", _girar.bind(-1), BarraHabilidades.COLOR_NORMAL, ICONO_GIRAR_IZQ))
+	acciones.add_child(BarraHabilidades.crear_boton("Girar", _girar.bind(1), BarraHabilidades.COLOR_NORMAL, ICONO_GIRAR_DER))
+	acciones.add_child(BarraHabilidades.crear_boton("Reiniciar", _reiniciar, BarraHabilidades.COLOR_NORMAL, ICONO_REINICIAR))
+	# Usar muestra el icono de la habilidad activa (la barra lo cambia al elegir otra).
+	var usar := BarraHabilidades.crear_boton("Usar", func(): barra.usar(sala), BarraHabilidades.COLOR_ACTIVA, barra.icono_activa())
 	usar.custom_minimum_size = Vector2(120, 96)
+	usar.add_theme_constant_override("icon_max_width", 72)
+	barra.boton_usar = usar
 
 	# Debug va debajo de la fila, no al lado: así la fila no se alarga y no tapa el texto de arriba.
 	var esquina := VBoxContainer.new()
 	esquina.add_theme_constant_override("separation", 8)
 	esquina.add_child(acciones)
-	var boton_menu := BarraHabilidades.crear_boton("Menú", _menu_pausa)  # en el celular no hay Esc
+	var boton_menu := BarraHabilidades.crear_boton("Menú", _menu_pausa, BarraHabilidades.COLOR_NORMAL, ICONO_MENU)  # en el celular no hay Esc
 	boton_menu.size_flags_horizontal = Control.SIZE_SHRINK_END
 	esquina.add_child(boton_menu)
 	if OS.is_debug_build():
@@ -344,8 +352,7 @@ func _girar(sentido: int) -> void:
 
 func _on_plano_cambiado(espiritual: bool) -> void:
 	RenderingServer.set_default_clear_color(FONDO_ESPIRITUAL if espiritual else FONDO_NORMAL)
-	etiqueta.text = "Sala %d · %s · Plano %s\nMover: flechas o deslizar · Habilidad: 1-9 · Usar: Espacio o botón Usar" % [
-		indice + 1, sala.datos["nombre"], "espiritual" if espiritual else "normal"]
+	etiqueta.text = "Sala %d · %s" % [indice + 1, sala.datos["nombre"]]  # el plano ya lo dice el color del fondo
 	if not prendas.is_empty():
 		etiqueta.text += "\nPrendas de Narciso: %d de 4" % prendas.size()
 	if sala is SalaHuida:
