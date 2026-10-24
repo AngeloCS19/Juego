@@ -6,7 +6,7 @@
 		"#...vv#####",
 		"#.....#####",
 		"#....~#####",
-		"#...~~#####",
+		"#...~~~####",
 		"#..~~~....#",
 		"#.~~~.....#",
 		"#~~~......#",
@@ -18,5 +18,5 @@
 	"piedras": [
 		{ "pos": [5, 8] }
 	],
-	"solucion": "DDLLLLUREEEEDRUEEFLULLPLUUULLUURR"
+	"solucion": "DDLLLLUREEEEDRUEEFLULLPULUULLUURR"
 }
