@@ -10,6 +10,23 @@ Juego de puzzles con vista cenital donde se aprende matemática sin darse cuenta
 
 Si tu Godot es más nuevo que 4.5, puede preguntar si quieres convertir el proyecto: acepta.
 
+## Cómo exportarlo para que otros lo jueguen
+
+"Exportar" convierte el proyecto en un juego que se abre sin Godot. Las opciones ya están guardadas en `export_presets.cfg` (Godot lo lee solo), con dos destinos:
+
+- **Web**: una página que se juega en el navegador, en PC y en celular. Es la forma más fácil de compartir: subes la carpeta a [itch.io](https://itch.io) y mandas el enlace.
+- **Windows**: un solo archivo `Espejismo.exe`, para quien prefiera descargarlo.
+
+Pasos:
+
+1. La primera vez: **Editor > Administrar plantillas de exportación > Descargar e instalar**. Son las piezas de Godot que cada plataforma necesita (pesan cerca de 1 GB y se bajan una sola vez por versión de Godot).
+2. **Proyecto > Exportar**, elige **Web** o **Windows** y presiona **Exportar proyecto**. Desmarca **Exportar con depuración** para que no salga el botón Debug.
+3. El resultado queda en `exportar/web/` o `exportar/windows/`. Esa carpeta no se sube a GitHub (`.gitignore`) y tiene un `.gdignore` para que Godot no la confunda con parte del juego.
+
+Para subir la versión web a itch.io: comprime **el contenido** de `exportar/web/` en un .zip (con `index.html` en la raíz del zip), crea un proyecto nuevo, en "Kind of project" elige **HTML**, sube el zip y marca **This file will be played in the browser**. Activa también **Mobile friendly** y **Fullscreen button**. Si lo dejas en "Draft" o "Restricted" con contraseña, solo entra quien tenga el enlace.
+
+La exportación web usa `thread_support=false` (sin hilos): así funciona en cualquier página, también en itch.io y en celulares, sin configurar nada especial en el servidor. Los archivos de `salas/*.json` no son recursos de Godot, por eso el preset los incluye a mano (`include_filter`); sin eso el juego exportado no encontraría las salas.
+
 ## Controles
 
 El juego se diseña para PC y para celular, así que todo se puede hacer con teclado o con el dedo (en la PC, el mouse funciona como dedo).
