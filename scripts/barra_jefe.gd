@@ -26,6 +26,7 @@ func _init() -> void:
 	_cabeza.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_cabeza.size = Vector2(600, 330) * ESCALA
 	_cabeza.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_cabeza.self_modulate = Color(0.7, 0.9, 1.0, 0.5)  # self_: no tiñe a las flores, que son sus hijas. Fantasmal, como vista desde el plano celeste; solo las flores son sólidas
 	add_child(_cabeza)
 	hide()
 
