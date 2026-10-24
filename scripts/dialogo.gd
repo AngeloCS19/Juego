@@ -22,7 +22,7 @@ const PERSONAJES := {
 		"animos": {
 			"sereno": {"retrato": preload("res://assets/retratos/narciso_retrato.svg")},
 			"enojado": {"retrato": preload("res://assets/retratos/narciso_retrato_enojado.svg")},
-			"furioso": {"retrato": preload("res://assets/retratos/narciso_retrato_enojado.svg"), "tiembla": true},
+			"furioso": {"retrato": preload("res://assets/retratos/narciso_retrato_furioso.svg"), "tiembla": true},  # ya sin flores: las perdió en el jefe
 		},
 	},
 }
