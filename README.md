@@ -26,7 +26,7 @@ El juego se diseña para PC y para celular, así que todo se puede hacer con tec
 
 ### Menús (`menu.gd`)
 
-Una sola ventana, `Menu`, sirve para tres cosas: el **menú inicial** (Jugar o Continuar, Empezar de nuevo, Dificultad, Personaje: niño, niña o espíritu), la **pausa** (Esc o el botón Menú) y la **derrota**. Perder (caer al vacío o al agua, o que Narciso te venza) siempre muestra la ventana de derrota, con **Reintentar** (la sala, la fase o el tramo ya volvió a empezar: ese es el punto de control) y **Menú inicial**.
+Una sola ventana, `Menu`, sirve para tres cosas: el **menú inicial** (Jugar o Continuar, Empezar de nuevo, Dificultad, Personaje: niño, niña o espíritu), la **pausa** (Esc o el botón Menú) y la **derrota**. Perder (caer al vacío o al agua, o que Narciso te venza) siempre muestra la ventana de derrota, con **Reintentar** (la sala, la fase o el tramo ya volvió a empezar: ese es el punto de control) y **Menú inicial**. El título va en Cinzel (mayúsculas romanas), y los textos y botones en un recuadro oscuro con borde dorado. El **menú inicial** muestra detrás una ilustración fija del templo (`assets/ilustracion_templo.svg`): el frontón sobre columnas, el río cruzando al frente y la luna reflejada en el agua, igual que Narciso se refleja. La pausa y la derrota solo oscurecen la sala.
 
 Mientras el menú está abierto el juego se pausa con `get_tree().paused = true`. Para que los botones sigan funcionando, `Main` usa `process_mode = ALWAYS`, y `Pivote`, que contiene la sala, usa `PAUSABLE`: así la sala y su reloj se detienen.
 
