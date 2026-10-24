@@ -378,6 +378,10 @@ func _draw() -> void:
 					draw_texture_rect(piso, _rect(c), false)  # el espejo de la salida es redondo: debajo va el piso
 				var tex: Texture2D = piso if celda(c) == "." else TEX_CASILLA[celda(c)]
 				draw_texture_rect(tex, _rect(c), false)
+				if celda(c) == "~":
+					_animar_agua(c)
+				elif celda(c) == "^":
+					_animar_lava(c)
 	if espiritual:
 		for t in transformaciones:
 			t.dibujar(self, TAM, tamano, CELESTE)
@@ -427,6 +431,29 @@ func _draw() -> void:
 	draw_texture_rect(tex_jugador, Rect2(-Vector2.ONE * lado_j * 0.5, Vector2.ONE * lado_j), false)
 	draw_set_transform(Vector2.ZERO)
 	_dibujar_mancha()
+
+
+## El agua se mueve sin dejar de ser lisa: dos brillos tenues que ondulan despacio, cada casilla
+## con su propia fase (su posición), para que el río no parpadee todo a la vez.
+func _animar_agua(c: Vector2i) -> void:
+	var o := _rect(c).position
+	var fase := c.x * 1.3 + c.y * 0.7
+	for i in 2:
+		var y := TAM * (0.35 + i * 0.35) + sin(_t * 1.2 + fase + i) * TAM * 0.06
+		var alfa := 0.12 + 0.08 * sin(_t * 1.5 + fase + i * 2.0)
+		draw_line(o + Vector2(TAM * 0.18, y), o + Vector2(TAM * 0.82, y), Color(0.81, 0.92, 0.95, alfa), 2.5)
+
+
+## La lava burbujea: cada casilla tiene un par de burbujas que suben y se apagan, en ciclo.
+func _animar_lava(c: Vector2i) -> void:
+	var o := _rect(c).position
+	var fase := c.x * 2.1 + c.y * 1.7
+	for i in 2:
+		var ciclo := fmod(_t * 0.6 + fase + i * 0.5, 1.0)  # de 0 (abajo) a 1 (arriba, apagada)
+		var x := TAM * (0.3 + 0.4 * fmod(fase + i, 1.0))
+		var y := TAM * (0.85 - ciclo * 0.6)
+		var radio := TAM * 0.07 * sin(ciclo * PI)  # crece y se apaga
+		draw_circle(o + Vector2(x, y), maxf(0.0, radio), Color(1.0, 0.83, 0.42, 0.7 * sin(ciclo * PI)))
 
 
 ## Al Traspasar, una mancha de tinta del color del plano nuevo se expande desde el jugador.

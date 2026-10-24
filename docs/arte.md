@@ -42,8 +42,8 @@ Regla: lo que se puede mover (piedra, jugador) es más claro y saturado que el p
 
 1. Paleta y sprites nuevos, con los tres personajes. *(hecho)*
 2. Animaciones: caminar y empujar, la piedra que se refleja, caer, Narciso. *(hecho; ver README, "Animaciones")*
-3. Transiciones y efectos: espejo entre salas (`cortina.gd`), mancha al Traspasar (`_dibujar_mancha()` en `sala.gd`). *(hecho)* Agua y lava que se mueven: pendiente.
-4. Interfaz: botones con iconos *(hecho)*, menú inicial ilustrado y pausa nueva *(hecho)*. Falta: agua y lava que se mueven.
+3. Transiciones y efectos: espejo entre salas (`cortina.gd`), mancha al Traspasar (`_dibujar_mancha()` en `sala.gd`). *(hecho)* Agua y lava que se mueven: *(hecho)* un brillo que ondula en el agua y burbujas en la lava (`_animar_agua`/`_animar_lava` en `sala.gd`).
+4. Interfaz: botones con iconos, menú inicial ilustrado y pausa nueva. *(hecho)*
 5. Sonido y música (con la dirección de abajo).
 
 ## Sonido y música (para después)
