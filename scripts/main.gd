@@ -141,6 +141,7 @@ func _crear_controles_tactiles() -> void:
 	$Interfaz.add_child(_cortina)  # debajo del diálogo y del menú
 	_dialogo = Dialogo.new()
 	_dialogo.terminado.connect(func(): get_tree().paused = _menu.visible)
+	_dialogo.terminado.connect(_barra_jefe.aparecer)  # la cabeza de Narciso aparece cuando él termina de hablar
 	$Interfaz.add_child(_dialogo)
 	_menu = Menu.new()
 	$Interfaz.add_child(_menu)  # se agrega al final para quedar encima de todo
