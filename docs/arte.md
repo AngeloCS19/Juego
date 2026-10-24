@@ -56,7 +56,7 @@ Bocetos en `tools/musica/sonido.html` (la misma página que Angelo escuchó).
 | Al Traspasar | La misma pieza, filtrada y con eco; se cruza sin cortar. *(hecha)* |
 | A lo largo del templo | La pieza se arma por capas: marimba, luego bajo, luego ocarina. *(hecha)* |
 | Jefe | El tema del templo, insistente y con tambor, más un pulso al ritmo de los pasos de Narciso. |
-| Huida | Arpegios y tambor (bajos) con una ocarina ligada que lleva la melodía, una respiración cada dos compases. |
+| Huida | Las melodías de Angelo (grabadas en flauta dulce: principal y tres variantes, alternándose en ese orden) en ocarina, cada nota atacada y la anacrusa ligada, sobre arpegios y tambor bajos (re menor, la menor, un compás cada uno). *(hecha)* |
 | Altar | Solo la lira, muy despacio, con el motivo de Narciso. |
 | Reflejo | Una sola nota cristalina. |
 | Traspasar / volver | Campana al revés que crece y se corta; volver es el mismo sonido invertido. |

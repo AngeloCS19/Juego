@@ -337,8 +337,13 @@ func _cargar_sala() -> void:
 	var todas := ["traspasar", "reflejo"]
 	barra.configurar(todas if _todas_habilidades else sala.datos.get("habilidades", todas))
 	_iniciar_tutorial()
-	# El jefe, la huida y el altar tendrán su propia música; por ahora ahí no suena la del templo.
-	musica.tocar(0 if sala is SalaJefe or sala is SalaHuida or sala is SalaAltar else Musica.capas_en(indice))
+	# El jefe y el altar tendrán su propia música; por ahora ahí no suena nada.
+	if sala is SalaHuida:
+		musica.tocar("huida")
+	elif sala is SalaJefe or sala is SalaAltar:
+		musica.tocar("")
+	else:
+		musica.tocar("templo", Musica.capas_en(indice))
 	_on_plano_cambiado(false)
 	_hablar(sala.datos.get("dialogo", []))
 
