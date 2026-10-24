@@ -10,7 +10,6 @@ extends Node2D
 signal completada
 signal plano_cambiado(espiritual: bool)
 signal caida
-signal prenda_recogida(nombre: String)
 signal derrota  # Narciso venció al jugador (jefe o huida): la fase o el tramo vuelve a empezar
 
 const TAM := 48.0  # píxeles por casilla
@@ -70,7 +69,7 @@ var espiritual := false
 var tutorial_piedra := Vector2i(-1, -1)  # piedra que brilla para indicar dónde usar Reflejo (tutorial); (-1, -1): ninguna
 var prenda_tomada := true  # false mientras la sala tenga una prenda de Narciso sin recoger (es opcional)
 static var personaje := 0  # índice en TEX_PERSONAJES; static: lo comparten todas las salas
-var tiempo_real := false  # dificultad difícil en el jefe: los turnos pasan solos
+var tiempo_real := false  # jefe y huida: los turnos los marca un reloj (las pruebas juegan por turnos)
 var _reloj: Timer
 var _t := 0.0  # reloj de las animaciones
 var _vis := {}  # posiciones dibujadas (en píxeles); siguen a las reales con suavidad (ver _seguir)
@@ -172,7 +171,6 @@ func _avanzar(dir: Vector2i) -> void:
 		prenda_tomada = true
 		_prenda_nombre = datos["prenda"]["nombre"]
 		_prenda_t = 0.0
-		prenda_recogida.emit(_prenda_nombre)
 	if celda(jugador) == "E":
 		_salida_t = 0.0  # main.gd espera DURACION_SALIDA para pasar de sala
 		completada.emit()
@@ -271,7 +269,7 @@ func _turno() -> void:
 	pass
 
 
-## Dificultad difícil: el mundo avanza un turno cada "intervalo" segundos, aunque el jugador no se mueva.
+## Jefe y huida: el mundo avanza un turno cada "intervalo" segundos, aunque el jugador no se mueva.
 func usar_tiempo_real(activo: bool, intervalo: float) -> void:
 	tiempo_real = activo
 	if _reloj == null:
@@ -283,11 +281,6 @@ func usar_tiempo_real(activo: bool, intervalo: float) -> void:
 		_reloj.start()
 	else:
 		_reloj.stop()
-
-
-## Texto extra para la interfaz (corazones, vida del jefe...). Las salas de puzzle no tienen.
-func estado() -> String:
-	return ""
 
 
 func celda(c: Vector2i) -> String:

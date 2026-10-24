@@ -9,7 +9,7 @@ extends Sala
 ##   "camino": casillas por las que Narciso pasa, en orden (de la entrada a la salida)
 ##   "espera": turnos antes de que empiece a perseguir
 ##   "cada":   cada cuántos turnos avanza una casilla
-## Igual que el jefe: en normal avanza cuando el jugador actúa, en difícil con un reloj.
+## Igual que el jefe: va con reloj, y la dificultad solo cambia su velocidad. Las pruebas juegan por turnos.
 
 var narciso: Vector2i
 var _paso := 0
@@ -34,10 +34,20 @@ func _turno() -> void:
 		narciso = _vec(camino[_paso])
 		if celda(atras) == "." and piedra_en(atras) < 0:
 			mapa[atras.y] = mapa[atras.y].substr(0, atras.x) + "^" + mapa[atras.y].substr(atras.x + 1)
+	_alcanzar()
+	queue_redraw()
+
+
+## En tiempo real el jugador también puede chocar con Narciso al caminar hacia él.
+func _avanzar(dir: Vector2i) -> void:
+	super(dir)
+	_alcanzar()
+
+
+func _alcanzar() -> void:
 	if narciso == jugador:
 		reiniciar()
 		derrota.emit()
-	queue_redraw()
 
 
 func _draw() -> void:

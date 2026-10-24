@@ -89,23 +89,36 @@ func actualizar(sala: Sala) -> void:
 		_corazones = jefe.corazones
 		queue_redraw()
 	var n := jefe.petalos()
-	if n > _vivas.count(true):  # la fase volvió a empezar: recupera sus flores
+	while _vivas.count(true) < n:  # la fase volvió a empezar: vuelven sus flores, de la del centro hacia afuera
+		var volver := -1
 		for i in _flores.size():
-			_vivas[i] = true
-			_flores[i].modulate.a = 1.0
-			_flores[i].visible = true
+			if not _vivas[i] and (volver < 0 or _al_centro(i) < _al_centro(volver)):
+				volver = i
+		_vivas[volver] = true
+		var f := _flores[volver]
+		f.get_meta("caida").kill()  # deshace la caída de _caer(), aunque no haya terminado
+		f.position = f.get_meta("pos")
+		f.rotation = 0.0
+		f.modulate.a = 1.0
 	while _vivas.count(true) > n:
 		var quitar := -1  # la viva más lejos del centro
 		for i in _flores.size():
-			if _vivas[i] and (quitar < 0 or absf(i - (_flores.size() - 1) / 2.0) > absf(quitar - (_flores.size() - 1) / 2.0)):
+			if _vivas[i] and (quitar < 0 or _al_centro(i) > _al_centro(quitar)):
 				quitar = i
 		_vivas[quitar] = false
 		_caer(_flores[quitar])
 
 
+## Qué tan lejos está la flor i de la del centro del arco.
+func _al_centro(i: int) -> float:
+	return absf(i - (_flores.size() - 1) / 2.0)
+
+
 ## La flor se cae y se desvanece.
 func _caer(f: TextureRect) -> void:
+	f.set_meta("pos", f.position)
 	var t := create_tween().set_parallel()
+	f.set_meta("caida", t)
 	t.tween_property(f, "position:y", f.position.y + 60, 0.7).set_ease(Tween.EASE_IN)
 	t.tween_property(f, "rotation", 1.2, 0.7)
 	t.tween_property(f, "modulate:a", 0.0, 0.7)

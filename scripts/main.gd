@@ -287,7 +287,6 @@ func _cargar_sala() -> void:
 	sala.completada.connect(_on_sala_completada)
 	sala.plano_cambiado.connect(_on_plano_cambiado)
 	sala.caida.connect(_on_caida)
-	sala.prenda_recogida.connect(_on_prenda_recogida)
 	pivote.add_child(sala)
 	_barra_jefe.configurar(sala)
 	# Donde Narciso actúa (jefe y huida) el tiempo corre solo; la dificultad elige qué tan rápido.
@@ -507,7 +506,9 @@ func _seguir() -> void:
 
 func _menu_inicio() -> void:
 	var opciones := []
-	if _empezada:
+	if indice >= SALAS.size():  # templo terminado: no hay sala a la cual volver
+		opciones.append(["Empezar de nuevo", _nueva_partida])
+	elif _empezada:
 		opciones.append(["Continuar", _seguir])
 		opciones.append(["Empezar de nuevo", _nueva_partida])
 	else:
@@ -580,10 +581,6 @@ func _on_derrota() -> void:
 	_menu_derrota(motivo)
 
 
-func _on_prenda_recogida(nombre: String) -> void:
-	pass  # la animación de la prenda la agrega otra parte; aquí ya no hay texto
-
-
 ## Cambia a la sala "indice" con la transición de espejo, que se cierra sobre el eje de la sala que termina.
 ## El juego queda en pausa mientras tanto; al final sigue en pausa solo si se abrió un diálogo o el menú.
 func _pasar_de_sala() -> void:
@@ -601,6 +598,7 @@ func _eje_vertical() -> bool:
 
 
 func _on_sala_completada() -> void:
+	sala.usar_tiempo_real(false, _ritmo())  # Narciso no actúa mientras el jugador entra al espejo
 	await get_tree().create_timer(Sala.DURACION_SALIDA).timeout  # primero se ve entrar al personaje en el espejo
 	# La prenda cuenta al salir de la sala: si el jugador cae y la sala se reinicia, hay que recogerla otra vez.
 	if sala.datos.has("prenda") and sala.prenda_tomada and not sala.datos["prenda"]["nombre"] in prendas:
