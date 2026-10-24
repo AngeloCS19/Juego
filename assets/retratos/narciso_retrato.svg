@@ -3,8 +3,7 @@
 <linearGradient id="tela" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbf8f0"/><stop offset="1" stop-color="#ddd3bd"/></linearGradient></defs>
 <ellipse cx="300" cy="380" rx="300" ry="420" fill="url(#h)"/>
 <g stroke="#2b1a14" stroke-width="7" stroke-linejoin="round">
-<path d="M90 900C100 760 130 640 200 585C235 560 262 545 268 500L345 505C350 548 380 562 430 580C510 610 540 760 545 900Z" fill="#eef0ec"/>
-<path d="M268 500C272 530 300 545 330 540C320 560 290 570 262 560Z" fill="#c9d3d6" stroke-width="0"/>
+<path d="M90 900C100 760 130 640 200 585C235 560 262 545 268 505C285 540 328 540 345 508C350 548 380 562 430 580C510 610 540 760 545 900Z" fill="#eef0ec"/>
 <path d="M85 900C95 760 120 650 190 590C240 570 290 600 320 650C360 720 410 800 460 900Z" fill="url(#tela)"/>
 </g>
 <g fill="none" stroke="#b9ac92" stroke-width="5" stroke-linecap="round"><path d="M170 650C200 720 230 800 240 890M230 630C270 700 320 790 350 890M140 720C150 780 160 840 165 895"/></g>
@@ -12,9 +11,9 @@
 <path d="M190 590C240 570 290 600 320 650C360 720 410 800 460 900" fill="none" stroke="#2b1a14" stroke-width="4" stroke-dasharray="14 10"/>
 <circle cx="205" cy="600" r="24" fill="#e7b94e" stroke="#2b1a14" stroke-width="6"/><circle cx="205" cy="600" r="10" fill="#3b7aa0" stroke="#2b1a14" stroke-width="4"/>
 <g fill="#3a2a40" stroke="#2b1a14" stroke-width="7"><circle cx="215" cy="175" r="48"/><circle cx="265" cy="140" r="52"/><circle cx="325" cy="135" r="50"/><circle cx="375" cy="165" r="44"/><circle cx="190" cy="235" r="46"/><circle cx="205" cy="305" r="44"/><circle cx="215" cy="375" r="40"/><circle cx="245" cy="430" r="34"/><circle cx="395" cy="205" r="30"/><circle cx="160" cy="280" r="38"/><circle cx="170" cy="355" r="36"/></g>
-<path d="M240 400C245 450 255 480 262 520L350 520C340 470 335 440 330 420Z" fill="#eef0ec"/>
-<path d="M240 400C245 450 255 480 268 505M330 420C335 440 340 470 345 505" fill="none" stroke="#2b1a14" stroke-width="7" stroke-linecap="round"/>
-<path d="M240 400C245 450 255 480 268 505L300 506C285 470 270 440 262 410Z" fill="#c9d3d6"/>
+<path d="M240 400C245 450 255 480 268 505C285 540 328 540 345 508C340 470 335 440 330 420Z" fill="#eef0ec"/>
+<path d="M240 400C245 450 255 480 268 505C285 540 328 540 345 508C340 470 335 440 330 420" fill="none" stroke="#2b1a14" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M240 400C245 450 255 480 268 505C282 524 296 531 308 531C285 490 270 440 262 410Z" fill="#c9d3d6"/>
 <path d="M235 190C300 168 372 188 380 250L384 282L402 334L385 344C389 354 387 362 381 368C385 375 383 385 374 391C372 412 360 426 334 431C298 433 258 410 240 380C224 350 219 300 225 258Z" fill="#eef0ec" stroke="#2b1a14" stroke-width="7" stroke-linejoin="round"/>
 <path d="M232 250C226 300 228 350 244 380C262 408 290 425 318 430C285 400 268 360 262 320C258 290 262 262 272 240Z" fill="#c9d3d6"/>
 <path d="M352 300L392 332" fill="none" stroke="#2b1a14" stroke-width="4" stroke-linecap="round"/>

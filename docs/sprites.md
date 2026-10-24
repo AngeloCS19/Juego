@@ -12,17 +12,18 @@ Todos son SVG de 64×64 (una casilla; en el juego se escalan a 48 px).
 | `muro.svg` | Muro (`#`) | siempre bloquea |
 | `agua.svg` | Agua del río (`~`) | plano normal |
 | `vacio.svg` | Vacío (`v`), oscuro | plano normal |
-| `lava.svg` | Río de lava (`^`), rojo con burbujas | plano normal |
+| `lava.svg` | Río de lava (`^`), rojo liso (las burbujas las anima el código) | plano normal |
 | `prenda_sandalias.svg`, `prenda_cinto.svg`, `prenda_tunica.svg`, `prenda_corona.svg` | Prendas de Narciso, a todo color | plano espiritual |
 | `narciso.svg` | Narciso visto desde arriba, a color: rizos oscuros, quitón blanco con broche dorado y una cola de espíritu que se desvanece. El código le pone un aura del color de su ánimo (celeste a naranja según la fase, rojo lava en la huida) y destella en blanco al recibir un golpe; su corona son los pétalos que dibuja el código | plano espiritual (en el normal, translúcido) |
 | `pasto.svg` | Pasto, el piso de las salas al aire libre (`"exterior": true`) | plano normal |
 | `estatua.svg` | Estatua de piedra de Narciso, con una mano en alto | plano normal (en el espiritual, su reflejo de cabeza) |
 | `flor_narciso.svg` | Flor de narciso que crece cuando Narciso descansa | al completar el altar |
 | `puente.svg` | Puente de madera (`=`) | plano normal |
-| `salida.svg` | Salida: el espejo de Narciso, un estanque redondo y sencillo de mármol con agua dorada (fondo transparente: se dibuja sobre el piso o el pasto) | plano normal |
+| `salida.svg` | Salida: el espejo de Narciso, pequeño: óvalo de cristal azulado con reflejo diagonal, marco de mármol, y dos narcisos al pie (fondo transparente: se dibuja sobre el piso o el pasto) | plano normal |
 | `piedra_1.svg`, `piedra_2.svg`, `piedra_3.svg` | Roca gris irregular que se empuja; cada piedra de la sala toma una variante según su orden en el JSON (`"variante"`) | plano normal |
 | `piedra_fija.svg` | Piedra fija: redonda y tallada, como la base de una estatua | plano normal |
 | `jugador_nino.svg`, `jugador_nina.svg`, `jugador_espiritu.svg` | Los tres personajes que se eligen en el menú inicial, vistos desde arriba y **apuntando hacia arriba** (el juego los rota según `mirando`) | ambos planos |
+| `flor_corona.svg` | Una flor de narciso (pétalos crema, centro naranja) para contar los golpes de Narciso en su barra de vida; el código la pone N veces sobre `narciso_corona.svg` | barra del jefe |
 | `anillo_reflejo.svg` | Anillo celeste de una piedra marcada con Reflejo | encima de la piedra |
 | `icono_traspasar.svg` | Icono de la habilidad Traspasar | barra de habilidades |
 | `icono_reflejo.svg` | Icono de la habilidad Reflejo | barra de habilidades |
@@ -61,3 +62,24 @@ Arte 2D grande (600×900) que aparece a la izquierda en los diálogos, al estilo
 | `narciso_retrato_enojado.svg` | Narciso enojado: cejas fruncidas, ojos naranjas, corona con flores marchitas, halo naranja |
 
 Mismo estilo que los sprites: contorno café grueso (`#2b1a14`), colores planos con una sombra, sin texto. Todo personaje que hable necesita sus retratos; se registran en `PERSONAJES` de `scripts/dialogo.gd`.
+
+### Selector de personaje y barra del jefe
+
+| Archivo | Qué es |
+|---|---|
+| `personaje_nino.svg`, `personaje_nina.svg`, `personaje_espiritu.svg` | Bustos de frente, 128×128, con los colores de los `jugador_*.svg` (que se ven desde arriba). Para el selector del menú. |
+| `narciso_corona.svg` | 600×330. Narciso de frente, de la frente hacia arriba: pelo morado, cejas y una corona de ramitas y hojas **sin flores**. |
+
+Las flores de la corona se dibujan con `assets/sprites/flor_corona.svg` (64×64, centro en 32,32) encima de la cabeza. Posiciones (centro de la flor, en píxeles del SVG de la cabeza) y tamaño sugerido, de izquierda a derecha sobre el arco de la corona:
+
+| # | x | y | tamaño |
+|---|---|---|---|
+| 1 | 105 | 282 | 80 |
+| 2 | 148 | 221 | 86 |
+| 3 | 217 | 180 | 92 |
+| 4 | 300 | 165 | 100 |
+| 5 | 383 | 180 | 92 |
+| 6 | 452 | 221 | 86 |
+| 7 | 495 | 282 | 80 |
+
+Con menos flores, quita primero las de los extremos (1 y 7) y sigue hacia el centro; la 4 es la última en caer. (El arco es la elipse de centro (300,335) y radios 205 × 170.)
