@@ -126,6 +126,7 @@ Las reglas cambian al instante; las animaciones solo cambian el **dibujo**. Así
 - **Reflejo:** al marcar, el anillo aparece grande y se asienta. Al entrar al plano espiritual, cada reflejo viaja (`DURACION_REFLEJO`, 0,6 s) en línea recta desde su piedra hasta su lugar al otro lado del eje, cruzándolo en ángulo recto: sale rápido y frena al llegar. Empieza cuando la mancha de Traspasar ya casi pasó, para que no la tape: es lo más importante de ver.
 - **Caer:** el personaje gira y se achica donde cayó. `main.gd` espera `DURACION_CAIDA` antes de abrir la ventana de derrota, y mientras tanto no se puede actuar (`cayendo()`).
 - **Narciso:** flota (sube y baja), se desliza entre casillas, su corona gira (más rápido cuanto más enojado) y al recibir un golpe destella en blanco y tiembla.
+- **Agua y lava:** siguen siendo sprites lisos, pero encima se dibuja un movimiento suave. El agua tiene dos brillos tenues que ondulan despacio (`_animar_agua()`); la lava, burbujas doradas que suben y se apagan en ciclo (`_animar_lava()`). Cada casilla usa su posición como fase, así el río no parpadea todo a la vez. Se dibujan solo en el plano normal, cada cuadro, porque `_process` ya llama a `queue_redraw()`.
 
 ### La matemática (`reflexion.gd`)
 
