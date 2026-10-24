@@ -28,7 +28,11 @@ const SALAS := [
 	"res://salas/rio_altar.json",
 ]
 const FONDO_NORMAL := Color(0.11, 0.08, 0.06)
-const PERSONAJES := ["Niño", "Niña", "Espíritu"]  # mismo orden que Sala.TEX_PERSONAJES
+const RETRATOS_PERSONAJE := [  # mismo orden que Sala.TEX_PERSONAJES
+	preload("res://assets/retratos/personaje_nino.svg"),
+	preload("res://assets/retratos/personaje_nina.svg"),
+	preload("res://assets/retratos/personaje_espiritu.svg"),
+]
 const FONDO_ESPIRITUAL := Color(0.03, 0.06, 0.12)
 const UMBRAL_DESLIZAR := 30.0  # píxeles: un toque que se mueve menos que esto no es deslizar
 const TIEMPO_EMPUJE := 0.3  # segundos que hay que sostener la dirección para empujar una piedra
@@ -56,7 +60,7 @@ var _derrotas := 0  # derrotas seguidas ante Narciso en difícil
 var _tactil := false  # hay pantalla táctil: se muestran los botones y se juega con toques
 var _botones_tactiles: Array[Control] = []  # todo lo que solo se ve con pantalla táctil
 var _aviso: HBoxContainer  # icono y nombre de una habilidad nueva, para quien juega sin botones
-var _marcador: Label  # corazones y pétalos durante el jefe
+var _barra_jefe: BarraJefe  # vida de Narciso y corazones del jugador, solo en su sala
 var _menu: Menu
 var _dialogo: Dialogo
 var _cortina: Cortina
@@ -134,11 +138,8 @@ func _crear_controles_tactiles() -> void:
 	_aviso.process_mode = Node.PROCESS_MODE_PAUSABLE  # su desvanecido espera a que se cierre el menú
 	_en_esquina(pantalla, _aviso, Control.PRESET_BOTTOM_LEFT)
 
-	_marcador = Label.new()
-	_marcador.add_theme_font_size_override("font_size", 22)
-	_marcador.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_marcador.add_theme_color_override("font_color", Color(1, 0.85, 0.5))
-	pantalla.add_child(_marcador)  # va justo debajo del texto de arriba (ver _process)
+	_barra_jefe = BarraJefe.new()
+	pantalla.add_child(_barra_jefe)
 
 	_cortina = Cortina.new()
 	$Interfaz.add_child(_cortina)  # debajo del diálogo y del menú
@@ -244,6 +245,7 @@ func _cargar_sala() -> void:
 	sala.caida.connect(_on_caida)
 	sala.prenda_recogida.connect(_on_prenda_recogida)
 	pivote.add_child(sala)
+	_barra_jefe.configurar(sala)
 	# Donde Narciso actúa (jefe y huida) el tiempo corre solo; la dificultad elige qué tan rápido.
 	if sala is SalaJefe or sala is SalaHuida:
 		sala.derrota.connect(_on_derrota)
@@ -353,8 +355,7 @@ func _casilla_tocada(posicion: Vector2) -> Vector2i:
 
 ## Empujar: sostener la dirección hacia una piedra que ya estás mirando.
 func _process(delta: float) -> void:
-	_marcador.text = sala.estado()
-	_marcador.position = Vector2(16, 12)
+	_barra_jefe.actualizar(sala)
 	_ocultar_cursor()
 	if _menu.visible or _dialogo.visible or _cortina.activa():
 		return
@@ -418,10 +419,10 @@ func _on_plano_cambiado(espiritual: bool) -> void:
 
 
 ## Abre una ventana del menú y pausa el juego.
-func _abrir(titulo: String, texto: String, opciones: Array, ilustrado := false) -> void:
+func _abrir(titulo: String, texto: String, opciones: Array, ilustrado := false, retratos: Array = []) -> void:
 	get_tree().paused = true
 	_dedo_abajo = false
-	_menu.mostrar(titulo, texto, opciones, ilustrado)
+	_menu.mostrar(titulo, texto, opciones, ilustrado, retratos, Sala.personaje, _elegir_personaje)
 
 
 func _seguir() -> void:
@@ -437,8 +438,7 @@ func _menu_inicio() -> void:
 	else:
 		opciones.append(["Jugar", func(): _empezada = true; _seguir()])
 	opciones.append([_texto_dificultad(), _cambiar_dificultad.bind(_menu_inicio)])
-	opciones.append(["Personaje: " + PERSONAJES[Sala.personaje], _cambiar_personaje])
-	_abrir("Espejismo", "", opciones, true)
+	_abrir("Espejismo", "", opciones, true, RETRATOS_PERSONAJE)
 
 
 func _menu_pausa() -> void:
@@ -466,11 +466,10 @@ func _nueva_partida() -> void:
 	_seguir()
 
 
-## Pasa al siguiente personaje (niño, niña, espíritu) y redibuja la sala y el menú.
-func _cambiar_personaje() -> void:
-	Sala.personaje = (Sala.personaje + 1) % PERSONAJES.size()
+## Elige el personaje (niño, niña, espíritu) y redibuja la sala; el menú ya marcó el retrato.
+func _elegir_personaje(i: int) -> void:
+	Sala.personaje = i
 	sala.queue_redraw()
-	_menu_inicio()
 
 
 func _texto_dificultad() -> String:
