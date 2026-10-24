@@ -243,13 +243,14 @@ func _unhandled_input(evento: InputEvent) -> void:
 			_girar(1)
 
 
-## Reiniciar la sala a pedido del jugador: las reglas vuelven al inicio al instante,
-## y la flecha circular de la cortina gira hacia atrás mientras las piezas regresan a su lugar.
+## Reiniciar la sala a pedido del jugador: la misma cortina que entre salas, pero en el centro
+## gira una flecha circular hacia atrás en lugar del eje. La sala se reinicia con la pantalla tapada.
 func _reiniciar() -> void:
 	if _cortina.activa() or sala.cayendo():
 		return
-	sala.reiniciar()
-	_cortina.rebobinar()
+	get_tree().paused = true
+	var t := _cortina.rebobinar(_eje_vertical(), sala.reiniciar)
+	t.finished.connect(func(): get_tree().paused = _menu.visible or _dialogo.visible)
 
 
 func _elegir(i: int) -> void:
@@ -449,14 +450,17 @@ func _on_prenda_recogida(nombre: String) -> void:
 ## Cambia a la sala "indice" con la transición de espejo, que se cierra sobre el eje de la sala que termina.
 ## El juego queda en pausa mientras tanto; al final sigue en pausa solo si se abrió un diálogo o el menú.
 func _pasar_de_sala() -> void:
-	var plano = sala.datos["plano_espiritual"]
-	var eje: String = (plano[0] if plano is Array else plano).get("eje", "horizontal")
-	# Si la cámara está girada un cuarto de vuelta, en pantalla el eje se ve al revés.
-	var vertical := (eje == "vertical") != (giro % 2 == 1)
 	get_tree().paused = true
 	_dedo_abajo = false
-	var t := _cortina.pasar(vertical, _cargar_sala)
+	var t := _cortina.pasar(_eje_vertical(), _cargar_sala)
 	t.finished.connect(func(): get_tree().paused = _menu.visible or _dialogo.visible)
+
+
+## ¿El eje de la sala se ve vertical en pantalla? Si la cámara está girada un cuarto de vuelta, se ve al revés.
+func _eje_vertical() -> bool:
+	var plano = sala.datos["plano_espiritual"]
+	var eje: String = (plano[0] if plano is Array else plano).get("eje", "horizontal")
+	return (eje == "vertical") != (giro % 2 == 1)
 
 
 func _on_sala_completada() -> void:

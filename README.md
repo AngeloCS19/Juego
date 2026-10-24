@@ -115,15 +115,15 @@ La ventana pausa el juego (como el menú). El texto aparece letra por letra con 
 ### Transiciones y efectos
 
 - **Entre salas** (`cortina.gd`): un espejo que se cierra. Dos mitades oscuras avanzan hasta juntarse en el eje de la sala que termina (una línea punteada celeste); con la pantalla tapada se carga la sala siguiente y el espejo se abre. Si el eje es vertical (o la cámara está girada), se cierra de lado. Usa un `Tween` con pasos en fila: cerrar, `tween_callback` (cargar la sala), esperar, abrir.
-- **Al Traspasar** (`_dibujar_mancha()` en `sala.gd`): una mancha de tinta del color del plano nuevo se expande desde el jugador hasta cubrir toda la pantalla y se desvanece. El borde es un círculo deformado por una suma de ondas (`sin`) con amplitudes y desfases al azar, así que nunca sale igual. Se dibuja con `draw_colored_polygon`.
-- **Al Reiniciar** (`rebobinar()` en `cortina.gd`, botón Reiniciar o tecla R): en el centro aparece una flecha circular crema con contorno café, da una vuelta hacia atrás (como rebobinando) y se desvanece, mientras la sala vuelve a su inicio. Es un `Tween` sobre la variable `flecha` (de 0 a 1); `_dibujar_flecha()` calcula el giro, el saltito y la transparencia a partir de ese número.
+- **Al Traspasar** (`_dibujar_mancha()` en `sala.gd`): una mancha de tinta del color del plano nuevo se expande desde el jugador hasta el borde de la pantalla, y se va desvaneciendo mientras llega, así casi no la tapa. El borde es un círculo deformado por una suma de ondas (`sin`) con amplitudes y desfases al azar, así que nunca sale igual. Se dibuja con `draw_colored_polygon`.
+- **Al Reiniciar** (`rebobinar()` en `cortina.gd`, botón Reiniciar o tecla R): la misma cortina que entre salas, pero en lugar del eje aparece en el centro una flecha circular celeste que da una vuelta hacia atrás, como rebobinando. La sala se reinicia con la pantalla tapada. Un segundo `Tween`, en paralelo, lleva la variable `flecha` de 0 a 1, y `_dibujar_flecha()` calcula el giro a partir de ese número.
 
 ### Animaciones (`sala.gd`)
 
 Las reglas cambian al instante; las animaciones solo cambian el **dibujo**. Así las pruebas no tienen que esperar nada. Cada cuadro, `_process(delta)` acerca la posición *dibujada* (`_vis`, y `"vis"` en cada piedra) a la posición *real* a velocidad fija (`DURACION_PASO` por casilla). Si la diferencia es grande (la sala se reinició), salta de una vez.
 
 - **Caminar y empujar:** el personaje y la piedra se deslizan; el personaje crece un poco a mitad del paso, como un saltito.
-- **Reflejo:** al marcar, el anillo aparece grande y se asienta. Al entrar al plano espiritual, cada reflejo viaja despacio (`DURACION_REFLEJO`, 1,2 s) en línea recta desde su piedra hasta su lugar al otro lado del eje, cruzándolo en ángulo recto y dejando un rastro. Empieza cuando la mancha de Traspasar ya casi pasó, para que no la tape: es lo más importante de ver.
+- **Reflejo:** al marcar, el anillo aparece grande y se asienta. Al entrar al plano espiritual, cada reflejo viaja (`DURACION_REFLEJO`, 0,6 s) en línea recta desde su piedra hasta su lugar al otro lado del eje, cruzándolo en ángulo recto: sale rápido y frena al llegar. Empieza cuando la mancha de Traspasar ya casi pasó, para que no la tape: es lo más importante de ver.
 - **Caer:** el personaje gira y se achica donde cayó. `main.gd` espera `DURACION_CAIDA` antes de abrir la ventana de derrota, y mientras tanto no se puede actuar (`cayendo()`).
 - **Narciso:** flota (sube y baja), se desliza entre casillas, su corona gira (más rápido cuanto más enojado) y al recibir un golpe destella en blanco y tiembla.
 
