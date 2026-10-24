@@ -55,9 +55,9 @@ Bocetos en `tools/musica/sonido.html` (la misma página que Angelo escuchó).
 | Música del templo | Ocarina y marimba (guiño a las ocarinas precolombinas de Costa Rica), tres motivos que se alternan, río de fondo muy bajo. *(hecha)* |
 | Al Traspasar | La misma pieza, filtrada y con eco; se cruza sin cortar. *(hecha)* |
 | A lo largo del templo | La pieza se arma por capas: marimba, luego bajo, luego ocarina. *(hecha)* |
-| Jefe | El tema del templo, insistente y con tambor, más un pulso al ritmo de los pasos de Narciso. |
+| Jefe | El tema del templo en re menor armónico, con un bombo (un golpe por cada paso de Narciso) y un bajo que imponen; fase 2 suma el arpegio de la ocarina, fase 3 más tambores. Una grabación por dificultad. *(hecha)* |
 | Huida | Las melodías de Angelo (grabadas en flauta dulce: principal y tres variantes, alternándose en ese orden) en ocarina, cada nota atacada y la anacrusa ligada, sobre arpegios y tambor bajos (re menor, la menor, un compás cada uno). *(hecha)* |
-| Altar | Solo la lira, muy despacio, con el motivo de Narciso. |
+| Altar | El arpegio de la ocarina del jefe, lento y suave, con el río y un colchón. *(hecha)* |
 | Reflejo | Una sola nota cristalina. |
 | Traspasar / volver | Campana al revés que crece y se corta; volver es el mismo sonido invertido. |
 | Empujar | Puerta de piedra que se arrastra y un golpe al quedar en su lugar (0,3 s, lo que dura el empujón). |

@@ -74,7 +74,7 @@ tr.grupo td { font: 600 14px var(--display); letter-spacing: .08em; color: var(-
   <h1>Sonido de Espejismo</h1>
   <p class="sub">Propuestas de música y efectos para el Templo del Río. Todo lo que suena aquí se genera con código en el navegador, así que es solo un boceto: la idea, no la calidad final. Toca ▶ para escuchar y «Usar» en la versión que te guste. Con <b>Plano espiritual</b> arriba oyes cómo cambiaría la música al Traspasar.</p>
   <p class="cita">El mundo responde; nunca regaña.</p>
-  <p><b>Ronda 4:</b> «La huida (tus melodías)» toca tus cuatro grabaciones con la ocarina, cada nota atacada y solo la anacrusa ligada. Abajo de la música están tus audios originales y cómo los transcribí, para que corrijas lo que no calce.</p>
+  <p><b>Ronda 5:</b> nuevas «Narciso (jefe)», por fases, y «El altar», con el arpegio de la ocarina. <b>Ronda 4:</b> «La huida (tus melodías)» toca tus cuatro grabaciones con la ocarina, cada nota atacada y solo la anacrusa ligada. Abajo de la música están tus audios originales y cómo los transcribí, para que corrijas lo que no calce.</p>
   <p class="sub">La regla de <code>docs/arte.md</code> sigue en pie: nada de bocinas de error ni campanitas de «¡correcto!», y todo se entiende con el sonido apagado (en clase muchos juegan en silencio).</p>
 </header>
 
@@ -229,10 +229,11 @@ const MUSICA = [
     ["Motivo 3: la marimba baja y la ocarina responde", { paso: .34, rio: .012, fn: s => ocaMar(s, 2) }],
     ["Los tres alternándose, como sonaría en el juego (cambia cada ~22 s)", { paso: .34, rio: .012, fn: s => ocaMar(s % 64, (s >> 6) % 3) }],
   ] },
-  { id: "m_jefe", nombre: "Narciso (jefe)", cuando: "Las tres fases del jefe. Sube un escalón por fase.", v: [
-    ["Tema del templo, insistente, con tambor (fase 2)", { paso: .3, fn: s => { const c = ACORDES[(s >> 3) % 4]; lira(c[ARP[s % 8]] + 12, .1); if (s % 4 === 0) tambor(.45); if (s % 8 === 6) tambor(.25); if (s % 16 === 0) bajo(c[0] - 12, 4.5, .14); if (s % 32 === 0) NARCISO.forEach((n, i) => ocarina(n + 12, .5, .05, i * .3)); } }],
-    ["Pulso al ritmo de Narciso: un golpe por cada paso suyo (normal, 1 s)", { paso: .25, fn: s => pulso(s, 4) }],
-    ["El mismo pulso en difícil (0,6 s): la música te dice su velocidad", { paso: .15, fn: s => pulso(s, 4) }],
+  { id: "m_jefe2", nombre: "Narciso (jefe)", cuando: "Ronda 5: el tema del templo con un bombo y un bajo que imponen. El bombo da un golpe por cada paso de Narciso. Cada fase suma algo.", v: [
+    ["Fase 1: marimba, bajo y bombo (normal: un paso de Narciso por segundo)", { paso: .125, fn: s => jefe(s, 1, 8, .125) }],
+    ["Fase 2: entra el arpegio de la ocarina", { paso: .125, fn: s => jefe(s, 2, 8, .125) }],
+    ["Fase 3: más tambores y el bajo en corcheas", { paso: .125, fn: s => jefe(s, 3, 8, .125) }],
+    ["Fase 3 en difícil (un paso cada 0,6 s): todo más rápido", { paso: .15, fn: s => jefe(s, 3, 4, .15) }],
   ] },
   { id: "m_huida4", nombre: "La huida (tus melodías)", cuando: "Ronda 4: tus cuatro grabaciones pasadas a la ocarina ligada, a 100 pulsos por minuto, sobre la base (re menor y la menor, un compás cada uno).", v: [
     ["Principal", { paso: .15, fn: s => { huida(s); melodia(s, [0]); } }],
@@ -240,9 +241,8 @@ const MUSICA = [
     ["Variante 2 (seis compases)", { paso: .15, fn: s => { huida(s); melodia(s, [2]); } }],
     ["Variante 3", { paso: .15, fn: s => { huida(s); melodia(s, [3]); } }],
   ] },
-  { id: "m_altar", nombre: "El altar", cuando: "Afuera del templo, con la estatua de Narciso. La pieza completa por primera vez.", v: [
-    ["Completa y en calma: lira, ocarina y colchón", { paso: .5, rio: .04, fn: s => { const c = ACORDES[(s >> 3) % 4]; lira(c[ARP[s % 8]] + 12, .08); if (s % 8 === 0) { pad(c.slice(0, 4), 4.2, .018); bajo(c[0] - 12, 4); } const mel = [69, -1, 72, 74, 72, -1, 69, -1, 67, -1, 69, 65, 67, -1, -1, -1]; const m = mel[s % 16]; if (m > 0 && (s >> 4) % 2) ocarina(m + 12, .9, .05); } }],
-    ["Solo la lira, muy despacio, con el motivo de Narciso que ya no duele", { paso: .7, fn: s => { const c = ACORDES[(s >> 3) % 4]; lira(c[ARP[s % 8]] + 12, .08); if (s % 32 === 16) NARCISO.slice(0, 4).forEach((n, i) => lira(n + 24, .06, i * .5)); } }],
+  { id: "m_altar2", nombre: "El altar", cuando: "Ronda 5: el mismo arpegio de la ocarina que en la pelea, pero lento y suave, con el río y un colchón.", v: [
+    ["Arpegio tranquilo", { paso: .25, rio: .03, fn: s => altar(s) }],
   ] },
 ];
 // ocarina y marimba: [ostinato de la marimba, melodía de la ocarina (índices de PENTA, -1 = silencio), bajos]
@@ -286,7 +286,7 @@ function melodia(s, lista) {
 // una respiración de ocarina: un solo oscilador para toda la frase, sin huecos entre notas.
 // Cada nota se ataca (golpe de lengua: el volumen baja un instante, vuelve con un acento y un soplo
 // de aire); las marcadas como ligadas [nota, pasos, true] solo se deslizan desde la anterior.
-function soplo(notas, paso, v = .085, d = 0) {
+function soplo(notas, paso, v = .085, d = 0, suave = false) {
   const t = now() + d, dur = notas.reduce((a, [, d]) => a + d, 0) * paso;
   const o = AC.createOscillator(), o2 = AC.createOscillator(), g = AC.createGain(), g2 = AC.createGain();
   const s = AC.createBufferSource(), bp = AC.createBiquadFilter(), gr = AC.createGain();
@@ -298,7 +298,7 @@ function soplo(notas, paso, v = .085, d = 0) {
     const f = nf(n + 12);
     if (i === 0 || !ligada) {
       [o.frequency, bp.frequency].forEach(x => x.setValueAtTime(f, tt)); o2.frequency.setValueAtTime(f * 2, tt);
-      if (i > 0) capas.forEach(([x, k]) => { x.gain.setTargetAtTime(k * .45, tt - .03, .008); x.gain.setTargetAtTime(k * 1.25, tt, .006); x.gain.setTargetAtTime(k, tt + .03, .05); });
+      if (i > 0) capas.forEach(([x, k]) => { x.gain.setTargetAtTime(k * (suave ? .75 : .45), tt - .03, .008); x.gain.setTargetAtTime(k * (suave ? 1.08 : 1.25), tt, .006); x.gain.setTargetAtTime(k, tt + .03, .05); });
       ruido(.05, v * .35, "bandpass", f * 2, f * 2, tt - now(), { ...M, q: 3 });
     } else { [o.frequency, bp.frequency].forEach(x => x.setTargetAtTime(f, tt, .03)); o2.frequency.setTargetAtTime(f * 2, tt, .03); }
     tt += d * paso;
@@ -317,6 +317,34 @@ function arrastre(dur, f0, f1, v, d = 0, tiembla = 22) {
   g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(v, t + .06); g.gain.setValueAtTime(v, t + dur - .08); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
   s.connect(f); f.connect(am); am.connect(g); salida(g, {}); s.start(t, Math.random()); s.stop(t + dur + .05); l.start(t); l.stop(t + dur + .05);
   tono("sine", 55, 50, dur, v * .5, d, { a: .06 });
+}
+// Narciso: re menor armónico (re, fa, la, do#): Dm, Dm, Sib, La; un compás = 16 pasos
+const JEFE = [[50, 53, 57, 62], [50, 53, 57, 62], [46, 50, 53, 58], [45, 49, 52, 57]];
+// arpegio de la ocarina sobre un acorde: sube en semicorcheas, se queda arriba y baja (16 pasos)
+const arpegio = c => [[c[0] + 12, 1], [c[1] + 12, 1], [c[2] + 12, 1], [c[3] + 12, 4], [c[2] + 12, 2], [c[1] + 12, 2], [c[0] + 12, 5]];
+const bombo = (v, d = 0) => { tono("sine", 62, 30, .7, v, d, M); tono("sine", 125, 40, .25, v * .5, d, M); ruido(.08, v * .35, "lowpass", 900, 200, d, M); };
+const caja = (v, d = 0) => { ruido(.16, v, "bandpass", 1900, 1500, d, { ...M, q: 1.2 }); tono("triangle", 210, 160, .08, v * .5, d, M); };
+const tom = (n, v, d = 0) => tono("sine", nf(n), nf(n) * .6, .22, v, d, M);
+// fase: 1 a 3; cada: pasos entre dos pasos de Narciso (el bombo); paso: segundos por paso;
+// solo: tocar solo esa capa (1 base, 2 ocarina, 3 lo de la fase 3), para grabarlas por separado
+function jefe(s, fase, cada, paso, solo = 0) {
+  const c = JEFE[(s >> 4) % 4], q = s % 16, capa = k => fase >= k && (!solo || solo === k);
+  if (capa(1) && s % cada === 0) bombo(.9);
+  if (capa(1) && q === 0) { tono("sawtooth", nf(c[0] - 12), nf(c[0] - 12), 16 * paso, .05, 0, { ...M, a: .02, lp: 320 }); bajo(c[0] - 12, 16 * paso, .2); }
+  if (capa(1) && s % 2 === 0) marimba(c[[0, 1, 2, 1, 3, 2, 1, 2][q >> 1]], .1);
+  if (capa(2) && q === 0) soplo(arpegio(c), paso, .075);
+  if (capa(3)) {
+    if (q % 8 === 4) caja(.3);
+    if (q >= 12 && (s >> 4) % 2) tom([45, 43, 41, 38][q - 12], .4);
+    if (s % 2 === 1) bajo(c[0] - 12 + (q % 4 === 3 ? 12 : 0), 2 * paso, .12);
+  }
+}
+// el altar: el mismo arpegio, lento y con ataques suaves; Dm, Sib, Fa, La
+const ALTAR = [[50, 53, 57, 62], [46, 50, 53, 58], [41, 48, 53, 57], [45, 49, 52, 57]];
+function altar(s) {
+  const c = ALTAR[(s >> 4) % 4], q = s % 16;
+  if (q === 0) { soplo(arpegio(c), .25, .055, 0, true); pad(c, 4.2, .014); bajo(c[0] - 12, 4.2, .09); }
+  if (q === 8) lira(c[2] + 12, .05);
 }
 function pulso(s, cada) {
   if (s % cada === 0) tambor(.55);

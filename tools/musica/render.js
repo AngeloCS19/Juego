@@ -15,6 +15,10 @@ const SALIDA = path.join(__dirname, '../../assets/musica');
 const PISTAS = [
   ['templo_marimba', .34, 192, 12], ['templo_bajo', .34, 192, 12], ['templo_ocarina', .34, 192, 12],
   ['huida', .15, 18 * 16, 6],  // las cuatro melodías de Angelo seguidas: 4 + 4 + 6 + 4 compases
+  // el jefe: una capa por fase; el bombo cae en cada paso de Narciso (normal 1 s, difícil 0,6 s)
+  ['jefe_normal_base', .125, 64, 2], ['jefe_normal_ocarina', .125, 64, 2], ['jefe_normal_fase3', .125, 64, 2],
+  ['jefe_dificil_base', .15, 64, 2], ['jefe_dificil_ocarina', .15, 64, 2], ['jefe_dificil_fase3', .15, 64, 2],
+  ['altar', .25, 64, 12],
 ];
 
 let html = fs.readFileSync(path.join(__dirname, 'sonido.html'), 'utf8');
@@ -24,7 +28,7 @@ for (const [a, b] of [
   ['if (AC.state === "suspended") AC.resume();', ''],
 ]) { if (!html.includes(a)) throw new Error('sonido.html cambió: no encuentro ' + a); html = html.replace(a, b); }
 const fin = html.lastIndexOf('})();');
-html = html.slice(0, fin) + 'window.__R = { reset: () => { AC = null; rio = null; }, ac, marimba, bajo, ocarina, empezarRio, huida, melodia, PENTA, MOTIVOS, setT: v => { T0 = v; }, setE: v => { espiritual = v; } };\n' + html.slice(fin);
+html = html.slice(0, fin) + 'window.__R = { reset: () => { AC = null; rio = null; }, ac, marimba, bajo, ocarina, empezarRio, huida, melodia, jefe, altar, PENTA, MOTIVOS, setT: v => { T0 = v; }, setE: v => { espiritual = v; } };\n' + html.slice(fin);
 
 (async () => {
   const b = await chromium.launch(); const p = await b.newPage();
@@ -37,6 +41,7 @@ html = html.slice(0, fin) + 'window.__R = { reset: () => { AC = null; rio = null
       window.__OFF = new OfflineAudioContext(2, Math.ceil(((PASOS + EXTRA) * PASO + COLA) * SR), SR);
       const R = window.__R; R.reset(); R.setE(esp); R.setT(0); R.ac();
       if (pista === 'templo_marimba') R.empezarRio(.012);
+      if (pista === 'altar') R.empezarRio(.03);
       for (let s = 0; s < PASOS + EXTRA; s++) {
         R.setT(s * PASO);
         if (pista.startsWith('templo') && s < PASOS) {
@@ -47,6 +52,8 @@ html = html.slice(0, fin) + 'window.__R = { reset: () => { AC = null; rio = null
           const m = mel[(q >> 1) % 16];
           if (pista === 'templo_ocarina' && q % 2 === 0 && m >= 0) R.ocarina(R.PENTA[m] + 12, 1.2, .06);
         }
+        if (pista.startsWith('jefe') && s < PASOS) R.jefe(s, 3, pista.includes('dificil') ? 4 : 8, PASO, ['base', 'ocarina', 'fase3'].indexOf(pista.split('_')[2]) + 1);
+        if (pista === 'altar' && s < PASOS) R.altar(s);
         if (pista === 'huida') {
           if (s < PASOS) R.huida(s);
           // melodia() empieza la anacrusa en su paso 56; corrida para que caiga 8 pasos antes del final

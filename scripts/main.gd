@@ -330,22 +330,28 @@ func _cargar_sala() -> void:
 		sala.derrota.connect(_on_derrota)
 		sala.usar_tiempo_real(true, _ritmo())
 	if sala is SalaJefe:
-		sala.fase_nueva.connect(func(): _hablar(sala.datos.get("dialogo", [])))
+		sala.fase_nueva.connect(func(): _hablar(sala.datos.get("dialogo", [])); _elegir_musica())
 	if sala is SalaAltar:
 		sala.usar_prendas(prendas)
 		sala.descanso.connect(func(): _hablar(sala.datos.get("dialogo_final", [])))
 	var todas := ["traspasar", "reflejo"]
 	barra.configurar(todas if _todas_habilidades else sala.datos.get("habilidades", todas))
 	_iniciar_tutorial()
-	# El jefe y el altar tendrán su propia música; por ahora ahí no suena nada.
-	if sala is SalaHuida:
-		musica.tocar("huida")
-	elif sala is SalaJefe or sala is SalaAltar:
-		musica.tocar("")
-	else:
-		musica.tocar("templo", Musica.capas_en(indice))
+	_elegir_musica()
 	_on_plano_cambiado(false)
 	_hablar(sala.datos.get("dialogo", []))
+
+
+## La música de la sala actual. En el jefe suma una capa por fase y sigue la dificultad.
+func _elegir_musica() -> void:
+	if sala is SalaJefe:
+		musica.tocar("jefe_dificil" if dificil else "jefe_normal", sala.fase + 1)
+	elif sala is SalaHuida:
+		musica.tocar("huida")
+	elif sala is SalaAltar:
+		musica.tocar("altar")
+	else:
+		musica.tocar("templo", Musica.capas_en(indice))
 
 
 ## Tutorial solo visual: la sala dice en "tutorial" qué habilidad brilla (y, si hace falta, en qué piedra).
@@ -606,6 +612,7 @@ func _cambiar_dificultad(volver: Callable) -> void:
 	_derrotas = 0
 	if sala.tiempo_real:
 		sala.usar_tiempo_real(true, _ritmo())
+	_elegir_musica()  # el jefe cambia a la grabación de la otra velocidad
 	volver.call()
 
 

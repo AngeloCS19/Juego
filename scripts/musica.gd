@@ -1,6 +1,6 @@
 class_name Musica
 extends Node
-## Música del juego. Cada pieza viene en capas (el templo: marimba, bajo y ocarina; la huida, una sola).
+## Música del juego. Cada pieza viene en capas (el templo: marimba, bajo y ocarina; el jefe, una por fase).
 ## Cada capa está grabada dos veces con el mismo largo: la del plano normal y la del espiritual
 ## (filtrada, con más eco y un brillo cristalino). Todas suenan siempre a la vez, en sincronía,
 ## y solo cambia cuáles se oyen: así, al Traspasar la música se cruza sin cortarse.
@@ -9,6 +9,11 @@ extends Node
 const PIEZAS := {
 	"templo": ["templo_marimba", "templo_bajo", "templo_ocarina"],
 	"huida": ["huida"],  # las cuatro melodías de Angelo en flauta, tocadas por la ocarina
+	# Narciso: una capa más por fase. El bombo cae en cada paso suyo, así que cada dificultad
+	# tiene su propia grabación, a su velocidad (RITMO_NORMAL y RITMO_DIFICIL de main.gd).
+	"jefe_normal": ["jefe_normal_base", "jefe_normal_ocarina", "jefe_normal_fase3"],
+	"jefe_dificil": ["jefe_dificil_base", "jefe_dificil_ocarina", "jefe_dificil_fase3"],
+	"altar": ["altar"],  # el arpegio de la ocarina del jefe, lento y en calma
 }
 ## Índice de SALAS (main.gd) desde el que suena cada capa: la pieza se arma a lo largo del templo.
 const DESDE := [0, 6, 12]
