@@ -53,9 +53,9 @@ const CELESTE := Color(0.55, 0.85, 1.0)
 const COLOR_LAVA := Color(0.95, 0.4, 0.2)
 # Animaciones: solo cambian el dibujo. Las reglas ya cambiaron al instante, así las pruebas no esperan.
 const DURACION_PASO := 0.12  # segundos que tarda en verse un paso o un empujón
-const DURACION_REFLEJO := 0.45  # lo que tarda el reflejo en viajar al otro lado del eje
+const DURACION_REFLEJO := 1.2  # lo que tarda el reflejo en viajar al otro lado del eje: despacio, es lo que se aprende
 const DURACION_CAIDA := 0.6  # main.gd espera esto antes de abrir la ventana de derrota
-const DURACION_MANCHA := 0.55  # la mancha de tinta que se expande al Traspasar
+const DURACION_MANCHA := 0.7  # la mancha de tinta que se expande al Traspasar
 
 var datos: Dictionary
 var mapa: Array = []
@@ -389,11 +389,13 @@ func _draw() -> void:
 			draw_texture_rect(_silueta(_tex_piedra(p)), r_fantasma, false, Color(CELESTE, 0.3))
 			if p["marcada"]:
 				# El reflejo viaja en línea recta desde la piedra, cruzando el eje en ángulo recto.
-				var k := ease(clampf(minf(_t_plano, p.get("t_marca", 1.0)) / DURACION_REFLEJO, 0.0, 1.0), 0.4)
+				# Al traspasar, el viaje empieza cuando la mancha ya casi pasó, para que se vea bien.
+				var viaje := minf(_t_plano - DURACION_MANCHA * 0.8, p.get("t_marca", 9.0))
+				var k := smoothstep(0.0, DURACION_REFLEJO, viaje)
 				for t in transformaciones:  # un reflejo por cada eje
 					var imagen := _centro(t.aplicar(p["pos"]))
-					if k < 1.0:
-						draw_line(centro, imagen, Color(CELESTE, 0.6 * (1.0 - k)), 2.0)
+					if k > 0.0 and k < 1.0:  # el rastro va de la piedra hasta donde va el reflejo
+						draw_line(centro, centro.lerp(imagen, k), Color(CELESTE, 0.7 * (1.0 - k * k)), 3.0)
 					var r_imagen := Rect2(centro.lerp(imagen, k) - Vector2.ONE * TAM * 0.5, Vector2.ONE * TAM)
 					draw_texture_rect(_silueta(_tex_piedra(p)), r_imagen, false, Color(CELESTE, 0.3 + 0.55 * k))
 			continue
@@ -443,7 +445,16 @@ func _dibujar_mancha() -> void:
 	if _mancha_t >= DURACION_MANCHA:
 		return
 	var k := _mancha_t / DURACION_MANCHA
-	var radio := ease(k, 0.4) * Vector2(tamano).length() * TAM
+	# Crece hasta cubrir toda la pantalla: la esquina más lejana, dividida entre el radio más chico
+	# que puede tener la mancha por sus ondas (si no, quedarían huecos en el borde).
+	var a_pantalla := get_global_transform_with_canvas().affine_inverse()
+	var lejos := 0.0
+	for esquina in [Vector2.ZERO, Vector2(get_viewport_rect().size.x, 0), Vector2(0, get_viewport_rect().size.y), get_viewport_rect().size]:
+		lejos = maxf(lejos, _mancha_en.distance_to(a_pantalla * esquina))
+	var minimo := 1.0
+	for o in _mancha_onda:
+		minimo -= o.x
+	var radio := ease(minf(k / 0.6, 1.0), 0.4) * lejos / minimo  # cubre todo a 60 % del tiempo y luego se desvanece
 	var color := Color(0.35, 0.65, 1.0) if espiritual else Color(0.95, 0.8, 0.55)
 	var borde := PackedVector2Array()
 	for i in 64:
@@ -452,9 +463,10 @@ func _dibujar_mancha() -> void:
 		for o in _mancha_onda:
 			r += o.x * sin(o.y * angulo + o.z + _t * 4.0)  # el borde se sigue moviendo, como tinta en agua
 		borde.append(_mancha_en + Vector2.from_angle(angulo) * radio * r)
-	draw_colored_polygon(borde, Color(color, 0.45 * (1.0 - k)))
+	var alfa := 1.0 - smoothstep(0.55, 1.0, k)
+	draw_colored_polygon(borde, Color(color, 0.55 * alfa))
 	borde.append(borde[0])
-	draw_polyline(borde, Color(color.lightened(0.5), 0.9 * (1.0 - k)), 5.0)
+	draw_polyline(borde, Color(color.lightened(0.5), 0.9 * alfa), 5.0)
 
 
 ## En el plano espiritual el piso se desvanece y solo queda la cuadrícula.
