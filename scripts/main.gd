@@ -71,6 +71,7 @@ const ICONO_GIRAR_IZQ := preload("res://assets/sprites/icono_girar_izq.svg")
 const ICONO_GIRAR_DER := preload("res://assets/sprites/icono_girar_der.svg")
 const ICONO_REINICIAR := preload("res://assets/sprites/icono_reiniciar.svg")
 const FUENTE_ANUNCIO := preload("res://assets/fuentes/Cinzel-Bold.ttf")
+const DESENFOQUE := preload("res://shaders/desenfoque.gdshader")
 const ICONO_MENU := preload("res://assets/sprites/icono_menu.svg")
 
 var prendas: Array[String] = []  # prendas de Narciso que el jugador ya sacó de su sala
@@ -209,6 +210,14 @@ func _anunciar(h: Habilidad) -> void:
 
 func _mostrar_anuncio(h: Habilidad) -> void:
 	var i := barra.habilidades.find(h)
+	# Detrás del anuncio, la sala se ve borrosa (shaders/desenfoque.gdshader) y vuelve a enfocarse cuando el icono vuela.
+	var borroso := ColorRect.new()
+	borroso.set_anchors_preset(Control.PRESET_FULL_RECT)
+	borroso.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	borroso.material = ShaderMaterial.new()
+	borroso.material.shader = DESENFOQUE
+	borroso.modulate.a = 0.0
+	$Interfaz.add_child(borroso)
 	var raiz := Control.new()
 	raiz.set_anchors_preset(Control.PRESET_FULL_RECT)
 	raiz.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -236,6 +245,7 @@ func _mostrar_anuncio(h: Habilidad) -> void:
 	icono.scale = Vector2.ONE * 0.6
 	var t := create_tween().set_parallel(true)  # aparece (0,3 s), se queda (0,6 s) y vuela (0,6 s)
 	t.tween_property(raiz, "modulate:a", 1.0, 0.3)
+	t.tween_property(borroso, "modulate:a", 1.0, 0.3)
 	t.tween_property(icono, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	await t.finished
 	await get_tree().create_timer(0.6).timeout
@@ -243,10 +253,12 @@ func _mostrar_anuncio(h: Habilidad) -> void:
 	var destino := casilla.global_position + casilla.size / 2 - icono.size / 2
 	var v := create_tween().set_parallel(true)
 	v.tween_property(nombre, "modulate:a", 0.0, 0.25)
+	v.tween_property(borroso, "modulate:a", 0.0, 0.4)
 	v.tween_property(icono, "position", destino, 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 	v.tween_property(icono, "scale", Vector2.ONE * (48.0 / 128.0), 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 	await v.finished
 	raiz.queue_free()
+	borroso.queue_free()
 	barra.revelar(i)
 
 
