@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a1a2e"/>
+      <stop offset="0.45" stop-color="#6b3b35"/>
+      <stop offset="0.75" stop-color="#b86a3f"/>
+      <stop offset="1" stop-color="#e3a05c"/>
+    </linearGradient>
+    <radialGradient id="luna" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff6cf"/>
+      <stop offset="0.55" stop-color="#f3dca0"/>
+      <stop offset="1" stop-color="#e7b94e"/>
+    </radialGradient>
+    <radialGradient id="halo" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffe9a8" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#ffe9a8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="agua" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4b8fb8"/>
+      <stop offset="1" stop-color="#27587a"/>
+    </linearGradient>
+    <linearGradient id="columna" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f1ede4"/>
+      <stop offset="0.45" stop-color="#d8cfbe"/>
+      <stop offset="1" stop-color="#9c9588"/>
+    </linearGradient>
+    <linearGradient id="muro" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9a5a3d"/>
+      <stop offset="1" stop-color="#6e3a2a"/>
+    </linearGradient>
+    <linearGradient id="suelo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e3c9a0"/>
+      <stop offset="1" stop-color="#b8966a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1280" height="720" fill="url(#cielo)"/>
+
+  <!-- Luna: el espejo del cielo. Narciso se mira en el agua; el templo se mira en la luna. -->
+  <circle cx="640" cy="212" r="190" fill="url(#halo)"/>
+  <circle cx="640" cy="212" r="92" fill="url(#luna)"/>
+  <circle cx="612" cy="188" r="16" fill="#e7b94e" opacity="0.35"/>
+  <circle cx="664" cy="236" r="11" fill="#e7b94e" opacity="0.3"/>
+
+  <!-- Montañas lejanas, apenas insinuadas -->
+  <path d="M0 400 L180 288 L330 400Z" fill="#3b2730" opacity="0.75"/>
+  <path d="M250 400 L430 268 L610 400Z" fill="#33222b" opacity="0.7"/>
+  <path d="M690 400 L880 262 L1070 400Z" fill="#33222b" opacity="0.7"/>
+  <path d="M980 400 L1140 296 L1280 400Z" fill="#3b2730" opacity="0.75"/>
+
+  <!-- El templo: frontón sobre columnas, simétrico respecto al centro, como un eje de reflexión -->
+  <g stroke="#2b1a14" stroke-width="5" stroke-linejoin="round">
+    <path d="M640 118 L906 268 L374 268Z" fill="url(#muro)"/>
+    <path d="M640 160 L826 265 L454 265Z" fill="#5c3220" stroke-width="4"/>
+    <rect x="356" y="268" width="568" height="34" rx="4" fill="#d8cfbe"/>
+    <g fill="url(#columna)">
+      <rect x="396" y="302" width="56" height="216" rx="5"/>
+      <rect x="500" y="302" width="56" height="216" rx="5"/>
+      <rect x="604" y="302" width="56" height="216" rx="5"/>
+      <rect x="708" y="302" width="56" height="216" rx="5"/>
+      <rect x="812" y="302" width="56" height="216" rx="5"/>
+    </g>
+    <rect x="366" y="518" width="548" height="30" rx="4" fill="#cfae82"/>
+  </g>
+  <!-- Estrías de las columnas -->
+  <g stroke="#9c9588" stroke-width="2" opacity="0.6">
+    <path d="M414 310v200M434 310v200M518 310v200M538 310v200M622 310v200M642 310v200M726 310v200M746 310v200M830 310v200M850 310v200"/>
+  </g>
+  <!-- Oscuridad entre las columnas: adentro espera Narciso -->
+  <g fill="#1b1424" opacity="0.8">
+    <rect x="452" y="302" width="48" height="216"/>
+    <rect x="556" y="302" width="48" height="216"/>
+    <rect x="660" y="302" width="48" height="216"/>
+    <rect x="764" y="302" width="48" height="216"/>
+  </g>
+
+  <!-- Suelo de arenisca -->
+  <rect x="0" y="548" width="1280" height="172" fill="url(#suelo)"/>
+  <g stroke="#b8966a" stroke-width="3" opacity="0.5">
+    <path d="M0 596h1280M0 648h1280M0 700h1280"/>
+  </g>
+
+  <!-- El río cruza el frente del templo: su eje, el de todo el juego -->
+  <rect x="0" y="600" width="1280" height="68" fill="url(#agua)"/>
+  <g stroke="#cfeaf2" stroke-width="3" opacity="0.7" stroke-linecap="round">
+    <path d="M0 602h1280"/>
+    <path d="M60 628h70M240 640h90M470 622h80M700 644h86M940 626h74M1130 638h80" opacity="0.5"/>
+  </g>
+  <!-- Reflejo del templo y de la luna en el agua: la reflexión, dibujada al revés -->
+  <g opacity="0.3">
+    <circle cx="640" cy="640" r="30" fill="#fff6cf"/>
+    <path d="M640 690 L760 640 L520 640Z" fill="#f1ede4"/>
+  </g>
+
+  <!-- Dos piedras a la orilla, una marcada con el anillo de Reflejo -->
+  <g stroke="#2b1a14" stroke-width="4">
+    <path d="M196 592q18-26 44-20 30-4 34 22 6 24-22 28-34 6-52-4-10-12-4-26Z" fill="#b5b0a6"/>
+    <path d="M1022 586q22-24 48-16 28 0 28 26 2 26-26 28-32 2-50-8-10-14 0-30Z" fill="#c3beb4"/>
+  </g>
+  <circle cx="1046" cy="600" r="44" fill="none" stroke="#8cd9ff" stroke-width="5" opacity="0.85"/>
+
+  <!-- Narciso, asomado en el umbral, celeste y translúcido -->
+  <g opacity="0.75">
+    <ellipse cx="640" cy="470" rx="30" ry="46" fill="#8cd9ff" opacity="0.35"/>
+    <circle cx="640" cy="424" r="19" fill="#8cd9ff" opacity="0.55"/>
+    <g stroke="#8cd9ff" stroke-width="3" fill="none" opacity="0.7">
+      <circle cx="640" cy="406" r="26"/>
+    </g>
+  </g>
+
+  <!-- Motas de polvo dorado flotando: el aire del sueño -->
+  <g fill="#ffe9a8" opacity="0.5">
+    <circle cx="214" cy="356" r="4"/><circle cx="332" cy="452" r="3"/><circle cx="286" cy="520" r="5"/>
+    <circle cx="986" cy="372" r="4"/><circle cx="1092" cy="470" r="3"/><circle cx="1038" cy="520" r="5"/>
+    <circle cx="152" cy="470" r="3"/><circle cx="1178" cy="408" r="4"/>
+  </g>
+</svg>

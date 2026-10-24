@@ -362,10 +362,10 @@ func _on_plano_cambiado(espiritual: bool) -> void:
 
 
 ## Abre una ventana del menú y pausa el juego.
-func _abrir(titulo: String, texto: String, opciones: Array) -> void:
+func _abrir(titulo: String, texto: String, opciones: Array, ilustrado := false) -> void:
 	get_tree().paused = true
 	_dedo_abajo = false
-	_menu.mostrar(titulo, texto, opciones)
+	_menu.mostrar(titulo, texto, opciones, ilustrado)
 
 
 func _seguir() -> void:
@@ -382,11 +382,11 @@ func _menu_inicio() -> void:
 		opciones.append(["Jugar", func(): _empezada = true; _seguir()])
 	opciones.append([_texto_dificultad(), _cambiar_dificultad.bind(_menu_inicio)])
 	opciones.append(["Personaje: " + PERSONAJES[Sala.personaje], _cambiar_personaje])
-	_abrir("Templo del Río", "", opciones)
+	_abrir("Templo del Río", "", opciones, true)
 
 
 func _menu_pausa() -> void:
-	_abrir("Pausa", "Esc o el botón Menú abren esta ventana.", [
+	_abrir("Pausa", "", [
 		["Seguir", _seguir],
 		[_texto_dificultad(), _cambiar_dificultad.bind(_menu_pausa)],
 		["Menú inicial", _menu_inicio],
