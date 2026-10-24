@@ -37,7 +37,9 @@ html = html.slice(0, fin) + 'window.__R = { reset: () => { AC = null; rio = null
   const pedidas = process.argv.slice(2);  // p. ej. «node render.js huida»: solo esas pistas
   for (const [pista, PASO, PASOS, GANANCIA] of PISTAS.filter(([n]) => !pedidas.length || pedidas.some(x => n.startsWith(x)))) for (const esp of [false, true]) {
     const b64 = await p.evaluate(async ([pista, esp, PASO, PASOS, COLA, SR]) => {
-      const EXTRA = pista === 'huida' ? 64 : 0;  // la última melodía pasa del final; se dobla al inicio
+      // la huida graba una vuelta más: las melodías empiezan 8 pasos antes del final y siguen
+      // todo un bucle después; lo que pasa del final se dobla al inicio
+      const EXTRA = pista === 'huida' ? PASOS : 0;
       window.__OFF = new OfflineAudioContext(2, Math.ceil(((PASOS + EXTRA) * PASO + COLA) * SR), SR);
       const R = window.__R; R.reset(); R.setE(esp); R.setT(0); R.ac();
       if (pista === 'templo_marimba') R.empezarRio(.012);
