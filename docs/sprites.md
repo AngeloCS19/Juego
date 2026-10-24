@@ -27,6 +27,7 @@ Todos son SVG de 64×64 (una casilla; en el juego se escalan a 48 px).
 | `anillo_reflejo.svg` | Anillo celeste de una piedra marcada con Reflejo | encima de la piedra |
 | `icono_traspasar.svg` | Icono de la habilidad Traspasar | barra de habilidades |
 | `icono_reflejo.svg` | Icono de la habilidad Reflejo | barra de habilidades |
+| `icono_clic_izq.svg`, `icono_espacio.svg` | Mouse con el botón izquierdo marcado y la barra espaciadora (128×64) | aviso de la sala 1 en la PC |
 
 **El plano celeste no necesita sprites propios:** se logra en código con una silueta blanca de cada sprite, teñida de celeste y con transparencia (`_silueta()` en `sala.gd`; teñir con `modulate` no sirve porque multiplica y una piedra verde no se vería celeste), y el piso se reemplaza por la cuadrícula que ya dibuja `transformacion.gd`. Así hay un solo arte por objeto y no se desincroniza con las salas.
 
