@@ -92,7 +92,7 @@ func _crear_controles_tactiles() -> void:
 	acciones.add_theme_constant_override("separation", 8)
 	acciones.add_child(BarraHabilidades.crear_boton("Girar ⟲", _girar.bind(-1)))
 	acciones.add_child(BarraHabilidades.crear_boton("Girar ⟳", _girar.bind(1)))
-	acciones.add_child(BarraHabilidades.crear_boton("Reiniciar", func(): sala.reiniciar()))
+	acciones.add_child(BarraHabilidades.crear_boton("Reiniciar", _reiniciar))
 	var usar := BarraHabilidades.crear_boton("Usar", func(): barra.usar(sala), BarraHabilidades.COLOR_ACTIVA)
 	usar.custom_minimum_size = Vector2(120, 96)
 
@@ -236,11 +236,20 @@ func _unhandled_input(evento: InputEvent) -> void:
 		KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9:
 			_elegir(evento.keycode - KEY_1)
 		KEY_R:
-			sala.reiniciar()
+			_reiniciar()
 		KEY_Q:
 			_girar(-1)
 		KEY_E:
 			_girar(1)
+
+
+## Reiniciar la sala a pedido del jugador: las reglas vuelven al inicio al instante,
+## y la flecha circular de la cortina gira hacia atrás mientras las piezas regresan a su lugar.
+func _reiniciar() -> void:
+	if _cortina.activa() or sala.cayendo():
+		return
+	sala.reiniciar()
+	_cortina.rebobinar()
 
 
 func _elegir(i: int) -> void:
