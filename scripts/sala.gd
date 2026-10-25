@@ -42,7 +42,11 @@ const TEX_PERSONAJES := [
 ]
 const TEX_PASTO := preload("res://assets/sprites/pasto.svg")  # el piso de las salas con "exterior": true
 const TEX_ESTILO := {  # "estilo" de la sala: cada templo cambia su muro y su piso
-	"tutorial": {"#": preload("res://assets/sprites/muro_tutorial.svg"), ".": preload("res://assets/sprites/piso_tutorial.svg")},
+	"tutorial": {  # el espejo es de Narciso: fuera de su templo se sale por una puerta de madera
+		"#": preload("res://assets/sprites/muro_tutorial.svg"),
+		".": preload("res://assets/sprites/piso_tutorial.svg"),
+		"E": preload("res://assets/sprites/puerta_madera.svg"),
+	},
 }
 const TEX_PRENDA := {
 	"sandalias": preload("res://assets/sprites/prenda_sandalias.svg"),
