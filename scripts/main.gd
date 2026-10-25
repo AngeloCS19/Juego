@@ -818,7 +818,9 @@ func _on_sala_completada() -> void:
 	if not (sala is SalaJefe or sala is SalaHuida or sala is SalaAltar):
 		tiempos.append(sala.tiempo)
 	indice += 1
-	if indice < SALAS.size():
+	if sala.datos.has("fin_templo"):
+		_fin_tutorial()
+	elif indice < SALAS.size():
 		_pasar_de_sala()
 	else:
 		# Fin del templo: velas, prendas, tiempo y nota. La nota sale de las velas y las prendas
@@ -830,6 +832,17 @@ func _on_sala_completada() -> void:
 		var puntos := velas_encendidas + 2 * prendas.size()
 		var texto := "Velas encendidas: %d de %d\nPrendas de Narciso: %d de %d\nTiempo promedio por sala: %d:%02d\nNota: %s" % [velas_encendidas, velas_posibles, prendas.size(), total_prendas, promedio / 60, promedio % 60, nota(puntos, velas_posibles + 2 * total_prendas)]
 		_abrir("Templo del Río completado", texto, [["Menú inicial", _menu_inicio]])
+
+
+## Fin del templo tutorial: la misma cuenta que al final del río, para que el jugador vea para qué
+## eran las velas. Después se borra: el tutorial no cuenta en la nota del Templo del Río.
+func _fin_tutorial() -> void:
+	var promedio := int(Array(tiempos).reduce(func(a, b): return a + b, 0.0) / maxi(1, tiempos.size()))
+	var texto := "Velas encendidas: %d de %d\nTiempo promedio por sala: %d:%02d\nNota: %s" % [velas_encendidas, velas_posibles, promedio / 60, promedio % 60, nota(velas_encendidas, velas_posibles)]
+	velas_encendidas = 0
+	velas_posibles = 0
+	tiempos.clear()
+	_abrir(sala.datos["fin_templo"] + " completado", texto, [["Seguir", func(): _menu.hide(); _pasar_de_sala()]])
 
 
 ## La nota del templo, tipo Cuphead: S si en todas las salas se usó Traspasar lo mínimo y se recogieron las prendas.
