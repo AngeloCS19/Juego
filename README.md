@@ -114,6 +114,8 @@ La sala no aparece en el árbol porque `main.gd` la crea por código (`Sala.desd
 - En el **plano espiritual**, el piso se desvanece y queda la cuadrícula. Las piedras originales se vuelven fantasmas que se pueden atravesar, el agua se puede cruzar y el vacío solo sobre un reflejo celeste. La lava nunca se cruza en este plano. Los muros siempre bloquean.
 - La **lava** es lo opuesto del río: no se sobrevuela en el plano espiritual (ni sobre un reflejo). Solo se cruza en el plano normal, empujando una piedra a la lava: queda flotando, fija para siempre, y se pisa como un puente. Siempre tiene su eje de reflexión, como el río. La piedra hundida se tiñe de rojo, se puede marcar con Reflejo y, como está sobre el eje de la lava, su reflejo en ese eje cae en el mismo lugar (un punto invariante).
 - **Prendas de Narciso:** cuatro salas guardan una prenda (`prenda` en el JSON). Es de un espíritu: solo existe en el plano espiritual. Son **opcionales**: la salida siempre está abierta. `main.gd` cuenta las prendas que el jugador se llevó al salir de cada sala (`prendas`), y en el altar del final solo aparecen esas.
+- **Velas (maestría opcional):** las salas que piden Traspasar tienen velas en el muro de abajo (`velas` en el JSON). Cada vez que el jugador **entra** al plano espiritual se apaga una (`traspasos` en `sala.gd`); volver al plano normal y usar Reflejo no apagan nada. Reiniciar o caer **no** las vuelve a encender. Hay tantas velas como el mínimo de traspasos de la sala más 2: hacerlo perfecto es terminar con 2 encendidas. Nunca bloquean nada: solo cambian la nota del final.
+- **Fin del templo:** `main.gd` suma las velas que quedaron (como mucho 2 por sala) y el tiempo de cada sala de puzzle (`tiempo` en `sala.gd`, sin contar la pausa), y muestra velas encendidas, tiempo promedio y una nota tipo Cuphead (`nota()`): S si en todas se usó Traspasar lo mínimo, A desde 80 %, B desde 60 %, C desde 40 %, D abajo. La nota sale solo de las velas: el tiempo se muestra, pero no la baja, para no castigar al que se detiene a pensar.
 - Una sala puede tener varios ejes (`transformaciones` en `sala.gd`): cada piedra marcada aparece reflejada respecto a cada uno.
 - **Cambiar de plano** es una habilidad del jugador (`cambiar_plano()` en `sala.gd`). Si vuelves al plano normal parado sobre el vacío o el agua, caes y la sala se reinicia (señal `caida`). Encima de una piedra no se puede volver.
 - **Solo las piedras marcadas con Reflejo** aparecen reflejadas en el plano espiritual. Una piedra marcada lleva un anillo celeste en el plano normal. El sprite del jugador gira hacia donde mira: esa es la casilla que apuntan las habilidades (`mirando` en `sala.gd`).
@@ -227,7 +229,7 @@ El Templo del Río está completo, de "Cruzar el río" al altar. Siguiente paso:
 
 1. Angelo suele mandar un boceto de pizarra (S salida, I inicio, negro vacío, azul río, rojo lava, círculo verde piedra).
 2. Se pasa a JSON y se resuelve con `python3 tools/solver.py sala.json`. Con letras prohibidas (`... sala.json F`) se comprueba que sin esa acción **no** haya solución: si la hay, la sala tiene un atajo y no enseña su idea.
-3. `python3 tools/formatear.py boceto.json salas/rio_nn.json` la escribe con su `solucion`, y se agrega a `SALAS`.
+3. `python3 tools/formatear.py boceto.json salas/rio_nn.json` la escribe con su `solucion` y sus `velas` (`solver.py sala.json --velas` busca el menor número de traspasos), y se agrega a `SALAS`.
 4. Reglas de forma: la lava separada del agua y del vacío por muros; cada eje con al menos dos casillas de río o lava, para que se lea como una recta.
 
 ## El jefe: Narciso (`sala_jefe.gd`)
@@ -275,6 +277,7 @@ v  vacío     E  salida    ^  lava
 - `piedras`: posición de cada piedra; `"fija": true` si no se puede empujar.
 - `habilidades` (opcional): qué habilidades tiene el jugador en esa sala, por ejemplo `["traspasar"]`. Si no aparece, tiene todas.
 - `prenda` (opcional): una prenda de Narciso, `{ "nombre": "sandalias", "pos": [x, y] }`. Solo se ve y se recoge en el plano espiritual. Es opcional: la salida está abierta aunque no se recoja. Nombres: `sandalias`, `cinto`, `tunica`, `corona`.
+- `velas` (opcional): cuántas velas hay, el mínimo de traspasos más 2. La pone `formatear.py`; si la sala no necesita Traspasar, no lleva velas.
 - `tipo` (opcional): `"jefe"`, `"huida"` o `"altar"` para las salas de Narciso; cada una tiene sus propias claves (ver arriba). Sin `tipo` es una sala de puzzle.
 - `exterior` (opcional): `true` dibuja el piso como pasto, para las salas al aire libre.
 - `solucion`: una secuencia de teclas que la resuelve (U arriba, D abajo, L izquierda, R derecha, P usar Traspasar, F usar Reflejo). Las pruebas la usan para comprobar que la sala tiene solución.

@@ -79,6 +79,9 @@ const ICONO_CLIC_IZQ := preload("res://assets/sprites/icono_clic_izq.svg")
 const ICONO_ESPACIO := preload("res://assets/sprites/icono_espacio.svg")
 
 var prendas: Array[String] = []  # prendas de Narciso que el jugador ya sacó de su sala
+var velas_encendidas := 0  # sumadas en las salas con velas, como mucho 2 por sala (el margen)
+var velas_posibles := 0  # 2 por sala con velas: lo que queda si se usa Traspasar lo mínimo
+var tiempos: Array[float] = []  # segundos en cada sala de puzzle (no el jefe, la huida ni el altar)
 
 @onready var pivote: Node2D = $Pivote
 
@@ -592,6 +595,9 @@ func _menu_derrota(motivo: String) -> void:
 func _nueva_partida() -> void:
 	indice = 0
 	prendas.clear()
+	velas_encendidas = 0
+	velas_posibles = 0
+	tiempos.clear()
 	set_process_unhandled_input(true)  # por si ya se había terminado el templo
 	_cargar_sala()
 	_seguir()
@@ -659,10 +665,27 @@ func _on_sala_completada() -> void:
 	# La prenda cuenta al salir de la sala: si el jugador cae y la sala se reinicia, hay que recogerla otra vez.
 	if sala.datos.has("prenda") and sala.prenda_tomada and not sala.datos["prenda"]["nombre"] in prendas:
 		prendas.append(sala.datos["prenda"]["nombre"])
+	if sala.datos.has("velas"):
+		velas_encendidas += mini(sala.velas_encendidas(), 2)  # dejar la prenda puede ahorrar un traspaso: no da más
+		velas_posibles += 2
+	if not (sala is SalaJefe or sala is SalaHuida or sala is SalaAltar):
+		tiempos.append(sala.tiempo)
 	indice += 1
 	if indice < SALAS.size():
 		_pasar_de_sala()
 	else:
-		# Fin del templo: una ventana corta en lugar del texto de antes.
+		# Fin del templo: cuántas velas quedaron, el tiempo y la nota. La nota sale solo de las velas:
+		# el tiempo se muestra, pero no baja la nota, para no castigar al que se detiene a pensar.
 		set_process_unhandled_input(false)
-		_abrir("Templo del Río completado", "", [["Menú inicial", _menu_inicio]])
+		var promedio := int(Array(tiempos).reduce(func(a, b): return a + b, 0.0) / maxi(1, tiempos.size()))
+		var texto := "Velas encendidas: %d de %d\nTiempo promedio por sala: %d:%02d\nNota: %s" % [velas_encendidas, velas_posibles, promedio / 60, promedio % 60, nota(velas_encendidas, velas_posibles)]
+		_abrir("Templo del Río completado", texto, [["Menú inicial", _menu_inicio]])
+
+
+## La nota del templo, tipo Cuphead: S si en todas las salas se usó Traspasar lo mínimo.
+static func nota(encendidas: int, posibles: int) -> String:
+	var f := float(encendidas) / maxi(1, posibles)
+	for corte in [[1.0, "S"], [0.8, "A"], [0.6, "B"], [0.4, "C"]]:
+		if f >= corte[0]:
+			return corte[1]
+	return "D"

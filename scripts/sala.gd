@@ -50,6 +50,7 @@ const TEX_ANILLO_REFLEJO := preload("res://assets/sprites/anillo_reflejo.svg")
 const COLOR_SALIDA := Color(0.85, 0.7, 0.3)
 const CELESTE := Color(0.55, 0.85, 1.0)
 const COLOR_LAVA := Color(0.95, 0.4, 0.2)
+const COLOR_VELA := Color(1.0, 0.75, 0.35)
 # Animaciones: solo cambian el dibujo. Las reglas ya cambiaron al instante, así las pruebas no esperan.
 const DURACION_PASO := 0.12  # segundos que tarda en verse un paso
 const DURACION_EMPUJE := 0.3  # un empujón es más lento: dura lo mismo que el sonido de la piedra que se arrastra
@@ -58,6 +59,7 @@ const DURACION_CAIDA := 0.6  # main.gd espera esto antes de abrir la ventana de 
 const DURACION_SALIDA := 0.6  # el personaje entra al espejo; main.gd espera esto antes de la cortina
 const DURACION_PRENDA := 1.0  # la prenda sube sobre la cabeza y se desvanece
 const DURACION_MANCHA := 0.5  # la mancha de tinta que se expande al Traspasar
+const DURACION_HUMO := 1.2  # el humo de la vela que se acaba de apagar
 
 var datos: Dictionary
 var mapa: Array = []
@@ -70,6 +72,8 @@ var espiritual := false
 var tutorial_piedra := Vector2i(-1, -1)  # piedra que brilla para indicar dónde usar Reflejo (tutorial); (-1, -1): ninguna
 var prenda_tomada := true  # false mientras la sala tenga una prenda de Narciso sin recoger (es opcional)
 static var personaje := 0  # índice en TEX_PERSONAJES; static: lo comparten todas las salas
+var traspasos := 0  # veces que entró al plano espiritual; reiniciar no lo borra: las velas no se vuelven a encender
+var tiempo := 0.0  # segundos jugados en la sala, con reinicios (la pausa no cuenta)
 var tiempo_real := false  # jefe y huida: los turnos los marca un reloj (las pruebas juegan por turnos)
 var _reloj: Timer
 var _t := 0.0  # reloj de las animaciones
@@ -83,6 +87,8 @@ var _salida_t := DURACION_SALIDA  # tiempo desde que llegó al espejo (DURACION_
 var _prenda_t := DURACION_PRENDA
 var _prenda_nombre := ""
 var _mancha_t := DURACION_MANCHA
+var _humo_t := DURACION_HUMO
+var _velas_en: Array[Vector2i] = []  # casillas del muro de abajo donde están las velas
 var _mancha_en := Vector2.ZERO
 var _mancha_onda: Array[Vector3] = []  # la forma de esta mancha: (amplitud, ondas por vuelta, desfase)
 static var _siluetas := {}  # sprite -> su silueta blanca, se calcula una vez
@@ -120,7 +126,25 @@ func _preparar() -> void:
 	transformaciones.clear()
 	for t in (plano if plano is Array else [plano]):
 		transformaciones.append(Transformacion.desde_datos(t))
+	_poner_velas()
 	reiniciar()
+
+
+## Las velas van en el muro de abajo, centradas, en casillas que dan al interior de la sala.
+func _poner_velas() -> void:
+	_velas_en.clear()
+	var y := tamano.y - 1
+	var muros := range(tamano.x).filter(func(x): return celda(Vector2i(x, y)) == "#" and celda(Vector2i(x, y - 1)) != "#")
+	muros.sort_custom(func(a, b): return absf(a - (tamano.x - 1) / 2.0) < absf(b - (tamano.x - 1) / 2.0))
+	muros = muros.slice(0, datos.get("velas", 0))
+	muros.sort()
+	for x in muros:
+		_velas_en.append(Vector2i(x, y))
+
+
+## Velas que siguen encendidas: cada vez que se entra al plano espiritual se apaga una.
+func velas_encendidas() -> int:
+	return maxi(0, datos.get("velas", 0) - traspasos)
 
 
 ## Devuelve la sala a su estado inicial (el gong).
@@ -207,6 +231,9 @@ func cambiar_plano() -> void:
 			caida.emit()
 		return
 	espiritual = not espiritual
+	if espiritual:
+		traspasos += 1
+		_humo_t = 0.0
 	Sonido.tocar("traspasar" if espiritual else "volver")
 	_t_plano = 0.0  # al entrar, los reflejos viajan desde su piedra
 	_nueva_mancha()
@@ -243,6 +270,8 @@ func _process(delta: float) -> void:
 	_salida_t += delta
 	_prenda_t += delta
 	_mancha_t += delta
+	_humo_t += delta
+	tiempo += delta
 	_seguir("jugador", _centro(jugador), delta, _duracion_jugador)
 	_angulo = lerp_angle(_angulo, Vector2(mirando).angle() + PI / 2, minf(1.0, delta * 20.0))
 	for p in piedras:
@@ -415,6 +444,7 @@ func _draw() -> void:
 	if espiritual:
 		for t in transformaciones:
 			t.dibujar(self, TAM, tamano, CELESTE)
+	_dibujar_velas()
 	for p in piedras:
 		var centro: Vector2 = p.get("vis", _centro(p["pos"]))
 		if espiritual:
@@ -592,3 +622,25 @@ func _dibujar_casilla_espiritual(c: Vector2i) -> void:
 			draw_arc(_centro(c), TAM * 0.32, 0.0, TAU, 32, Color(COLOR_SALIDA, 0.6), 2.0)
 	if celda(c) != "v":
 		draw_rect(r, Color(CELESTE, 0.25), false, 1.0)
+
+
+## Cada vela: cera, mecha y una llama que tiembla. La que se acaba de apagar echa un hilo de humo.
+func _dibujar_velas() -> void:
+	var encendidas := velas_encendidas()
+	for i in _velas_en.size():
+		var base := _centro(_velas_en[i]) + Vector2(0, TAM * 0.3)
+		var cera := Rect2(base - Vector2(TAM * 0.11, TAM * 0.42), Vector2(TAM * 0.22, TAM * 0.42))
+		draw_rect(cera, Color(0.93, 0.86, 0.72, 0.5 if espiritual else 1.0))
+		var mecha := cera.position + Vector2(cera.size.x / 2, 0)
+		draw_line(mecha, mecha - Vector2(0, TAM * 0.05), Color(0.2, 0.15, 0.1), 1.5)
+		if i < encendidas:
+			var tiembla := 1.0 + 0.12 * sin(_t * 9.0 + i * 2.1) + 0.06 * sin(_t * 23.0 + i)
+			var punta := mecha - Vector2(0, TAM * 0.3 * tiembla)
+			draw_circle(mecha - Vector2(0, TAM * 0.1), TAM * 0.35, Color(COLOR_VELA, 0.1))
+			draw_circle(mecha - Vector2(0, TAM * 0.1), TAM * 0.2, Color(COLOR_VELA, 0.18))
+			draw_colored_polygon(PackedVector2Array([punta, mecha + Vector2(TAM * 0.08, -TAM * 0.08), mecha + Vector2(0, -TAM * 0.01), mecha + Vector2(-TAM * 0.08, -TAM * 0.08)]), COLOR_VELA)
+		elif i == encendidas and _humo_t < DURACION_HUMO:
+			var k := _humo_t / DURACION_HUMO
+			for j in 4:  # el humo sube ondulando y se desvanece
+				var h := k * TAM * 0.5 + j * TAM * 0.07
+				draw_circle(mecha - Vector2(sin(h * 0.25) * TAM * 0.05, h), TAM * 0.03 * (1.0 + k), Color(0.8, 0.8, 0.85, 0.5 * (1.0 - k)))

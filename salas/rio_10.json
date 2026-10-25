@@ -23,5 +23,6 @@
 		{ "pos": [12, 3] }
 	],
 	"prenda": { "nombre": "corona", "pos": [2, 8] },
+	"velas": 5,
 	"solucion": "DDRUFDPDDDDUUUUUURPLERPRRRRRDDRRRRPUEFDPDDDDDLLL"
 }

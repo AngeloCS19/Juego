@@ -16,5 +16,6 @@
 		{ "pos": [9, 5] }
 	],
 	"prenda": { "nombre": "cinto", "pos": [3, 4] },
+	"velas": 5,
 	"solucion": "DDRRRPRRRRPUEFLULPLLLLRRRRRPEDRUEELLLPLLLLLUU"
 }
