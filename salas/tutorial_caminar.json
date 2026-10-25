@@ -1,0 +1,17 @@
+{
+	"nombre": "El primer paso",
+	"mapa": [
+		"#######",
+		"###..E#",
+		"###.###",
+		"###.###",
+		"#...###",
+		"#######"
+	],
+	"jugador": [1, 4],
+	"plano_espiritual": { "tipo": "reflexion", "eje": "horizontal", "valor": 3 },
+	"habilidades": [],
+	"tutorial": { "glifo": "mover" },
+	"ocultar": ["girar", "reiniciar", "usar"],
+	"solucion": "RRUUURR"
+}

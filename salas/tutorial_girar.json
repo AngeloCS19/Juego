@@ -13,5 +13,7 @@
 	"plano_espiritual": { "tipo": "reflexion", "eje": "horizontal", "valor": 3 },
 	"salida_fija": true,
 	"habilidades": [],
+	"tutorial": { "glifo": "girar" },
+	"ocultar": ["usar"],
 	"solucion": "RRRR<R"
 }

@@ -161,7 +161,7 @@ Las reglas cambian al instante; las animaciones solo cambian el **dibujo**. Así
 
 La música del Templo del Río es de ocarina y marimba, con tres motivos que se alternan (unos 65 s antes de repetirse). Las decisiones de Angelo están en `docs/arte.md`.
 
-- **Capas.** La pieza viene separada en marimba, bajo y ocarina, y se arma a lo largo del templo: al inicio solo suena la marimba, el bajo entra en la sala 7 y la ocarina en la 13 (`Musica.DESDE`, índices de `SALAS`). Una capa nueva entra despacio (`ENTRADA`, 3 s).
+- **Capas.** La pieza viene separada en marimba, bajo y ocarina, y se arma a lo largo del templo: al inicio solo suena la marimba, el bajo entra en la sala 11 y la ocarina en la 17 (las 5 primeras son del templo tutorial) (`Musica.DESDE`, índices de `SALAS`). Una capa nueva entra despacio (`ENTRADA`, 3 s).
 - **Los dos planos.** Cada capa está grabada dos veces, con el mismo largo: plano normal y plano espiritual (filtrada, con más eco y un brillo cristalino). Los seis `AudioStreamPlayer` empiezan juntos y suenan siempre en sincronía; `musica.gd` solo cambia cuáles se oyen. Al Traspasar se cruza de una versión a la otra en `CRUCE` (0,6 s), así la música no se corta. El cruce mueve el volumen lineal, no los dB, para que a mitad de camino no baje.
 - **Bus de audio.** La música va por su propio bus, `Musica`, y los efectos por `Efectos` (en Godot, un bus es un canal de la mezcla con su propio volumen). Los botones **Música** y **Efectos** del menú pasan cada uno por Alta, Media y Apagada (`Sonido.cambiar_volumen()`).
 - **La huida** tiene su pieza (`PIEZAS["huida"]`): las cuatro melodías que Angelo grabó en flauta dulce (principal y tres variantes, una tras otra, 18 compases a 100 pulsos por minuto), tocadas por la ocarina sobre arpegios y tambor. Cada nota se ataca y solo la anacrusa va ligada. Como los tres tramos piden la misma pieza, `tocar()` no la vuelve a empezar al pasar de un tramo a otro. Al cambiar de pieza, la anterior se apaga en `SALIDA` (1,5 s).
@@ -201,7 +201,13 @@ La tabla sigue el orden del juego, que lo decide la lista `SALAS` de `main.gd` y
 
 | Sala | Archivo | Qué enseña |
 |---|---|---|
-| Cruzar el río | `rio_00.json` | Solo Traspasar: en el plano espiritual el agua se cruza. |
+| **Templo tutorial** | | Un control por sala, con el dibujo de la tecla o del gesto (ver "Glifos"). |
+| El primer paso | `tutorial_caminar.json` | Moverse, y que la meta es el espejo. |
+| La piedra en el camino | `tutorial_empujar.json` | Empujar: mirar la piedra y sostener la dirección. |
+| Volver a empezar | `tutorial_reiniciar.json` | Reiniciar: si se empuja la piedra recto, queda atascada frente al espejo. |
+| La puerta que gira | `tutorial_girar.json` | Girar la cámara (Q / E) hasta que la puerta calce con el espejo. |
+| Cruzar el río | `rio_00.json` | Solo Traspasar: en el plano espiritual el agua se cruza. Cierra el templo tutorial. |
+| **Templo del Río** | | |
 | El paso celeste | `rio_01.json` | El vacío solo se cruza sobre un reflejo: marcar una piedra fija con Reflejo. |
 | Dos piedras | `rio_02.json` | Reflejar más de una piedra para armar el camino. |
 | Empujar la piedra | `rio_03.json` | Mover la piedra para que su reflejo caiga donde hace falta. |
@@ -296,7 +302,9 @@ Después agrega la ruta del archivo a la lista `SALAS` en `scripts/main.gd`.
 - Los botones (menos la hotbar) **solo se ven con pantalla táctil** (`DisplayServer.is_touchscreen_available()` o Android/iOS). En la PC se juega con teclado: el **clic izquierdo** usa la habilidad (como Espacio) y el cursor se oculta mientras se juega (`_ocultar_cursor()`); solo se ve con un menú abierto. En el editor, el menú Debug tiene "Botones táctiles" para probarlos (y el cursor se ve cerca de ese botón).
 - Casi no hay texto en pantalla. La **hotbar** (`BarraHabilidades`) está abajo al centro, en PC y en celular: una casilla cuadrada por habilidad desbloqueada, con su icono y el número de su tecla (1, 2…) en la esquina inferior izquierda. La activa tiene borde dorado grueso y brillo; las demás se ven más oscuras. En el celular las casillas se tocan para elegir.
 - La primera vez que se consigue una habilidad (señal `nueva` de la barra), `_anunciar()` muestra su nombre grande en medio (Cinzel, dorado, con el icono), y el icono vuela hasta su casilla, que aparece al llegar (`revelar()`). Espera a que se cierre el menú, el diálogo o la cortina, y varios anuncios van de uno en uno. Mientras tanto, la sala se ve borrosa: un `ColorRect` con el shader `shaders/desenfoque.gdshader`, que promedia los píxeles de alrededor de lo que ya está dibujado detrás (`hint_screen_texture`).
-- **Tutorial visual** (sin texto): la sala puede traer `"tutorial": {"habilidad": "traspasar"}` o `{"habilidad": "reflejo", "piedra": [x, y]}`. Esa casilla de la hotbar brilla dilatándose (`barra.pulsar()`) y, si hay `piedra`, la sala dibuja un pulso alrededor de ella (`tutorial_piedra`). Deja de brillar cuando el jugador usa Traspasar o marca esa piedra (`_vigilar_tutorial()` en `main.gd`). Con `"aviso_usar": true` (solo la sala 1), en la PC se ve además, encima de la hotbar, "[clic izquierdo] / [Espacio] para usar la habilidad" hasta que se cumple el tutorial; con pantalla táctil no, porque ahí está el botón Usar.
+- **Tutorial visual** (sin texto): la sala puede traer `"tutorial": {"habilidad": "traspasar"}` o `{"habilidad": "reflejo", "piedra": [x, y]}`. Esa casilla de la hotbar brilla dilatándose (`barra.pulsar()`) y, si hay `piedra`, la sala dibuja un pulso alrededor de ella (`tutorial_piedra`). Deja de brillar cuando el jugador usa Traspasar o marca esa piedra (`_vigilar_tutorial()` en `main.gd`). Con `"aviso_usar": true` (solo "Cruzar el río"), en la PC se ve además, encima de la hotbar, el glifo [clic izquierdo] / [Espacio] hasta que se cumple el tutorial; con pantalla táctil no, porque ahí está el botón Usar.
+- **Glifos** (templo tutorial, sin palabras): `"tutorial": {"glifo": "mover" | "empujar" | "reiniciar" | "girar"}`. Encima de la hotbar se dibuja la tecla (en la PC: W A S D, la tecla que se sostiene con una barra que se llena, R, Q E) o el gesto (en el celular: deslizar, dedo que se queda apretado). Para reiniciar y girar, en el celular late el botón de verdad. `_glifo()` decide cuál hace falta ahora: mover hasta el primer paso, empujar solo frente a una piedra y hasta el primer empuje, reiniciar solo cuando una piedra está en una casilla de `"atasco"`, y girar mientras la puerta no calce. `_mostrar_glifo()` lo dibuja.
+- **Botones que aparecen de a poco**: `"ocultar": ["girar", "reiniciar", "usar"]` deja fuera los botones táctiles que el jugador aún no aprende (`_mostrar_botones()`). Cada uno aparece en la sala que lo enseña y desde ahí se queda.
 - En el plano espiritual las casillas de las demás habilidades se ven oscuras (`barra.bloquear()`), sin mensaje.
 
 ## Habilidades

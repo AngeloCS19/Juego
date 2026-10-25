@@ -2,6 +2,10 @@ extends Node2D
 ## Punto de entrada: carga las salas en orden, lee los controles y gira la cámara.
 
 const SALAS := [
+	"res://salas/tutorial_caminar.json",  # templo tutorial: un control por sala
+	"res://salas/tutorial_empujar.json",
+	"res://salas/tutorial_reiniciar.json",
+	"res://salas/tutorial_girar.json",
 	"res://salas/rio_00.json",
 	"res://salas/rio_01.json",
 	"res://salas/rio_02.json",
@@ -63,7 +67,12 @@ var _botones_tactiles: Array[Control] = []  # todo lo que solo se ve con pantall
 var _anuncios: Array[Habilidad] = []  # habilidades nuevas esperando su anuncio en el centro
 var _anunciando := false
 var _tutorial_hecho := {}  # salas (ruta) cuyo tutorial visual el jugador ya cumplió
-var _aviso_usar: HBoxContainer  # sala 1 en la PC: "clic / Espacio para usar la habilidad"
+var _glifos: HBoxContainer  # templo tutorial: el dibujo de la tecla o del gesto que hace falta ahora
+var _glifo_visto := ""  # el glifo que se está mostrando, para redibujar solo si cambia
+var _barra_empuje: ProgressBar  # dentro del glifo de empujar: cuánto falta sostener
+var _boton_reiniciar: Button
+var _botones_girar: Array[Button] = []
+var _latidos := {}  # botón táctil -> Tween que lo hace latir mientras su glifo hace falta
 var _barra_jefe: BarraJefe  # vida de Narciso y corazones del jugador, solo en su sala
 var _menu: Menu
 var _dialogo: Dialogo
@@ -119,9 +128,14 @@ func _crear_controles_tactiles() -> void:
 
 	var acciones := HBoxContainer.new()
 	acciones.add_theme_constant_override("separation", 8)
-	acciones.add_child(BarraHabilidades.crear_boton("Girar", _girar.bind(-1), BarraHabilidades.COLOR_NORMAL, ICONO_GIRAR_IZQ))
-	acciones.add_child(BarraHabilidades.crear_boton("Girar", _girar.bind(1), BarraHabilidades.COLOR_NORMAL, ICONO_GIRAR_DER))
-	acciones.add_child(BarraHabilidades.crear_boton("Reiniciar", _reiniciar, BarraHabilidades.COLOR_NORMAL, ICONO_REINICIAR))
+	_botones_girar = [
+		BarraHabilidades.crear_boton("Girar", _girar.bind(-1), BarraHabilidades.COLOR_NORMAL, ICONO_GIRAR_IZQ),
+		BarraHabilidades.crear_boton("Girar", _girar.bind(1), BarraHabilidades.COLOR_NORMAL, ICONO_GIRAR_DER),
+	]
+	_boton_reiniciar = BarraHabilidades.crear_boton("Reiniciar", _reiniciar, BarraHabilidades.COLOR_NORMAL, ICONO_REINICIAR)
+	acciones.add_child(_botones_girar[0])
+	acciones.add_child(_botones_girar[1])
+	acciones.add_child(_boton_reiniciar)
 	# Usar muestra el icono de la habilidad activa (la barra lo cambia al elegir otra).
 	var usar := BarraHabilidades.crear_boton("Usar", func(): barra.usar(sala), BarraHabilidades.COLOR_ACTIVA, barra.icono_activa(), false)
 	usar.custom_minimum_size = Vector2(120, 96)
@@ -146,9 +160,12 @@ func _crear_controles_tactiles() -> void:
 	_botones_tactiles = [acciones, boton_menu, usar]
 	_mostrar_botones()
 
-	_aviso_usar = _crear_aviso_usar()
-	_en_esquina(pantalla, _aviso_usar, Control.PRESET_CENTER_BOTTOM)
-	_aviso_usar.position.y -= 96  # encima de la hotbar
+	_glifos = HBoxContainer.new()
+	_glifos.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_glifos.alignment = BoxContainer.ALIGNMENT_CENTER
+	_glifos.add_theme_constant_override("separation", 10)
+	_en_esquina(pantalla, _glifos, Control.PRESET_CENTER_BOTTOM)
+	_glifos.position.y -= 110  # encima de la hotbar
 
 	_barra_jefe = BarraJefe.new()
 	pantalla.add_child(_barra_jefe)
@@ -163,31 +180,112 @@ func _crear_controles_tactiles() -> void:
 	$Interfaz.add_child(_menu)  # se agrega al final para quedar encima de todo
 
 
-## "[clic izquierdo] / [Espacio] para usar la habilidad": la única pista con texto, porque en la PC
-## no hay botón Usar que tocar. Se muestra mientras dura el tutorial de una sala con "aviso_usar".
-func _crear_aviso_usar() -> HBoxContainer:
-	var fila := HBoxContainer.new()
-	fila.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	fila.alignment = BoxContainer.ALIGNMENT_CENTER
-	fila.add_theme_constant_override("separation", 10)
-	for parte in [ICONO_CLIC_IZQ, "/", ICONO_ESPACIO, "para usar la habilidad"]:
-		if parte is Texture2D:
-			var icono := TextureRect.new()
-			icono.texture = parte
-			icono.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			icono.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			icono.custom_minimum_size = Vector2(parte.get_width(), parte.get_height()) * 0.6
-			fila.add_child(icono)
-		else:
-			var texto := Label.new()
-			texto.text = parte
-			texto.add_theme_font_override("font", FUENTE_ANUNCIO)
-			texto.add_theme_font_size_override("font_size", 26)
-			texto.add_theme_color_override("font_color", Color(0.95, 0.9, 0.8))
-			texto.add_theme_color_override("font_outline_color", Color(0.1, 0.05, 0.02))
-			texto.add_theme_constant_override("outline_size", 8)
-			fila.add_child(texto)
-	return fila
+## Templo tutorial: qué glifo hace falta ahora ("" = ninguno). Cada sala dice en "tutorial" cuál enseña;
+## empujar solo se ve frente a una piedra, reiniciar solo con una piedra atascada y girar mientras la puerta no calce.
+func _glifo() -> String:
+	var t: Dictionary = sala.datos.get("tutorial", {})
+	var g: String = "usar" if t.get("aviso_usar", false) else t.get("glifo", "")
+	if g == "" or _tutorial_hecho.has(SALAS[indice]) or _menu.visible or _dialogo.visible:
+		return ""
+	match g:
+		"empujar":
+			return g + ":" + _tecla(_a_pantalla(sala.mirando)) if sala.hay_empujable_enfrente() else ""
+		"reiniciar":
+			return g if t["atasco"].any(func(c): return sala.piedra_en(Vector2i(c[0], c[1])) >= 0) else ""
+		"girar":
+			return "" if sala.puerta_abierta() else g
+	return g
+
+
+func _tecla(dir_pantalla: Vector2i) -> String:
+	return {Vector2i.UP: "W", Vector2i.DOWN: "S", Vector2i.LEFT: "A", Vector2i.RIGHT: "D"}[dir_pantalla]
+
+
+## Dibuja el glifo sin palabras: en la PC la tecla, en el celular el gesto. Para reiniciar y girar,
+## en el celular no hay dibujo: late el botón de verdad, para que el jugador sepa cuál tocar.
+func _mostrar_glifo(g: String) -> void:
+	for hijo in _glifos.get_children():
+		hijo.queue_free()
+	_barra_empuje = null
+	_latir(_boton_reiniciar, _tactil and g == "reiniciar")
+	for boton in _botones_girar:
+		_latir(boton, _tactil and g == "girar")
+	var partes := []
+	match g.get_slice(":", 0):
+		"mover":
+			partes = [load("res://assets/sprites/icono_deslizar.svg")] if _tactil else ["W", "A", "S", "D"]
+		"empujar":
+			partes = [load("res://assets/sprites/icono_sostener.svg") if _tactil else g.get_slice(":", 1)]
+			_barra_empuje = ProgressBar.new()
+			_barra_empuje.show_percentage = false
+			_barra_empuje.max_value = TIEMPO_EMPUJE
+			_barra_empuje.custom_minimum_size = Vector2(90, 14)
+			_barra_empuje.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			for parte_barra in [["background", Color(0.05, 0.04, 0.05, 0.85)], ["fill", BarraHabilidades.COLOR_ACTIVA]]:
+				var estilo := StyleBoxFlat.new()
+				estilo.bg_color = parte_barra[1]
+				estilo.border_color = Color(0.95, 0.9, 0.8)
+				estilo.set_border_width_all(2)
+				estilo.set_corner_radius_all(5)
+				_barra_empuje.add_theme_stylebox_override(parte_barra[0], estilo)
+		"reiniciar":
+			partes = [] if _tactil else ["R"]
+		"girar":
+			partes = [] if _tactil else ["Q", "E"]
+		"usar":  # en el celular ya late la casilla de la hotbar y está el botón Usar
+			partes = [] if _tactil else [ICONO_CLIC_IZQ, "/", ICONO_ESPACIO]
+	for parte in partes:
+		_glifos.add_child(_parte_glifo(parte))
+	if _barra_empuje:
+		_glifos.add_child(_barra_empuje)
+
+
+## Una tecla dibujada (letra en un recuadro crema, como icono_espacio.svg), un icono o una barra "/".
+func _parte_glifo(parte) -> Control:
+	if parte is Texture2D:
+		var icono := TextureRect.new()
+		icono.texture = parte
+		icono.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icono.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icono.custom_minimum_size = Vector2(parte.get_width(), parte.get_height()) * 0.6
+		return icono
+	var texto := Label.new()
+	texto.text = parte
+	texto.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	texto.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	texto.add_theme_font_override("font", FUENTE_ANUNCIO)
+	texto.add_theme_font_size_override("font_size", 28)
+	if parte == "/":
+		texto.add_theme_color_override("font_color", Color(0.95, 0.9, 0.8))
+		texto.add_theme_color_override("font_outline_color", Color(0.1, 0.05, 0.02))
+		texto.add_theme_constant_override("outline_size", 8)
+		return texto
+	texto.custom_minimum_size = Vector2(52, 52)
+	texto.add_theme_color_override("font_color", Color(0.17, 0.1, 0.08))
+	var tecla := StyleBoxFlat.new()
+	tecla.bg_color = Color(0.95, 0.9, 0.8)
+	tecla.border_color = Color(0.17, 0.1, 0.08)
+	tecla.set_border_width_all(3)
+	tecla.border_width_bottom = 7  # la tecla tiene grosor, como icono_espacio.svg
+	tecla.set_corner_radius_all(8)
+	texto.add_theme_stylebox_override("normal", tecla)
+	return texto
+
+
+## Hace latir (o deja quieto) un botón táctil.
+func _latir(boton: Button, activo: bool) -> void:
+	if activo == _latidos.has(boton):
+		return
+	if not activo:
+		_latidos[boton].kill()
+		_latidos.erase(boton)
+		boton.scale = Vector2.ONE
+		return
+	boton.pivot_offset = boton.size / 2
+	var t := boton.create_tween().set_loops()
+	t.tween_property(boton, "scale", Vector2.ONE * 1.2, 0.5).set_trans(Tween.TRANS_SINE)
+	t.tween_property(boton, "scale", Vector2.ONE, 0.5).set_trans(Tween.TRANS_SINE)
+	_latidos[boton] = t
 
 
 ## Menú solo para el desarrollador: saltar a cualquier sala y desbloquear todas las habilidades.
@@ -231,9 +329,16 @@ func _on_menu_debug(id: int, lista: PopupMenu) -> void:
 
 
 ## Los botones solo se ven con pantalla táctil; en la PC se juega con el teclado.
+## En el templo tutorial, "ocultar" deja fuera los botones que el jugador aún no aprende: cada uno aparece en su sala.
 func _mostrar_botones() -> void:
 	for nodo in _botones_tactiles:
 		nodo.visible = _tactil
+	var ocultos: Array = sala.datos.get("ocultar", []) if sala else []
+	_boton_reiniciar.visible = not "reiniciar" in ocultos
+	for boton in _botones_girar:
+		boton.visible = not "girar" in ocultos
+	barra.boton_usar.visible = _tactil and not "usar" in ocultos
+	_glifo_visto = "?"  # el glifo se vuelve a dibujar: cambia entre PC y celular
 
 
 ## La primera vez que se consigue una habilidad: su nombre grande en medio de la pantalla y luego
@@ -368,6 +473,7 @@ func _cargar_sala() -> void:
 	var todas := ["traspasar", "reflejo"]
 	barra.configurar(todas if _todas_habilidades else sala.datos.get("habilidades", todas))
 	_iniciar_tutorial()
+	_mostrar_botones()
 	_elegir_musica()
 	_on_plano_cambiado(false)
 	_hablar(sala.datos.get("dialogo", []))
@@ -391,7 +497,7 @@ func _iniciar_tutorial() -> void:
 	for h in barra.habilidades:
 		barra.pulsar(h.nombre, false)
 	var t: Dictionary = sala.datos.get("tutorial", {})
-	if t.is_empty() or _tutorial_hecho.has(SALAS[indice]):
+	if not t.has("habilidad") or _tutorial_hecho.has(SALAS[indice]):
 		return
 	barra.pulsar(t["habilidad"], true)
 	if t.has("piedra"):
@@ -403,14 +509,20 @@ func _vigilar_tutorial() -> void:
 	if t.is_empty() or _tutorial_hecho.has(SALAS[indice]):
 		return
 	var hecho := false
-	if t["habilidad"] == "traspasar":
-		hecho = sala.espiritual
-	else:
-		var i := sala.piedra_en(Vector2i(t["piedra"][0], t["piedra"][1]))
-		hecho = i >= 0 and sala.piedras[i]["marcada"]
+	match t.get("glifo", t.get("habilidad")):
+		"traspasar":
+			hecho = sala.espiritual
+		"reflejo":
+			var i := sala.piedra_en(Vector2i(t["piedra"][0], t["piedra"][1]))
+			hecho = i >= 0 and sala.piedras[i]["marcada"]
+		"mover":
+			hecho = sala.jugador != Vector2i(sala.datos["jugador"][0], sala.datos["jugador"][1])
+		"empujar":  # alguna piedra ya no está donde empezó
+			hecho = range(sala.piedras.size()).any(func(i): return sala.piedras[i]["pos"] != Vector2i(sala.datos["piedras"][i]["pos"][0], sala.datos["piedras"][i]["pos"][1]))
 	if hecho:
 		_tutorial_hecho[SALAS[indice]] = true
-		barra.pulsar(t["habilidad"], false)
+		if t.has("habilidad"):
+			barra.pulsar(t["habilidad"], false)
 		sala.tutorial_piedra = Vector2i(-1, -1)
 
 
@@ -510,7 +622,10 @@ func _casilla_tocada(posicion: Vector2) -> Vector2i:
 func _process(delta: float) -> void:
 	_barra_jefe.actualizar(sala)
 	_vigilar_tutorial()
-	_aviso_usar.visible = not _tactil and sala.datos.get("tutorial", {}).get("aviso_usar", false) and not _tutorial_hecho.has(SALAS[indice])
+	var g := _glifo()
+	if g != _glifo_visto:
+		_glifo_visto = g
+		_mostrar_glifo(g)
 	_ocultar_cursor()
 	if _menu.visible or _dialogo.visible or _cortina.activa():
 		return
@@ -522,6 +637,8 @@ func _process(delta: float) -> void:
 			sala.empujar_enfrente()
 	else:
 		_empuje = 0.0
+	if _barra_empuje:
+		_barra_empuje.value = _empuje
 
 
 ## El mouse no apunta a nada mientras se juega: solo se ve con un menú abierto.
