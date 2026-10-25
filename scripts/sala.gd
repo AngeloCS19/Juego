@@ -238,7 +238,8 @@ func _avanzar(dir: Vector2i, paso := true) -> void:
 		Sonido.tocar("prenda")
 	if celda(jugador) == "E":
 		_salida_t = 0.0  # main.gd espera DURACION_SALIDA para pasar de sala
-		Sonido.tocar("puerta" if datos.get("estilo", "") == "tutorial" else "salida")  # el espejo es solo de Narciso
+		if datos.get("estilo", "") != "tutorial":  # en el tutorial suena la puerta al cerrarse la cortina
+			Sonido.tocar("salida")
 		completada.emit()
 
 
