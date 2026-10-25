@@ -17,5 +17,6 @@
 		{ "pos": [4, 5], "fija": true },
 		{ "pos": [4, 6], "fija": true }
 	],
+	"velas": 3,
 	"solucion": "RFURFPURUUU"
 }

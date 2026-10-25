@@ -1,4 +1,5 @@
 # BFS que imita las reglas de sala.gd, para diseñar salas. Uso: python3 tools/solver.py salas/rio_05.json [letras_prohibidas]
+# Con --velas dice cuántas velas lleva la sala (ver min_traspasos).
 # Con letras prohibidas (por ejemplo "F") comprueba que la sala NO se resuelva sin esa acción: así se cierran atajos.
 # Si la sala tiene prenda, la solución la recoge (la prenda es opcional en el juego, pero la "solucion" la muestra).
 import json, sys
@@ -10,7 +11,7 @@ def refl(eje, v, x, y):
     return {"horizontal": (x, 2*v-y), "vertical": (2*v-x, y),
             "diagonal": (y-v, x+v), "antidiagonal": (v-y, v-x)}[eje]
 
-def resolver(s, prohibidas=""):
+def grafo(s, prohibidas=""):
     m = s["mapa"]; W, H = len(m[0]), len(m)
     pe = s["plano_espiritual"]; pe = pe if isinstance(pe, list) else [pe]
     ejes = [(t["eje"], t["valor"]) for t in pe]
@@ -32,10 +33,9 @@ def resolver(s, prohibidas=""):
     st0 = tuple((p["pos"][0], p["pos"][1], p.get("fija", False), False, False) for p in s.get("piedras", []))
     pr = tuple(s["prenda"]["pos"]) if "prenda" in s else None
     ini = (tuple(s["jugador"]), (0, -1), st0, False, pr is None)
-    prev = {ini: None}; q = deque([ini])
     acc = [a for a in "UDLREPF" if a not in prohibidas]
-    while q:
-        e = q.popleft(); (px, py), mir, st, esp, tom = e
+    def vecinos(e):  # cada acción posible desde el estado e: (acción, estado nuevo, ¿llega a la salida?)
+        (px, py), mir, st, esp, tom = e
         for a in acc:
             n = None; gana = False
             if a in D:
@@ -63,6 +63,15 @@ def resolver(s, prohibidas=""):
                 if i < 0: continue
                 l = list(st); p = l[i]; l[i] = p[:4] + (not p[4],)
                 n = ((px, py), mir, tuple(l), esp, tom)
+            yield a, n, gana
+    return ini, vecinos
+
+def resolver(s, prohibidas=""):
+    ini, vecinos = grafo(s, prohibidas)
+    prev = {ini: None}; q = deque([ini])
+    while q:
+        e = q.popleft()
+        for a, n, gana in vecinos(e):
             if n in prev: continue
             prev[n] = (e, a)
             if gana:
@@ -72,6 +81,22 @@ def resolver(s, prohibidas=""):
             q.append(n)
     return None
 
+# Las velas de una sala: el menor número de veces que hay que entrar al plano espiritual, más 2 de margen.
+def min_traspasos(s):
+    ini, vecinos = grafo(s)
+    dist = {ini: 0}; q = deque([ini])  # BFS 0-1: entrar al plano espiritual cuesta 1, lo demás 0
+    while q:
+        e = q.popleft()
+        for a, n, gana in vecinos(e):
+            c = dist[e] + (a == "P" and not e[3])
+            if gana: return c  # el primero que llega por el frente de la cola tiene el menor costo
+            if c < dist.get(n, 1 << 30):
+                dist[n] = c; q.append(n) if c > dist[e] else q.appendleft(n)
+    return None
+
 if __name__ == "__main__":
     s = json.load(open(sys.argv[1]))
-    print(resolver(s, sys.argv[2] if len(sys.argv) > 2 else ""))
+    if sys.argv[2:] == ["--velas"]:
+        print(min_traspasos(s) + 2)
+    else:
+        print(resolver(s, sys.argv[2] if len(sys.argv) > 2 else ""))

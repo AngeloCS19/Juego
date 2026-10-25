@@ -36,6 +36,16 @@ func _init() -> void:
 		if ruta.ends_with(".json"):
 			var r := _jugar(ruta, "")
 			_igual(_jugar(ruta, r.sala.datos["solucion"]).completada, true, "%s se resuelve con su solución" % ruta)
+			if r.sala.datos.has("velas"):  # la solución usa Traspasar lo mínimo: quedan las 2 velas de margen
+				_igual(_jugar(ruta, r.sala.datos["solucion"]).sala.velas_encendidas(), 2, "%s: velas tras su solución" % ruta)
+
+	# Velas: entrar al plano espiritual apaga una; volver no, y reiniciar no las vuelve a encender.
+	var velas := _jugar("rio_00.json", "UPP")
+	_igual(velas.sala.velas_encendidas(), 2, "volver al plano normal no apaga vela")
+	velas.sala.reiniciar()
+	_igual(velas.sala.velas_encendidas(), 2, "reiniciar no enciende las velas")
+	var main := load("res://scripts/main.gd")
+	_igual([main.nota(30, 30), main.nota(24, 30), main.nota(18, 30), main.nota(12, 30), main.nota(0, 30)], ["S", "A", "B", "C", "D"], "nota del templo")
 
 	# Sin marcar la piedra con Reflejo no aparece su reflejo y no se cruza el vacío.
 	_igual(_jugar("rio_01.json", "RRUPUUUU").completada, false, "sin Reflejo no se cruza el vacío")

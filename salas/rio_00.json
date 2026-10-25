@@ -13,5 +13,6 @@
 	"plano_espiritual": { "tipo": "reflexion", "eje": "horizontal", "valor": 3 },
 	"habilidades": ["traspasar"],
 	"tutorial": { "habilidad": "traspasar", "aviso_usar": true },
+	"velas": 3,
 	"solucion": "PUUUU"
 }
