@@ -78,12 +78,31 @@ static func crear_boton(texto: String, accion: Callable, borde := COLOR_NORMAL, 
 			boton.text = ""
 		boton.pressed.connect(func():
 			_conocidos[texto] = true
-			boton.text = "")
+			if boton.text != "":
+				_quitar_texto(boton))
 	boton.focus_mode = Control.FOCUS_NONE  # si no, Espacio "presionaría" el último botón tocado
 	boton.add_theme_font_size_override("font_size", 22)
 	_estilo(boton, borde, 1)
 	boton.pressed.connect(accion)
 	return boton
+
+
+## Sin el nombre, el botón queda solo con el icono: se encoge a su nuevo tamaño mínimo y
+## centra el icono. Un Control anclado no se encoge solo, así que se corren sus bordes
+## según hacia dónde crece (el de la esquina derecha se encoge hacia la esquina).
+static func _quitar_texto(boton: Button) -> void:
+	var antes := boton.size.x
+	boton.text = ""
+	boton.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var sobra := antes - boton.get_combined_minimum_size().x
+	match boton.grow_horizontal:
+		Control.GROW_DIRECTION_BEGIN:
+			boton.offset_left += sobra
+		Control.GROW_DIRECTION_END:
+			boton.offset_right -= sobra
+		_:
+			boton.offset_left += sobra / 2
+			boton.offset_right -= sobra / 2
 
 
 ## Deja disponibles solo las habilidades cuyo nombre (en minúsculas) está en la lista.
