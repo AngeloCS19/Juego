@@ -1,6 +1,7 @@
 // Graba los efectos de sonido a assets/sonidos/*.ogg desde los bocetos de sonido.html,
 // con las versiones que eligió Angelo. Igual que render.js: navegador sin ventana y OfflineAudioContext.
-//   node tools/musica/efectos.js
+//   node tools/musica/efectos.js            (todos)
+//   node tools/musica/efectos.js puerta     (solo los que se nombran: los demás no cambian)
 const { chromium } = require('playwright');
 const fs = require('fs'), path = require('path'), { execFileSync, spawnSync } = require('child_process');
 const SR = 44100, LARGO = 4;
@@ -18,6 +19,9 @@ const EFECTOS = {
   caer: "E('caer', 'A')",
   prenda: "E('prenda', 'B')",
   salida: "E('salida', 'B')",
+  // la salida del templo tutorial: una puerta de madera que cruje al abrirse y se cierra con un golpe sordo
+  puerta: "R.tono('sawtooth', 55, 85, .55, .12, 0, { lp: 1500, vib: 11, vibAmt: 18, a: .05 }); R.tono('square', 140, 190, .5, .04, .02, { lp: 2400, vib: 7, vibAmt: 25, a: .08 });"
+    + " R.tono('sine', 120, 55, .3, .5, .6); R.ruido(.15, .35, 'lowpass', 900, 250, .6); R.ruido(.03, .25, 'bandpass', 2600, 2600, .6, { q: 4 })",
   golpe_narciso: "E('golpe', 'A')",
   dano: "E('dano', 'B')",
   boton: "E('ui', 'B')",
@@ -45,7 +49,9 @@ html = html.slice(0, fin) + 'window.__R = { reset: () => { AC = null; rio = null
   const b = await chromium.launch(); const p = await b.newPage();
   p.on('pageerror', e => { console.error(e.message); process.exit(1); });
   await p.setContent(html);
+  const solo = process.argv.slice(2);
   for (const [nombre, codigo] of Object.entries(EFECTOS)) {
+    if (solo.length && !solo.includes(nombre)) continue;
     const b64 = await p.evaluate(async ([codigo, SR, LARGO]) => {
       window.__OFF = new OfflineAudioContext(2, SR * LARGO, SR);
       const R = window.__R; R.reset(); R.ac();
