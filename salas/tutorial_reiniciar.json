@@ -1,0 +1,21 @@
+{
+	"nombre": "Volver a empezar",
+	"mapa": [
+		"#######",
+		"###E###",
+		"###.###",
+		"#.....#",
+		"#.....#",
+		"#.....#",
+		"#######"
+	],
+	"jugador": [3, 5],
+	"plano_espiritual": { "tipo": "reflexion", "eje": "horizontal", "valor": 3 },
+	"habilidades": [],
+	"piedras": [
+		{ "pos": [3, 3] }
+	],
+	"tutorial": { "glifo": "reiniciar", "atasco": [[3, 2]] },
+	"ocultar": ["girar", "usar"],
+	"solucion": "ULUREUU"
+}

@@ -47,6 +47,9 @@ func _init() -> void:
 	var main := load("res://scripts/main.gd")
 	_igual([main.nota(30, 30), main.nota(24, 30), main.nota(18, 30), main.nota(12, 30), main.nota(0, 30)], ["S", "A", "B", "C", "D"], "nota del templo")
 
+	# Templo tutorial: sin empujar no se pasa, y empujar la piedra recto la atasca frente a la puerta (hay que reiniciar).
+	_igual(_jugar("tutorial_empujar.json", "UUURRRR").completada, false, "sin empujar no se pasa")
+	_igual(_jugar("tutorial_reiniciar.json", "UEUUU").completada, false, "empujar recto atasca la piedra")
 	# Sin marcar la piedra con Reflejo no aparece su reflejo y no se cruza el vacío.
 	_igual(_jugar("rio_01.json", "RRUPUUUU").completada, false, "sin Reflejo no se cruza el vacío")
 	# Si no se aleja la piedra del eje, su reflejo cae en el piso y no sobre el vacío.

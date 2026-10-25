@@ -16,7 +16,7 @@ const PIEZAS := {
 	"altar": ["altar"],  # el arpegio de la ocarina del jefe, lento y en calma
 }
 ## Índice de SALAS (main.gd) desde el que suena cada capa: la pieza se arma a lo largo del templo.
-const DESDE := [0, 6, 12]
+const DESDE := [0, 10, 16]  # índices de SALAS: las 5 primeras son del templo tutorial
 const SALIDA := 1.5  # segundos que tarda en apagarse una pieza al cambiar a otra
 const CRUCE := 0.6  # segundos que tarda la música en pasar de un plano al otro
 const ENTRADA := 3.0  # segundos que tarda una capa nueva en entrar
