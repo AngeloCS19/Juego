@@ -3,6 +3,7 @@ extends Control
 ## Transición entre salas: como un espejo que se cierra. Dos mitades oscuras avanzan desde los bordes
 ## hasta juntarse en el eje (una línea punteada celeste), se carga la sala siguiente y se vuelven a abrir.
 ## Al Reiniciar se cierra igual, pero en vez del eje gira en el centro una flecha circular hacia atrás.
+## En el templo tutorial ("puerta") no hay espejo: la silueta de una puerta de madera se cierra y se abre.
 
 const DURACION := 0.35  # segundos para cerrar (y otros tantos para abrir)
 const OSCURO := Color(0.05, 0.04, 0.08)
@@ -17,6 +18,7 @@ var flecha := -1.0:  # vuelta de la flecha de Reiniciar, de 0 a 1 (negativa: no 
 		flecha = valor
 		queue_redraw()
 var vertical := false  # true: las mitades vienen de los lados y se juntan en una línea vertical
+var puerta := false  # templo tutorial: una hoja de puerta que gira sobre su bisagra (a la izquierda)
 
 
 func _init() -> void:
@@ -56,7 +58,9 @@ func _draw() -> void:
 	if cierre <= 0.0:
 		return
 	var s := size
-	if vertical:
+	if puerta:
+		_dibujar_puerta()
+	elif vertical:
 		var w := s.x * 0.5 * cierre
 		draw_rect(Rect2(0, 0, w, s.y), OSCURO)
 		draw_rect(Rect2(s.x - w, 0, w, s.y), OSCURO)
@@ -68,10 +72,28 @@ func _draw() -> void:
 	var brillo := clampf((cierre - 0.7) / 0.3, 0.0, 1.0)
 	if brillo > 0.0 and flecha >= 0.0:
 		_dibujar_flecha(brillo)
-	elif brillo > 0.0:
+	elif brillo > 0.0 and not puerta:
 		var a := Vector2(s.x / 2, 0) if vertical else Vector2(0, s.y / 2)
 		var b := Vector2(s.x / 2, s.y) if vertical else Vector2(s.x, s.y / 2)
 		draw_dashed_line(a, b, Color(CELESTE, brillo), 4.0, 18.0)
+
+
+## La hoja de la puerta, vista de frente mientras gira: crece desde la bisagra hasta tapar la pantalla.
+## Casi cerrada se ven las tablas y la argolla, como el eje en el espejo.
+func _dibujar_puerta() -> void:
+	var s := size
+	var w := s.x * cierre
+	draw_rect(Rect2(0, 0, w, s.y), OSCURO)
+	var detalle := clampf((cierre - 0.7) / 0.3, 0.0, 1.0)
+	if detalle <= 0.0:
+		return
+	var madera := Color(0.66, 0.43, 0.26, 0.5 * detalle)
+	for i in range(1, 4):  # tres juntas entre las tablas
+		var x := w * i / 4.0
+		draw_line(Vector2(x, 0), Vector2(x, s.y), madera, 4.0)
+	for y in [s.y * 0.25, s.y * 0.75]:  # las dos bisagras de hierro
+		draw_rect(Rect2(0, y - 10, w * 0.4, 20), Color(0.23, 0.18, 0.16, 0.8 * detalle))
+	draw_arc(Vector2(w * 0.82, s.y * 0.55), 18.0, 0.0, TAU, 32, Color(0.91, 0.73, 0.31, detalle), 4.0)  # la argolla
 
 
 ## Flecha de casi una vuelta, celeste como el eje, con la punta hacia atrás (sentido antihorario).

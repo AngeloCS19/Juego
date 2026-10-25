@@ -457,6 +457,7 @@ func _cargar_sala() -> void:
 		pivote.rotation = 0.0
 	_actualizar_espejo()
 	_espejo_fijo.position = _pos_espejo()
+	_cortina.puerta = sala.datos.get("estilo", "") == "tutorial"  # al cargar a mitad de la cortina, abre ya como la sala nueva
 	sala.completada.connect(_on_sala_completada)
 	sala.plano_cambiado.connect(_on_plano_cambiado)
 	sala.caida.connect(_on_caida)
