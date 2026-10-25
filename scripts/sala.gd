@@ -88,7 +88,7 @@ var _prenda_t := DURACION_PRENDA
 var _prenda_nombre := ""
 var _mancha_t := DURACION_MANCHA
 var _humo_t := DURACION_HUMO
-var _velas_en: Array[Vector2i] = []  # casillas del muro de abajo donde están las velas
+var _velas_en := []  # cada vela: [casilla del muro, hacia dónde da al interior]
 var _mancha_en := Vector2.ZERO
 var _mancha_onda: Array[Vector3] = []  # la forma de esta mancha: (amplitud, ondas por vuelta, desfase)
 static var _siluetas := {}  # sprite -> su silueta blanca, se calcula una vez
@@ -130,16 +130,33 @@ func _preparar() -> void:
 	reiniciar()
 
 
-## Las velas van en el muro de abajo, centradas, en casillas que dan al interior de la sala.
+## Las velas iluminan la sala desde los muros de los lados: mitad a la izquierda y mitad a la
+## derecha, repartidas a lo alto, pegadas a la cara del muro que da al interior.
 func _poner_velas() -> void:
 	_velas_en.clear()
-	var y := tamano.y - 1
-	var muros := range(tamano.x).filter(func(x): return celda(Vector2i(x, y)) == "#" and celda(Vector2i(x, y - 1)) != "#")
-	muros.sort_custom(func(a, b): return absf(a - (tamano.x - 1) / 2.0) < absf(b - (tamano.x - 1) / 2.0))
-	muros = muros.slice(0, datos.get("velas", 0))
-	muros.sort()
-	for x in muros:
-		_velas_en.append(Vector2i(x, y))
+	var lados := [_muros_de_lado(range(tamano.x), Vector2i.RIGHT), _muros_de_lado(range(tamano.x - 1, -1, -1), Vector2i.LEFT)]
+	var n: int = datos.get("velas", 0)
+	var izq := mini(ceili(n / 2.0), lados[0].size())
+	var cuantas := [izq, mini(n - izq, lados[1].size())]
+	for i in maxi(cuantas[0], cuantas[1]):  # alternadas: las que se apagan van de un lado y del otro
+		for l in 2:
+			if i < cuantas[l]:
+				_velas_en.append(lados[l][int((i + 0.5) * lados[l].size() / cuantas[l])])  # repartidas a lo alto
+
+
+## Por cada fila, el primer muro (recorriendo "columnas") cuya cara "dentro" da al interior de la sala.
+func _muros_de_lado(columnas: Array, dentro: Vector2i) -> Array:
+	var muros := []
+	for y in tamano.y:
+		for x in columnas:
+			var c := Vector2i(x, y)
+			if celda(c) != "#":
+				break  # en esta fila el borde no es muro (un río que sale de la sala): no hay vela
+			if celda(c + dentro) != "#":
+				if celda(c + dentro) == ".":  # solo sobre piso: junto al agua o al vacío no se pone
+					muros.append([c, dentro])
+				break
+	return muros
 
 
 ## Velas que siguen encendidas: cada vez que se entra al plano espiritual se apaga una.
@@ -624,23 +641,32 @@ func _dibujar_casilla_espiritual(c: Vector2i) -> void:
 		draw_rect(r, Color(CELESTE, 0.25), false, 1.0)
 
 
-## Cada vela: cera, mecha y una llama que tiembla. La que se acaba de apagar echa un hilo de humo.
+## Cada vela: un soporte de hierro en la cara del muro, la vela vista desde arriba y una llama que
+## tiembla hacia el interior, con un charco de luz en el piso. La que se acaba de apagar echa humo.
 func _dibujar_velas() -> void:
 	var encendidas := velas_encendidas()
 	for i in _velas_en.size():
-		var base := _centro(_velas_en[i]) + Vector2(0, TAM * 0.3)
-		var cera := Rect2(base - Vector2(TAM * 0.11, TAM * 0.42), Vector2(TAM * 0.22, TAM * 0.42))
-		draw_rect(cera, Color(0.93, 0.86, 0.72, 0.5 if espiritual else 1.0))
-		var mecha := cera.position + Vector2(cera.size.x / 2, 0)
-		draw_line(mecha, mecha - Vector2(0, TAM * 0.05), Color(0.2, 0.15, 0.1), 1.5)
+		var dentro := Vector2(_velas_en[i][1])
+		var de_lado := Vector2(dentro.y, dentro.x)
+		var borde := _centro(_velas_en[i][0]) + dentro * TAM * 0.5  # la cara del muro
+		var vela := borde + dentro * TAM * 0.2
+		var hierro := Color(0.18, 0.13, 0.1, 0.5 if espiritual else 1.0)
+		draw_line(borde - de_lado * TAM * 0.2, borde + de_lado * TAM * 0.2, hierro, 4.0)  # la placa contra el muro
+		draw_line(borde, vela, hierro, 3.0)  # el brazo
 		if i < encendidas:
 			var tiembla := 1.0 + 0.12 * sin(_t * 9.0 + i * 2.1) + 0.06 * sin(_t * 23.0 + i)
-			var punta := mecha - Vector2(0, TAM * 0.3 * tiembla)
-			draw_circle(mecha - Vector2(0, TAM * 0.1), TAM * 0.35, Color(COLOR_VELA, 0.1))
-			draw_circle(mecha - Vector2(0, TAM * 0.1), TAM * 0.2, Color(COLOR_VELA, 0.18))
-			draw_colored_polygon(PackedVector2Array([punta, mecha + Vector2(TAM * 0.08, -TAM * 0.08), mecha + Vector2(0, -TAM * 0.01), mecha + Vector2(-TAM * 0.08, -TAM * 0.08)]), COLOR_VELA)
-		elif i == encendidas and _humo_t < DURACION_HUMO:
-			var k := _humo_t / DURACION_HUMO
-			for j in 4:  # el humo sube ondulando y se desvanece
-				var h := k * TAM * 0.5 + j * TAM * 0.07
-				draw_circle(mecha - Vector2(sin(h * 0.25) * TAM * 0.05, h), TAM * 0.03 * (1.0 + k), Color(0.8, 0.8, 0.85, 0.5 * (1.0 - k)))
+			if not espiritual:  # ilumina la sala; en el plano espiritual la luz no se ve, solo la llama
+				draw_circle(vela + dentro * TAM * 0.3, TAM * 0.9, Color(COLOR_VELA, 0.1))
+				draw_circle(vela + dentro * TAM * 0.15, TAM * 0.45, Color(COLOR_VELA, 0.16))
+			draw_circle(vela, TAM * 0.15, Color(0.95, 0.88, 0.72))
+			var punta := vela + dentro * TAM * 0.38 * tiembla
+			draw_colored_polygon(PackedVector2Array([punta, vela + de_lado * TAM * 0.09, vela - dentro * TAM * 0.04, vela - de_lado * TAM * 0.09]), COLOR_VELA)
+			draw_circle(vela + dentro * TAM * 0.05, TAM * 0.05, Color(1, 0.95, 0.8))
+		else:
+			draw_circle(vela, TAM * 0.15, Color(0.42, 0.36, 0.3, 0.5 if espiritual else 1.0))  # apagada: se ve oscura
+			draw_circle(vela, TAM * 0.04, Color(0.12, 0.1, 0.08))
+			if i == encendidas and _humo_t < DURACION_HUMO:
+				var k := _humo_t / DURACION_HUMO
+				for j in 4:  # el humo se aleja del muro ondulando y se desvanece
+					var h := k * TAM * 0.5 + j * TAM * 0.07
+					draw_circle(vela + dentro * h + de_lado * sin(h * 0.25) * TAM * 0.05, TAM * 0.03 * (1.0 + k), Color(0.8, 0.8, 0.85, 0.5 * (1.0 - k)))
