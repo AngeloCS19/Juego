@@ -206,7 +206,7 @@ La tabla sigue el orden del juego, que lo decide la lista `SALAS` de `main.gd` y
 | La piedra en el camino | `tutorial_empujar.json` | Empujar: mirar la piedra y sostener la dirección. |
 | Volver a empezar | `tutorial_reiniciar.json` | Reiniciar: si se empuja la piedra recto, queda atascada frente al espejo. |
 | La puerta que gira | `tutorial_girar.json` | Girar la cámara (Q / E) hasta que la puerta calce con el espejo. |
-| Cruzar el río | `rio_00.json` | Solo Traspasar: en el plano espiritual el agua se cruza. Cierra el templo tutorial. |
+| Cruzar el río | `rio_00.json` | Solo Traspasar: en el plano espiritual el agua se cruza. Al traspasar se apaga una vela. Cierra el templo tutorial con su cuenta de velas y nota (`fin_templo`). |
 | **Templo del Río** | | |
 | El paso celeste | `rio_01.json` | El vacío solo se cruza sobre un reflejo: marcar una piedra fija con Reflejo. |
 | Dos piedras | `rio_02.json` | Reflejar más de una piedra para armar el camino. |
@@ -287,6 +287,7 @@ v  vacío     E  salida    ^  lava
 - `velas` (opcional): cuántas velas hay, el mínimo de traspasos más 2. La pone `formatear.py`; si la sala no necesita Traspasar, no lleva velas.
 - `tipo` (opcional): `"jefe"`, `"huida"` o `"altar"` para las salas de Narciso; cada una tiene sus propias claves (ver arriba). Sin `tipo` es una sala de puzzle.
 - `exterior` (opcional): `true` dibuja el piso como pasto, para las salas al aire libre.
+- `fin_templo` (opcional): nombre del templo que termina en esta sala, por ejemplo `"Tutorial"`. Al salir se muestran sus velas, tiempo y nota (`_fin_tutorial()`), y la cuenta vuelve a cero: el tutorial no cuenta en la nota del Templo del Río.
 - `salida_fija` (opcional): `true` convierte la `E` en una puerta del muro de afuera, que solo abre al girar la cámara hasta dejarla arriba (ver las reglas de la sala). Mira `tutorial_girar.json`.
 - `solucion`: una secuencia de teclas que la resuelve (U arriba, D abajo, L izquierda, R derecha, E empujar, P usar Traspasar, F usar Reflejo, `<` y `>` girar la cámara como Q y E). Las pruebas la usan para comprobar que la sala tiene solución.
 
