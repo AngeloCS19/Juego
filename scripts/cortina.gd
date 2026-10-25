@@ -3,9 +3,14 @@ extends Control
 ## Transición entre salas: como un espejo que se cierra. Dos mitades oscuras avanzan desde los bordes
 ## hasta juntarse en el eje (una línea punteada celeste), se carga la sala siguiente y se vuelven a abrir.
 ## Al Reiniciar se cierra igual, pero en vez del eje gira en el centro una flecha circular hacia atrás.
-## En el templo tutorial ("puerta") no hay espejo: la silueta de una puerta de madera se cierra y se abre.
+## En el templo tutorial ("puerta") no hay espejo: una puerta doble se cierra de golpe en el centro y se abre
+## (ajustada por Angelo en el banco de pruebas, artifact "Cortina de puerta").
 
 const DURACION := 0.35  # segundos para cerrar (y otros tantos para abrir)
+const DURACION_PUERTA := 0.5  # la puerta doble del tutorial es más lenta
+const ESPERA_PUERTA := 0.35  # y se queda cerrada un poco más
+const GOLPE := 0.75  # parte del cierre en que las hojas chocan; después rebotan un poco y vuelven
+const SOMBRA_PUERTA := Color(0.16, 0.1, 0.06)
 const OSCURO := Color(0.05, 0.04, 0.08)
 const CELESTE := Color(0.55, 0.85, 1.0)
 
@@ -18,7 +23,7 @@ var flecha := -1.0:  # vuelta de la flecha de Reiniciar, de 0 a 1 (negativa: no 
 		flecha = valor
 		queue_redraw()
 var vertical := false  # true: las mitades vienen de los lados y se juntan en una línea vertical
-var puerta := false  # templo tutorial: una hoja de puerta que gira sobre su bisagra (a la izquierda)
+var puerta := false  # templo tutorial: puerta doble en vez de espejo
 
 
 func _init() -> void:
@@ -31,10 +36,17 @@ func pasar(eje_vertical: bool, en_medio: Callable, espera := 0.1) -> Tween:
 	vertical = eje_vertical
 	mouse_filter = Control.MOUSE_FILTER_STOP  # mientras dura, los toques no llegan al mapa
 	var t := create_tween()
-	t.tween_property(self, "cierre", 1.0, DURACION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	t.tween_callback(en_medio)
-	t.tween_interval(espera)
-	t.tween_property(self, "cierre", 0.0, DURACION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	if puerta:
+		Sonido.tocar("puerta")  # el golpe del sonido está grabado justo en el momento GOLPE del cierre
+		t.tween_method(_cerrar_de_golpe, 0.0, 1.0, DURACION_PUERTA)
+		t.tween_callback(en_medio)
+		t.tween_interval(maxf(espera, ESPERA_PUERTA))
+		t.tween_property(self, "cierre", 0.0, DURACION_PUERTA).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	else:
+		t.tween_property(self, "cierre", 1.0, DURACION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		t.tween_callback(en_medio)
+		t.tween_interval(espera)
+		t.tween_property(self, "cierre", 0.0, DURACION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	t.tween_callback(func(): mouse_filter = Control.MOUSE_FILTER_IGNORE)
 	return t
 
@@ -43,7 +55,8 @@ func pasar(eje_vertical: bool, en_medio: Callable, espera := 0.1) -> Tween:
 func rebobinar(eje_vertical: bool, en_medio: Callable) -> Tween:
 	var t := pasar(eje_vertical, en_medio, 0.4)  # tapada un poco más, para ver girar la flecha
 	var giro := create_tween()
-	giro.tween_property(self, "flecha", 1.0, DURACION * 2 + 0.4).from(0.0)
+	var d := DURACION_PUERTA * 2 + maxf(0.4, ESPERA_PUERTA) if puerta else DURACION * 2 + 0.4
+	giro.tween_property(self, "flecha", 1.0, d).from(0.0)
 	# Al terminar se quita la flecha, así el paso entre salas vuelve a mostrar el eje.
 	# Va en este mismo Tween: si fuera en "t", este podría terminar después y dejar la flecha puesta.
 	giro.tween_callback(func(): flecha = -1.0)
@@ -78,22 +91,28 @@ func _draw() -> void:
 		draw_dashed_line(a, b, Color(CELESTE, brillo), 4.0, 18.0)
 
 
-## La hoja de la puerta, vista de frente mientras gira: crece desde la bisagra hasta tapar la pantalla.
-## Casi cerrada se ven las tablas y la argolla, como el eje en el espejo.
+## Cierre con golpe: acelera hasta chocar en GOLPE, rebota un poco y vuelve a quedar cerrada.
+func _cerrar_de_golpe(k: float) -> void:
+	cierre = pow(k / GOLPE, 2) if k < GOLPE else 1.0 - 0.06 * sin((k - GOLPE) / (1.0 - GOLPE) * PI)
+
+
+## Puerta doble: cada hoja crece desde su lado hasta juntarse en el centro. Desde la mitad del
+## cierre se ven, tenues, las tablas y la argolla de cada hoja.
 func _dibujar_puerta() -> void:
 	var s := size
-	var w := s.x * cierre
-	draw_rect(Rect2(0, 0, w, s.y), OSCURO)
-	var detalle := clampf((cierre - 0.7) / 0.3, 0.0, 1.0)
+	var w := s.x * 0.5 * cierre
+	draw_rect(Rect2(0, 0, w, s.y), SOMBRA_PUERTA)
+	draw_rect(Rect2(s.x - w, 0, w, s.y), SOMBRA_PUERTA)
+	var detalle := 0.2 * clampf((cierre - 0.5) / 0.5, 0.0, 1.0)
 	if detalle <= 0.0:
 		return
-	var madera := Color(0.66, 0.43, 0.26, 0.5 * detalle)
-	for i in range(1, 4):  # tres juntas entre las tablas
-		var x := w * i / 4.0
-		draw_line(Vector2(x, 0), Vector2(x, s.y), madera, 4.0)
-	for y in [s.y * 0.25, s.y * 0.75]:  # las dos bisagras de hierro
-		draw_rect(Rect2(0, y - 10, w * 0.4, 20), Color(0.23, 0.18, 0.16, 0.8 * detalle))
-	draw_arc(Vector2(w * 0.82, s.y * 0.55), 18.0, 0.0, TAU, 32, Color(0.91, 0.73, 0.31, detalle), 4.0)  # la argolla
+	var madera := Color(0.66, 0.43, 0.26, detalle)
+	var argolla := Color(0.91, 0.73, 0.31, detalle)
+	for lado in [[0.0, 1.0], [s.x, -1.0]]:  # [borde de la pantalla, hacia dónde crece la hoja]
+		for i in range(1, 4):  # tres juntas entre las tablas
+			var x: float = lado[0] + lado[1] * w * i / 4.0
+			draw_line(Vector2(x, 0), Vector2(x, s.y), madera, 4.0)
+		draw_arc(Vector2(lado[0] + lado[1] * w * 0.85, s.y * 0.55), 18.0, 0.0, TAU, 32, argolla, 4.0)
 
 
 ## Flecha de casi una vuelta, celeste como el eje, con la punta hacia atrás (sentido antihorario).

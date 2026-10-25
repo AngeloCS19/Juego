@@ -181,7 +181,7 @@ Cualquier script toca un efecto con `Sonido.tocar("empujar")` (opcional: volumen
 | Marcar / desmarcar | `marcar_enfrente()` | `reflejo` (al desmarcar, más grave y bajo) |
 | Traspasar / volver | `cambiar_plano()` | `traspasar`, `volver` (el mismo, al revés) |
 | Caer | `cambiar_plano()` | `caer` |
-| Prenda, salida | `_avanzar()` | `prenda`, `salida` (`puerta` en el templo tutorial) |
+| Prenda, salida | `_avanzar()` | `prenda`, `salida` (en el templo tutorial, `puerta` suena desde la cortina) |
 | Narciso lanza, cae la piedra, te golpea | `_turno()` y `_caer()` en `sala_jefe.gd` | `silbido` (el último turno antes de caer), `piedra_cae`, `dano` |
 | Narciso se ve a sí mismo | `_revisar_golpe()` | `golpe_narciso` |
 | Voz de Narciso | `_process()` en `dialogo.gd` | `voz_narciso_0..4`: una sílaba al azar cada 3 letras; cada personaje tiene su `"voz"` en `PERSONAJES` |
@@ -287,7 +287,7 @@ v  vacío     E  salida    ^  lava
 - `velas` (opcional): cuántas velas hay, el mínimo de traspasos más 2. La pone `formatear.py`; si la sala no necesita Traspasar, no lleva velas.
 - `tipo` (opcional): `"jefe"`, `"huida"` o `"altar"` para las salas de Narciso; cada una tiene sus propias claves (ver arriba). Sin `tipo` es una sala de puzzle.
 - `exterior` (opcional): `true` dibuja el piso como pasto, para las salas al aire libre.
-- `estilo` (opcional): la estética del templo, por ejemplo `"tutorial"`. Cambia el muro, el piso y la salida por los de `TEX_ESTILO`; con `"tutorial"` también el sonido de salida (`puerta.ogg`) y la cortina entre salas (la silueta de una puerta que se cierra, `Cortina.puerta`) en `sala.gd`; sin `estilo` se usan los del Templo del Río. Un templo nuevo agrega ahí su par de sprites.
+- `estilo` (opcional): la estética del templo, por ejemplo `"tutorial"`. Cambia el muro, el piso y la salida por los de `TEX_ESTILO`; con `"tutorial"` también el sonido de salida (`puerta.ogg`) y la cortina entre salas (una puerta doble café que se cierra de golpe en el centro, `Cortina.puerta`; el golpe de `puerta.ogg` cae justo cuando chocan las hojas) en `sala.gd`; sin `estilo` se usan los del Templo del Río. Un templo nuevo agrega ahí su par de sprites.
 - `fin_templo` (opcional): nombre del templo que termina en esta sala, por ejemplo `"Tutorial"`. Al salir se muestran sus velas, tiempo y nota (`_fin_tutorial()`), y la cuenta vuelve a cero: el tutorial no cuenta en la nota del Templo del Río.
 - `salida_fija` (opcional): `true` convierte la `E` en una puerta del muro de afuera, que solo abre al girar la cámara hasta dejarla arriba (ver las reglas de la sala). Mira `tutorial_girar.json`.
 - `solucion`: una secuencia de teclas que la resuelve (U arriba, D abajo, L izquierda, R derecha, E empujar, P usar Traspasar, F usar Reflejo, `<` y `>` girar la cámara como Q y E). Las pruebas la usan para comprobar que la sala tiene solución.

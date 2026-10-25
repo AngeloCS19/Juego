@@ -19,9 +19,10 @@ const EFECTOS = {
   caer: "E('caer', 'A')",
   prenda: "E('prenda', 'B')",
   salida: "E('salida', 'B')",
-  // la salida del templo tutorial: una puerta de madera que cruje al abrirse y se cierra con un golpe sordo
-  puerta: "R.tono('sawtooth', 55, 85, .55, .12, 0, { lp: 1500, vib: 11, vibAmt: 18, a: .05 }); R.tono('square', 140, 190, .5, .04, .02, { lp: 2400, vib: 7, vibAmt: 25, a: .08 });"
-    + " R.tono('sine', 120, 55, .3, .5, .6); R.ruido(.15, .35, 'lowpass', 900, 250, .6); R.ruido(.03, .25, 'bandpass', 2600, 2600, .6, { q: 4 })",
+  // la puerta doble del tutorial: cruje mientras se cierra y da el golpe a los 0,375 s, cuando las hojas
+  // chocan en la cortina (Cortina.DURACION_PUERTA * GOLPE). Si cambias esos números, cambia el golpe aquí.
+  puerta: "R.tono('sawtooth', 55, 85, .35, .12, 0, { lp: 1500, vib: 11, vibAmt: 18, a: .05 }); R.tono('square', 140, 190, .33, .04, .02, { lp: 2400, vib: 7, vibAmt: 25, a: .08 });"
+    + " R.tono('sine', 120, 55, .3, .5, .375); R.ruido(.15, .35, 'lowpass', 900, 250, .375); R.ruido(.03, .25, 'bandpass', 2600, 2600, .375, { q: 4 })",
   golpe_narciso: "E('golpe', 'A')",
   dano: "E('dano', 'B')",
   boton: "E('ui', 'B')",
