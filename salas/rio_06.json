@@ -3,7 +3,7 @@
 	"mapa": [
 		"####~######",
 		"#...~vv...#",
-		"#...~vv..E#",
+		"#...~vv...E",
 		"#...~vv...#",
 		"#...~vv...#",
 		"#...~vv...#",
@@ -11,10 +11,11 @@
 	],
 	"jugador": [1, 2],
 	"plano_espiritual": { "tipo": "reflexion", "eje": "vertical", "valor": 4 },
+	"salida_fija": true,
 	"piedras": [
 		{ "pos": [3, 4], "fija": true },
 		{ "pos": [2, 4], "fija": true }
 	],
 	"velas": 3,
-	"solucion": "RDFRDFPDRRRRUURR"
+	"solucion": "RDFRDFPDRRRRUURR<R"
 }

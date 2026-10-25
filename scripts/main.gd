@@ -54,6 +54,7 @@ var _dedo_abajo := false
 var _dir_dedo := Vector2i.ZERO  # dirección (en pantalla) que el dedo sostiene, si deslizó o tocó una casilla vecina
 var _empuje := 0.0  # cuánto tiempo lleva sostenida la dirección hacia una piedra
 var _tween_giro: Tween
+var _espejo_fijo := Sprite2D.new()  # salas con "salida_fija": el espejo de salida, quieto arriba de la pantalla
 var _todas_habilidades := false  # modo debug: todas las habilidades en cualquier sala
 var dificil := false  # dificultad de Narciso: en las dos se mueve solo, en difícil más rápido
 var _derrotas := 0  # derrotas seguidas ante Narciso en difícil
@@ -92,6 +93,9 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	pivote.process_mode = Node.PROCESS_MODE_PAUSABLE
 	add_child(musica)
+	_espejo_fijo.texture = Sala.TEX_CASILLA["E"]
+	_espejo_fijo.scale = Vector2.ONE * Sala.TAM / _espejo_fijo.texture.get_width()
+	add_child(_espejo_fijo)  # fuera de Pivote: no gira con la sala
 	var lista: Array[Habilidad] = [Traspasar.new(), Reflejo.new()]
 	barra = BarraHabilidades.new(lista)
 	barra.pedida.connect(_elegir)
@@ -316,6 +320,23 @@ func _en_esquina(padre: Control, nodo: Control, esquina: Control.LayoutPreset) -
 ## La pantalla del celular puede tener otra proporción: la sala siempre queda al centro.
 func _centrar() -> void:
 	pivote.position = get_viewport_rect().size / 2
+	if sala:
+		_espejo_fijo.position = _pos_espejo()
+
+
+## El espejo fijo queda una casilla más arriba del muro que se ve arriba. Si la sala no es cuadrada,
+## esa distancia cambia al girar: con la cámara de lado, el alto en pantalla es el ancho de la sala.
+func _pos_espejo() -> Vector2:
+	var alto := sala.tamano.y if giro % 2 == 0 else sala.tamano.x
+	return pivote.position - Vector2(0, (alto / 2.0 + 0.5) * Sala.TAM)
+
+
+## Se ve brillante solo cuando la puerta de la sala está frente a él.
+func _actualizar_espejo() -> void:
+	sala.giro = giro
+	sala.queue_redraw()
+	_espejo_fijo.visible = sala.datos.get("salida_fija", false)
+	_espejo_fijo.modulate = Color.WHITE if sala.puerta_abierta() else Color(0.45, 0.45, 0.55)
 
 
 func _cargar_sala() -> void:
@@ -323,6 +344,13 @@ func _cargar_sala() -> void:
 		sala.queue_free()
 	sala = Sala.desde_archivo(SALAS[indice])
 	sala.position = -Vector2(sala.tamano) * Sala.TAM / 2  # centra la sala en el pivote
+	if sala.datos.get("salida_fija", false):  # la sala empieza como se diseñó: la puerta no calza todavía
+		if _tween_giro:
+			_tween_giro.kill()
+		giro = 0
+		pivote.rotation = 0.0
+	_actualizar_espejo()
+	_espejo_fijo.position = _pos_espejo()
 	sala.completada.connect(_on_sala_completada)
 	sala.plano_cambiado.connect(_on_plano_cambiado)
 	sala.caida.connect(_on_caida)
@@ -538,6 +566,8 @@ func _girar(sentido: int) -> void:
 	var destino := pivote.rotation + wrapf(giro * PI / 2 - pivote.rotation, -PI, PI)  # por el camino más corto
 	_tween_giro = create_tween()
 	_tween_giro.tween_property(pivote, "rotation", destino, 0.25)
+	_tween_giro.parallel().tween_property(_espejo_fijo, "position", _pos_espejo(), 0.25)
+	_actualizar_espejo()
 
 
 func _on_plano_cambiado(espiritual: bool) -> void:

@@ -60,6 +60,9 @@ func _init() -> void:
 	_igual(_jugar("rio_11.json", "DDDREEE").sala.piedras[0]["flota"], true, "una piedra empujada a la lava flota")
 	# La prenda es opcional: la salida se abre sin ella. Solo se toma en el plano espiritual.
 	_igual(_jugar("rio_05.json", "UURRDEFUPUUUUU").completada, true, "sin la prenda también se sale")
+	# Salida fija: la puerta del muro solo abre cuando la cámara la deja frente al espejo.
+	_igual(_jugar("tutorial_girar.json", "RRRRR").completada, false, "sin girar la cámara la puerta no abre")
+	_igual(_jugar("tutorial_girar.json", ">>>RRRRR").completada, true, "tres giros a la derecha también la alinean")
 	var con_prenda := _jugar("rio_05.json", "RRRULEEULDEFUPUUUUU")
 	_igual(con_prenda.sala.prenda_tomada, true, "la prenda se recoge en el plano espiritual")
 	# Jefe: una piedra que cae encima quita un corazón, y solo hay dos piedras marcadas a la vez.
@@ -149,7 +152,7 @@ func _init() -> void:
 
 
 ## Juega una sala con una secuencia de teclas: U D L R mueven (o giran, contra una piedra),
-## E empuja la piedra de enfrente, P usa Traspasar, F usa Reflejo.
+## E empuja la piedra de enfrente, P usa Traspasar, F usa Reflejo, < y > giran la cámara (Q y E del teclado).
 ## Usa la barra de habilidades real, así que respeta qué habilidades tiene la sala.
 func _jugar(ruta: String, secuencia: String) -> Dictionary:
 	var sala := Sala.desde_archivo("res://salas/" + ruta)
@@ -169,6 +172,8 @@ func _jugar(ruta: String, secuencia: String) -> Dictionary:
 					barra.usar(sala)
 			"E":
 				sala.empujar_enfrente()
+			"<", ">":
+				sala.giro = posmod(sala.giro + (1 if letra == ">" else -1), 4)
 			_:
 				sala.mover(pasos[letra])
 	creados.append_array([sala, barra])

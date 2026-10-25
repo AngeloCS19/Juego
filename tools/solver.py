@@ -1,6 +1,7 @@
 # BFS que imita las reglas de sala.gd, para diseñar salas. Uso: python3 tools/solver.py salas/rio_05.json [letras_prohibidas]
 # Con --velas dice cuántas velas lleva la sala (ver min_traspasos).
 # Con letras prohibidas (por ejemplo "F") comprueba que la sala NO se resuelva sin esa acción: así se cierran atajos.
+# Con "salida_fija", < y > giran la cámara: la puerta E solo abre si queda arriba en la pantalla.
 # Si la sala tiene prenda, la solución la recoge (la prenda es opcional en el juego, pero la "solucion" la muestra).
 import json, sys
 from collections import deque
@@ -21,9 +22,16 @@ def grafo(s, prohibidas=""):
         for i, p in enumerate(st):
             if (p[0], p[1]) == (x, y): return i
         return -1
-    def trans(st, esp, x, y):
+    fija = s.get("salida_fija", False)
+    sx, sy = next((r.index("E"), y) for y, r in enumerate(m) if "E" in r)
+    afuera = (0, -1) if sy == 0 else (0, 1) if sy == H-1 else (-1, 0) if sx == 0 else (1, 0)
+    def abierta(g):  # gira "afuera" g cuartos de vuelta en sentido horario (en pantalla, y hacia abajo)
+        v = afuera
+        for _ in range(g): v = (-v[1], v[0])
+        return not fija or v == (0, -1)
+    def trans(st, esp, x, y, g):
         t = cel(x, y)
-        if t == "#": return False
+        if t == "#" or (t == "E" and not abierta(g)): return False
         if esp:
             if t == "^": return False
             return any(p[4] and refl(e, v, p[0], p[1]) == (x, y) for p in st for e, v in ejes) or t in ".=E~"
@@ -32,19 +40,19 @@ def grafo(s, prohibidas=""):
         return t in ".=E"
     st0 = tuple((p["pos"][0], p["pos"][1], p.get("fija", False), False, False) for p in s.get("piedras", []))
     pr = tuple(s["prenda"]["pos"]) if "prenda" in s else None
-    ini = (tuple(s["jugador"]), (0, -1), st0, False, pr is None)
-    acc = [a for a in "UDLREPF" if a not in prohibidas]
+    ini = (tuple(s["jugador"]), (0, -1), st0, False, pr is None, 0)
+    acc = [a for a in "UDLREPF" + ("<>" if fija else "") if a not in prohibidas]
     def vecinos(e):  # cada acción posible desde el estado e: (acción, estado nuevo, ¿llega a la salida?)
-        (px, py), mir, st, esp, tom = e
+        (px, py), mir, st, esp, tom, g = e
         for a in acc:
             n = None; gana = False
             if a in D:
                 d = D[a]; nx, ny = px+d[0], py+d[1]
-                if trans(st, esp, nx, ny):
+                if trans(st, esp, nx, ny, g):
                     t2 = tom or (esp and (nx, ny) == pr)
-                    n = ((nx, ny), d, st, esp, t2); gana = cel(nx, ny) == "E" and t2
+                    n = ((nx, ny), d, st, esp, t2, g); gana = cel(nx, ny) == "E" and t2
                 else:
-                    n = ((px, py), d, st, esp, tom)
+                    n = ((px, py), d, st, esp, tom, g)
             elif a == "E":
                 if esp: continue
                 tx, ty = px+mir[0], py+mir[1]; i = en(st, tx, ty)
@@ -52,17 +60,19 @@ def grafo(s, prohibidas=""):
                 dx, dy = tx+mir[0], ty+mir[1]
                 if en(st, dx, dy) >= 0 or cel(dx, dy) not in ".~^": continue
                 l = list(st); p = l[i]; l[i] = (dx, dy, p[2], cel(dx, dy) in "~^", p[4])
-                n = ((tx, ty), mir, tuple(l), esp, tom); gana = cel(tx, ty) == "E" and tom
+                n = ((tx, ty), mir, tuple(l), esp, tom, g); gana = cel(tx, ty) == "E" and tom
             elif a == "P":
                 if "traspasar" not in hab: continue
-                if esp and not trans(st, False, px, py): continue  # caer o no poder volver
-                n = ((px, py), mir, st, not esp, tom)
+                if esp and not trans(st, False, px, py, g): continue  # caer o no poder volver
+                n = ((px, py), mir, st, not esp, tom, g)
             elif a == "F":
                 if "reflejo" not in hab or esp: continue
                 i = en(st, px+mir[0], py+mir[1])
                 if i < 0: continue
                 l = list(st); p = l[i]; l[i] = p[:4] + (not p[4],)
-                n = ((px, py), mir, tuple(l), esp, tom)
+                n = ((px, py), mir, tuple(l), esp, tom, g)
+            elif a in "<>":
+                n = ((px, py), mir, st, esp, tom, (g + (1 if a == ">" else -1)) % 4)
             yield a, n, gana
     return ini, vecinos
 
