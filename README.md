@@ -287,6 +287,7 @@ v  vacío     E  salida    ^  lava
 - `velas` (opcional): cuántas velas hay, el mínimo de traspasos más 2. La pone `formatear.py`; si la sala no necesita Traspasar, no lleva velas.
 - `tipo` (opcional): `"jefe"`, `"huida"` o `"altar"` para las salas de Narciso; cada una tiene sus propias claves (ver arriba). Sin `tipo` es una sala de puzzle.
 - `exterior` (opcional): `true` dibuja el piso como pasto, para las salas al aire libre.
+- `estilo` (opcional): la estética del templo, por ejemplo `"tutorial"`. Cambia el muro y el piso por los de `TEX_ESTILO` en `sala.gd`; sin `estilo` se usan los del Templo del Río. Un templo nuevo agrega ahí su par de sprites.
 - `fin_templo` (opcional): nombre del templo que termina en esta sala, por ejemplo `"Tutorial"`. Al salir se muestran sus velas, tiempo y nota (`_fin_tutorial()`), y la cuenta vuelve a cero: el tutorial no cuenta en la nota del Templo del Río.
 - `salida_fija` (opcional): `true` convierte la `E` en una puerta del muro de afuera, que solo abre al girar la cámara hasta dejarla arriba (ver las reglas de la sala). Mira `tutorial_girar.json`.
 - `solucion`: una secuencia de teclas que la resuelve (U arriba, D abajo, L izquierda, R derecha, E empujar, P usar Traspasar, F usar Reflejo, `<` y `>` girar la cámara como Q y E). Las pruebas la usan para comprobar que la sala tiene solución.

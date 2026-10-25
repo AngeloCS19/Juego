@@ -16,6 +16,7 @@ Todos son SVG de 64×64 (una casilla; en el juego se escalan a 48 px).
 | `prenda_sandalias.svg`, `prenda_cinto.svg`, `prenda_tunica.svg`, `prenda_corona.svg` | Prendas de Narciso, a todo color | plano espiritual |
 | `narciso.svg` | Narciso visto desde arriba, a color: rizos oscuros, quitón blanco con broche dorado y una cola de espíritu que se desvanece. El código le pone un aura del color de su ánimo (celeste a naranja según la fase, rojo lava en la huida) y destella en blanco al recibir un golpe; su corona son los pétalos que dibuja el código | plano espiritual (en el normal, translúcido) |
 | `pasto.svg` | Pasto, el piso de las salas al aire libre (`"exterior": true`) | plano normal |
+| `muro_tutorial.svg`, `piso_tutorial.svg` | Muro y piso del templo tutorial (`"estilo": "tutorial"`): los mismos dibujos en piedra violácea y piso gris claro | plano normal |
 | `estatua.svg` | Estatua de piedra de Narciso, con una mano en alto | plano normal (en el espiritual, su reflejo de cabeza) |
 | `flor_narciso.svg` | Flor de narciso que crece cuando Narciso descansa | al completar el altar |
 | `puente.svg` | Puente de madera (`=`) | plano normal |

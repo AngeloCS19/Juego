@@ -10,6 +10,7 @@
 	],
 	"jugador": [1, 4],
 	"plano_espiritual": { "tipo": "reflexion", "eje": "horizontal", "valor": 3 },
+	"estilo": "tutorial",
 	"habilidades": [],
 	"piedras": [
 		{ "pos": [1, 3] }

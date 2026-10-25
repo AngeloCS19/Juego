@@ -11,6 +11,7 @@ partes = ['\t"nombre": "%s"' % s["nombre"],
           '\t"mapa": [\n' + ",\n".join('\t\t"%s"' % r for r in s["mapa"]) + "\n\t]",
           '\t"jugador": [%d, %d]' % tuple(s["jugador"]),
           '\t"plano_espiritual": ' + pe]
+if "estilo" in s: partes.append('\t"estilo": "%s"' % s["estilo"])
 if s.get("salida_fija"): partes.append('\t"salida_fija": true')
 if "habilidades" in s: partes.append('\t"habilidades": ' + json.dumps(s["habilidades"]))
 if s.get("piedras"): partes.append('\t"piedras": [\n' + ",\n".join(piedra(p) for p in s["piedras"]) + "\n\t]")

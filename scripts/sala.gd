@@ -41,6 +41,9 @@ const TEX_PERSONAJES := [
 	preload("res://assets/sprites/jugador_espiritu.svg"),
 ]
 const TEX_PASTO := preload("res://assets/sprites/pasto.svg")  # el piso de las salas con "exterior": true
+const TEX_ESTILO := {  # "estilo" de la sala: cada templo cambia su muro y su piso
+	"tutorial": {"#": preload("res://assets/sprites/muro_tutorial.svg"), ".": preload("res://assets/sprites/piso_tutorial.svg")},
+}
 const TEX_PRENDA := {
 	"sandalias": preload("res://assets/sprites/prenda_sandalias.svg"),
 	"cinto": preload("res://assets/sprites/prenda_cinto.svg"),
@@ -465,11 +468,12 @@ func _draw() -> void:
 			if espiritual:
 				_dibujar_casilla_espiritual(c)
 			else:
-				var piso: Texture2D = TEX_PASTO if datos.get("exterior", false) else TEX_CASILLA["."]
+				var casillas: Dictionary = TEX_ESTILO.get(datos.get("estilo", ""), TEX_CASILLA)
+				var piso: Texture2D = TEX_PASTO if datos.get("exterior", false) else casillas["."]
 				if celda(c) == "E":
 					draw_texture_rect(piso, _rect(c), false)  # el espejo de la salida es redondo: debajo va el piso
 				var puerta: bool = celda(c) == "E" and datos.get("salida_fija", false)  # el espejo está afuera: aquí solo hay piso
-				var tex: Texture2D = piso if celda(c) == "." or puerta else TEX_CASILLA[celda(c)]
+				var tex: Texture2D = piso if celda(c) == "." or puerta else casillas.get(celda(c), TEX_CASILLA[celda(c)])
 				draw_texture_rect(tex, _rect(c), false)
 				if puerta:
 					draw_rect(_rect(c), Color(COLOR_SALIDA, 0.3) if puerta_abierta() else Color(0, 0, 0, 0.55))
