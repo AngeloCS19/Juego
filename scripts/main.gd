@@ -704,15 +704,18 @@ func _on_sala_completada() -> void:
 	if indice < SALAS.size():
 		_pasar_de_sala()
 	else:
-		# Fin del templo: cuántas velas quedaron, el tiempo y la nota. La nota sale solo de las velas:
-		# el tiempo se muestra, pero no baja la nota, para no castigar al que se detiene a pensar.
+		# Fin del templo: velas, prendas, tiempo y nota. La nota sale de las velas y las prendas
+		# (cada prenda vale como una sala perfecta: sin liberar a Narciso no hay S). El tiempo se
+		# muestra, pero no baja la nota, para no castigar al que se detiene a pensar.
 		set_process_unhandled_input(false)
 		var promedio := int(Array(tiempos).reduce(func(a, b): return a + b, 0.0) / maxi(1, tiempos.size()))
-		var texto := "Velas encendidas: %d de %d\nTiempo promedio por sala: %d:%02d\nNota: %s" % [velas_encendidas, velas_posibles, promedio / 60, promedio % 60, nota(velas_encendidas, velas_posibles)]
+		var total_prendas := Sala.TEX_PRENDA.size()
+		var puntos := velas_encendidas + 2 * prendas.size()
+		var texto := "Velas encendidas: %d de %d\nPrendas de Narciso: %d de %d\nTiempo promedio por sala: %d:%02d\nNota: %s" % [velas_encendidas, velas_posibles, prendas.size(), total_prendas, promedio / 60, promedio % 60, nota(puntos, velas_posibles + 2 * total_prendas)]
 		_abrir("Templo del Río completado", texto, [["Menú inicial", _menu_inicio]])
 
 
-## La nota del templo, tipo Cuphead: S si en todas las salas se usó Traspasar lo mínimo.
+## La nota del templo, tipo Cuphead: S si en todas las salas se usó Traspasar lo mínimo y se recogieron las prendas.
 static func nota(encendidas: int, posibles: int) -> String:
 	var f := float(encendidas) / maxi(1, posibles)
 	for corte in [[1.0, "S"], [0.8, "A"], [0.6, "B"], [0.4, "C"]]:
