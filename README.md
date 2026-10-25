@@ -116,6 +116,7 @@ La sala no aparece en el árbol porque `main.gd` la crea por código (`Sala.desd
 - **Prendas de Narciso:** cuatro salas guardan una prenda (`prenda` en el JSON). Es de un espíritu: solo existe en el plano espiritual. Son **opcionales**: la salida siempre está abierta. `main.gd` cuenta las prendas que el jugador se llevó al salir de cada sala (`prendas`), y en el altar del final solo aparecen esas.
 - **Velas (maestría opcional):** las salas que piden Traspasar tienen velas pegadas a los muros de los lados, repartidas como la iluminación de la sala (`velas` en el JSON); apagadas se ven oscuras. Cada vez que el jugador **entra** al plano espiritual se apaga una (`traspasos` en `sala.gd`); volver al plano normal y usar Reflejo no apagan nada. Reiniciar o caer **no** las vuelve a encender. Hay tantas velas como el mínimo de traspasos de la sala más 2: hacerlo perfecto es terminar con 2 encendidas. Nunca bloquean nada: solo cambian la nota del final.
 - **Fin del templo:** `main.gd` suma las velas que quedaron (como mucho 2 por sala) y el tiempo de cada sala de puzzle (`tiempo` en `sala.gd`, sin contar la pausa), y muestra velas encendidas, tiempo promedio y una nota tipo Cuphead (`nota()`): S si en todas se usó Traspasar lo mínimo, A desde 80 %, B desde 60 %, C desde 40 %, D abajo. La nota sale solo de las velas: el tiempo se muestra, pero no la baja, para no castigar al que se detiene a pensar.
+- **Salida fija** (`"salida_fija": true`): la `E` va en el muro de afuera y es una puerta. El espejo de salida no está en la sala: queda quieto arriba de la pantalla (`_espejo_fijo` en `main.gd`, que no está dentro de `Pivote` y por eso no gira). La puerta solo se abre cuando la cámara la deja frente al espejo (`puerta_abierta()` en `sala.gd`); cerrada se ve oscura y bloquea como un muro, abierta brilla. `main.gd` copia el giro de la cámara en `sala.giro`, y al entrar a una sala así la cámara vuelve a su posición original, para que la puerta empiece sin calzar. Si hay río o lava cerca de la puerta, debe quedar entre muros: con el espíritu se camina sobre el agua y no debe parecer otra salida.
 - Una sala puede tener varios ejes (`transformaciones` en `sala.gd`): cada piedra marcada aparece reflejada respecto a cada uno.
 - **Cambiar de plano** es una habilidad del jugador (`cambiar_plano()` en `sala.gd`). Si vuelves al plano normal parado sobre el vacío o el agua, caes y la sala se reinicia (señal `caida`). Encima de una piedra no se puede volver.
 - **Solo las piedras marcadas con Reflejo** aparecen reflejadas en el plano espiritual. Una piedra marcada lleva un anillo celeste en el plano normal. El sprite del jugador gira hacia donde mira: esa es la casilla que apuntan las habilidades (`mirando` en `sala.gd`).
@@ -206,7 +207,7 @@ La tabla sigue el orden del juego, que lo decide la lista `SALAS` de `main.gd` y
 | Empujar la piedra | `rio_03.json` | Mover la piedra para que su reflejo caiga donde hace falta. |
 | Lo que toca el agua | `rio_04.json` | Piedras que flotan en el agua. **Pendiente de rediseño**: perdió su lección cuando el agua se volvió cruzable en el plano espiritual. |
 | Lejos del eje | `rio_05.json` | La distancia al eje se conserva: hay que alejar la piedra del río para que su reflejo se aleje igual y caiga sobre el vacío. |
-| El río que baja | `rio_06.json` | Eje vertical: el reflejo queda a la izquierda o a la derecha, en la misma fila. |
+| El río que baja | `rio_06.json` | Eje vertical: el reflejo queda a la izquierda o a la derecha, en la misma fila. La puerta está a la derecha, con salida fija: hay que girar la cámara (lo enseña el templo tutorial). |
 | El río torcido | `rio_07.json` | Eje diagonal: reflejar intercambia la columna y la fila de la piedra, `(x, y)` → `(y, x)`. Se combina con empujar. |
 | La otra orilla | `rio_08.json` | La piedra está del otro lado del río: hay que cruzar, acomodarla allá y su reflejo vuelve a tu lado. (Boceto de Angelo.) |
 | El eje escondido | `rio_12.json` | Sala en C: el río queda en un brazo y la piedra en otro, pero su reflejo aparece del otro lado del muro. El eje sigue existiendo aunque no se vea el río. (Boceto de Angelo.) |
@@ -280,7 +281,8 @@ v  vacío     E  salida    ^  lava
 - `velas` (opcional): cuántas velas hay, el mínimo de traspasos más 2. La pone `formatear.py`; si la sala no necesita Traspasar, no lleva velas.
 - `tipo` (opcional): `"jefe"`, `"huida"` o `"altar"` para las salas de Narciso; cada una tiene sus propias claves (ver arriba). Sin `tipo` es una sala de puzzle.
 - `exterior` (opcional): `true` dibuja el piso como pasto, para las salas al aire libre.
-- `solucion`: una secuencia de teclas que la resuelve (U arriba, D abajo, L izquierda, R derecha, P usar Traspasar, F usar Reflejo). Las pruebas la usan para comprobar que la sala tiene solución.
+- `salida_fija` (opcional): `true` convierte la `E` en una puerta del muro de afuera, que solo abre al girar la cámara hasta dejarla arriba (ver las reglas de la sala). Mira `tutorial_girar.json`.
+- `solucion`: una secuencia de teclas que la resuelve (U arriba, D abajo, L izquierda, R derecha, E empujar, P usar Traspasar, F usar Reflejo, `<` y `>` girar la cámara como Q y E). Las pruebas la usan para comprobar que la sala tiene solución.
 
 Después agrega la ruta del archivo a la lista `SALAS` en `scripts/main.gd`.
 

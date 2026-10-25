@@ -6,6 +6,9 @@ extends Node2D
 ## Letras del mapa:
 ##   #  muro      .  suelo     ~  agua      =  puente
 ##   v  vacío     E  salida    ^  lava (refleja como el río, pero nunca se sobrevuela)
+##
+## Con "salida_fija": true, la E va en el muro de afuera: es una puerta, y el espejo queda fijo
+## arriba de la pantalla (lo dibuja main.gd). La puerta solo abre si la cámara la deja frente al espejo.
 
 signal completada
 signal plano_cambiado(espiritual: bool)
@@ -67,6 +70,8 @@ var tamano: Vector2i
 var transformaciones: Array[Transformacion] = []  # una por eje: el río y, si hay, la lava
 var jugador: Vector2i
 var piedras: Array[Dictionary] = []  # cada una: {"pos": Vector2i, "fija": bool, "flota": bool, "marcada": bool, "variante": int}
+var salida: Vector2i  # dónde está la E del mapa
+var giro := 0  # cuartos de vuelta de la cámara; main.gd lo copia aquí para saber si la puerta calza
 var mirando := Vector2i.UP  # hacia dónde mira el jugador (la casilla que apuntan las habilidades)
 var espiritual := false
 var tutorial_piedra := Vector2i(-1, -1)  # piedra que brilla para indicar dónde usar Reflejo (tutorial); (-1, -1): ninguna
@@ -121,6 +126,9 @@ func cargar(ruta: String) -> void:
 func _preparar() -> void:
 	mapa = datos["mapa"]
 	tamano = Vector2i(mapa[0].length(), mapa.size())
+	for y in tamano.y:
+		if "E" in mapa[y]:
+			salida = Vector2i(mapa[y].find("E"), y)
 	# "plano_espiritual" es una transformación o una lista de ellas (una por eje).
 	var plano = datos["plano_espiritual"]
 	transformaciones.clear()
@@ -374,13 +382,21 @@ func imagen_en(c: Vector2i) -> bool:
 	return false
 
 
+## ¿La puerta de una sala con "salida_fija" mira hacia arriba en la pantalla? Las demás salas siempre abren.
+func puerta_abierta() -> bool:
+	if not datos.get("salida_fija", false):
+		return true
+	var afuera := Vector2i.UP if salida.y == 0 else Vector2i.DOWN if salida.y == tamano.y - 1 else Vector2i.LEFT if salida.x == 0 else Vector2i.RIGHT
+	return Vector2i(Vector2(afuera).rotated(giro * PI / 2).round()) == Vector2i.UP
+
+
 func transitable(c: Vector2i) -> bool:
 	return _transitable_en_plano(c, espiritual)
 
 
 func _transitable_en_plano(c: Vector2i, en_espiritual: bool) -> bool:
 	var t := celda(c)
-	if t == "#":
+	if t == "#" or (t == "E" and not puerta_abierta()):
 		return false
 	if en_espiritual:
 		# Se atraviesan objetos y agua; el vacío solo se cruza sobre un reflejo.
@@ -452,8 +468,11 @@ func _draw() -> void:
 				var piso: Texture2D = TEX_PASTO if datos.get("exterior", false) else TEX_CASILLA["."]
 				if celda(c) == "E":
 					draw_texture_rect(piso, _rect(c), false)  # el espejo de la salida es redondo: debajo va el piso
-				var tex: Texture2D = piso if celda(c) == "." else TEX_CASILLA[celda(c)]
+				var puerta: bool = celda(c) == "E" and datos.get("salida_fija", false)  # el espejo está afuera: aquí solo hay piso
+				var tex: Texture2D = piso if celda(c) == "." or puerta else TEX_CASILLA[celda(c)]
 				draw_texture_rect(tex, _rect(c), false)
+				if puerta:
+					draw_rect(_rect(c), Color(COLOR_SALIDA, 0.3) if puerta_abierta() else Color(0, 0, 0, 0.55))
 				if celda(c) == "~":
 					_animar_agua(c)
 				elif celda(c) == "^":

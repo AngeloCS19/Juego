@@ -1,0 +1,17 @@
+{
+	"nombre": "La puerta que gira",
+	"mapa": [
+		"#######",
+		"#.....#",
+		"#.....#",
+		"#.....E",
+		"#.....#",
+		"#.....#",
+		"#######"
+	],
+	"jugador": [1, 3],
+	"plano_espiritual": { "tipo": "reflexion", "eje": "horizontal", "valor": 3 },
+	"salida_fija": true,
+	"habilidades": [],
+	"solucion": "RRRR<R"
+}
