@@ -102,7 +102,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	pivote.process_mode = Node.PROCESS_MODE_PAUSABLE
 	add_child(musica)
-	_espejo_fijo.texture = Sala.TEX_CASILLA["E"]
+	_espejo_fijo.texture = Sala.TEX_CASILLA["S"]
 	_espejo_fijo.scale = Vector2.ONE * Sala.TAM / _espejo_fijo.texture.get_width()
 	add_child(_espejo_fijo)  # fuera de Pivote: no gira con la sala
 	var lista: Array[Habilidad] = [Traspasar.new(), Reflejo.new()]
@@ -441,7 +441,7 @@ func _actualizar_espejo() -> void:
 	sala.giro = giro
 	sala.queue_redraw()
 	_espejo_fijo.visible = sala.datos.get("salida_fija", false)
-	_espejo_fijo.texture = Sala.TEX_ESTILO.get(sala.datos.get("estilo", ""), Sala.TEX_CASILLA).get("E", Sala.TEX_CASILLA["E"])
+	_espejo_fijo.texture = Sala.TEX_ESTILO.get(sala.datos.get("estilo", ""), Sala.TEX_CASILLA).get("S", Sala.TEX_CASILLA["S"])
 	_espejo_fijo.modulate = Color.WHITE if sala.puerta_abierta() else Color(0.45, 0.45, 0.55)
 
 

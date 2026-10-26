@@ -10,7 +10,7 @@
 		"#...~..v......#",
 		"#...~..v......#",
 		"#.v.~..vvvvvvv#",
-		"#...~..v.E....#",
+		"#...~..v.S....#",
 		"###############"
 	],
 	"jugador": [1, 1],
@@ -24,5 +24,5 @@
 	],
 	"prenda": { "nombre": "corona", "pos": [2, 8] },
 	"velas": 5,
-	"solucion": "DDRUFDPDDDDUUUUUURPLERPRRRRRDDRRRRPUEFDPDDDDDLLL"
+	"solucion": "SSDWRSTSSSSWWWWWWDTAPDTDDDDDSSDDDDTWPRSTSSSSSAAA"
 }

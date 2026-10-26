@@ -2,7 +2,7 @@ extends SceneTree
 # Juega al jefe con la lógica real (por turnos, como las pruebas) y escribe la secuencia de teclas que lo vence.
 # Uso: godot --headless --script res://tools/gen_jefe.gd -- res://salas/rio_jefe.json  → copiar SOLUCION= a "solucion".
 # Si se cambia el jefe (mapa, ritmo, romper piedras), hay que regenerarla.
-const DIRS := {"U": Vector2i.UP, "D": Vector2i.DOWN, "L": Vector2i.LEFT, "R": Vector2i.RIGHT}
+const DIRS := {"W": Vector2i.UP, "S": Vector2i.DOWN, "A": Vector2i.LEFT, "D": Vector2i.RIGHT}
 var sala: SalaJefe
 var barra: BarraHabilidades
 var letras := ""
@@ -26,11 +26,11 @@ func _init() -> void:
 func act(l: String) -> void:
 	letras += l
 	match l:
-		"P":
+		"T":
 			if barra.elegir(0, sala): barra.usar(sala)
-		"F":
+		"R":
 			if barra.elegir(1, sala): barra.usar(sala)
-		"E":
+		"P":
 			sala.empujar_enfrente()
 		_:
 			sala.mover(DIRS[l])
@@ -65,7 +65,7 @@ func plan(piedra: Vector2i, metas: Array) -> String:
 				if not libre(e[1] + d, piedra) or e[1] + d == e[0]:
 					continue
 				n = [j, e[1] + d]
-				paso = l + "E"
+				paso = l + "P"
 			elif libre(j, piedra):
 				n = [j, e[1]]
 			else:
@@ -91,7 +91,7 @@ func _un_golpe() -> void:
 			mejor = pl
 			elegida = p["pos"]
 	if mejor == "X":
-		act("D")  # esperar a que caigan más piedras
+		act("S")  # esperar a que caigan más piedras
 		return
 	var fase := sala.fase
 	for l in mejor:
@@ -99,7 +99,7 @@ func _un_golpe() -> void:
 		if fin or sala.fase != fase: return
 	# donde quedó la piedra (si no hubo pushes, acercarse y mirarla)
 	var destino := elegida
-	var ult := mejor.rfind("E")
+	var ult := mejor.rfind("P")
 	if ult >= 0:
 		destino = sala.jugador + sala.mirando
 	else:
@@ -110,7 +110,7 @@ func _un_golpe() -> void:
 		return
 	var imagen := t.aplicar(destino)
 	if not sala.piedras[sala.piedra_en(destino)]["marcada"]:
-		act("F")
+		act("R")
 	var dir_piedra := ""
 	for l: String in DIRS:
 		if sala.jugador + DIRS[l] == destino: dir_piedra = l
@@ -119,9 +119,9 @@ func _un_golpe() -> void:
 		act(dir_piedra)
 		esperas += 1
 		if sala.piedra_en(destino) < 0 or sala.fase != fase: return
-	act("P")
+	act("T")
 	if not fin and sala.fase == fase and sala.espiritual:
-		act("P")
+		act("T")
 
 # Llevar al jugador junto a la piedra, mirándola.
 func plan_jugador(piedra: Vector2i) -> String:

@@ -2,7 +2,7 @@
 	"nombre": "Volver a empezar",
 	"mapa": [
 		"#######",
-		"###E###",
+		"###S###",
 		"###.###",
 		"#.....#",
 		"#.....#",
@@ -18,5 +18,5 @@
 	],
 	"tutorial": { "glifo": "reiniciar", "atasco": [[3, 2]] },
 	"ocultar": ["girar", "usar"],
-	"solucion": "ULUREUU"
+	"solucion": "WAWDPWW"
 }

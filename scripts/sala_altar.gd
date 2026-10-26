@@ -10,7 +10,7 @@ extends Sala
 ##   piedras con "prenda": las prendas, que se empujan como piedras
 ##   "reflejo_vestido": {"prenda": casilla} donde el reflejo vestido muestra cada prenda
 ## Las prendas son opcionales: main.gd llama a usar_prendas() con las que el jugador recogió,
-## y la salida ("E") lleva al siguiente templo aunque el altar quede sin completar.
+## y la salida ("S") lleva al siguiente templo aunque el altar quede sin completar.
 ## Narciso descansa cuando las cuatro prendas están marcadas, el jugador Traspasa y sus reflejos llegan a su casilla.
 
 const TEX_ESTATUA := preload("res://assets/sprites/estatua.svg")

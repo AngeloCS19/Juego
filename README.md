@@ -116,7 +116,7 @@ La sala no aparece en el árbol porque `main.gd` la crea por código (`Sala.desd
 - **Prendas de Narciso:** cuatro salas guardan una prenda (`prenda` en el JSON). Es de un espíritu: solo existe en el plano espiritual. Son **opcionales**: la salida siempre está abierta. `main.gd` cuenta las prendas que el jugador se llevó al salir de cada sala (`prendas`), y en el altar del final solo aparecen esas.
 - **Velas (maestría opcional):** las salas que piden Traspasar tienen velas pegadas a los muros de los lados, repartidas como la iluminación de la sala (`velas` en el JSON); apagadas se ven oscuras. Cada vez que el jugador **entra** al plano espiritual se apaga una (`traspasos` en `sala.gd`); volver al plano normal y usar Reflejo no apagan nada. Reiniciar o caer **no** las vuelve a encender. Hay tantas velas como el mínimo de traspasos de la sala más 2: hacerlo perfecto es terminar con 2 encendidas. Nunca bloquean nada: solo cambian la nota del final.
 - **Fin del templo:** `main.gd` suma las velas que quedaron (como mucho 2 por sala) y el tiempo de cada sala de puzzle (`tiempo` en `sala.gd`, sin contar la pausa), y muestra velas encendidas, prendas de Narciso, tiempo promedio y una nota tipo Cuphead (`nota()`): S si en todas se usó Traspasar lo mínimo y se recogieron las cuatro prendas, A desde 80 %, B desde 60 %, C desde 40 %, D abajo. Cada prenda vale como una sala perfecta (2 velas): liberar a Narciso suma más que ahorrar un traspaso. La nota sale de las velas y las prendas: el tiempo se muestra, pero no la baja, para no castigar al que se detiene a pensar.
-- **Salida fija** (`"salida_fija": true`): la `E` va en el muro de afuera y es una puerta. El espejo de salida no está en la sala: queda quieto arriba de la pantalla (`_espejo_fijo` en `main.gd`, que no está dentro de `Pivote` y por eso no gira). La puerta solo se abre cuando la cámara la deja frente al espejo (`puerta_abierta()` en `sala.gd`); cerrada se ve oscura y bloquea como un muro, abierta brilla. `main.gd` copia el giro de la cámara en `sala.giro`, y al entrar a una sala así la cámara vuelve a su posición original, para que la puerta empiece sin calzar. Si hay río o lava cerca de la puerta, debe quedar entre muros: con el espíritu se camina sobre el agua y no debe parecer otra salida.
+- **Salida fija** (`"salida_fija": true`): la `S` va en el muro de afuera y es una puerta. El espejo de salida no está en la sala: queda quieto arriba de la pantalla (`_espejo_fijo` en `main.gd`, que no está dentro de `Pivote` y por eso no gira). La puerta solo se abre cuando la cámara la deja frente al espejo (`puerta_abierta()` en `sala.gd`); cerrada se ve oscura y bloquea como un muro, abierta brilla. `main.gd` copia el giro de la cámara en `sala.giro`, y al entrar a una sala así la cámara vuelve a su posición original, para que la puerta empiece sin calzar. Si hay río o lava cerca de la puerta, debe quedar entre muros: con el espíritu se camina sobre el agua y no debe parecer otra salida.
 - Una sala puede tener varios ejes (`transformaciones` en `sala.gd`): cada piedra marcada aparece reflejada respecto a cada uno.
 - **Cambiar de plano** es una habilidad del jugador (`cambiar_plano()` en `sala.gd`). Si vuelves al plano normal parado sobre el vacío o el agua, caes y la sala se reinicia (señal `caida`). Encima de una piedra no se puede volver.
 - **Solo las piedras marcadas con Reflejo** aparecen reflejadas en el plano espiritual. Una piedra marcada lleva un anillo celeste en el plano normal. El sprite del jugador gira hacia donde mira: esa es la casilla que apuntan las habilidades (`mirando` en `sala.gd`).
@@ -235,7 +235,7 @@ El Templo del Río está completo, de "Cruzar el río" al altar. Siguiente paso:
 ### Cómo se diseña una sala
 
 1. Angelo suele mandar un boceto de pizarra (S salida, I inicio, negro vacío, azul río, rojo lava, círculo verde piedra).
-2. Se pasa a JSON y se resuelve con `python3 tools/solver.py sala.json`. Con letras prohibidas (`... sala.json F`) se comprueba que sin esa acción **no** haya solución: si la hay, la sala tiene un atajo y no enseña su idea.
+2. Se pasa a JSON y se resuelve con `python3 tools/solver.py sala.json`. Con letras prohibidas (`... sala.json R`) se comprueba que sin esa acción **no** haya solución: si la hay, la sala tiene un atajo y no enseña su idea.
 3. `python3 tools/formatear.py boceto.json salas/rio_nn.json` la escribe con su `solucion` y sus `velas` (`solver.py sala.json --velas` busca el menor número de traspasos), y se agrega a `SALAS`.
 4. Reglas de forma: la lava separada del agua y del vacío por muros; cada eje con al menos dos casillas de río o lava, para que se lea como una recta.
 
@@ -268,7 +268,7 @@ Después de la huida el jugador sale del templo (`"exterior": true` dibuja el pi
 - Las prendas son piedras con `"prenda"`: se empujan como piedras, pero no al agua. La estatua (`estatua`) es una piedra fija.
 - Solo aparecen las prendas que el jugador recogió (`usar_prendas()`, que llama `main.gd`). El reflejo vestido siempre muestra las cuatro, para que se note cuáles faltan.
 - Cuando las cuatro prendas están **marcadas** con Reflejo, el jugador usa **Traspasar** y sus reflejos terminan de viajar y calzan con las sombras, el alma de Narciso descansa y crece un narciso donde estaba la estatua (señal `descanso`). Marcarlas no basta: hay que mirar el reflejo.
-- La salida está detrás de un charco de agua suelto (no es parte del eje del estanque): hay que Traspasar para llegar, así el jugador ve las sombras de las prendas. Se llega a `E` sin volver al plano normal, así que no hay caída. Las prendas son opcionales: se sale aunque el altar quede incompleto.
+- La salida está detrás de un charco de agua suelto (no es parte del eje del estanque): hay que Traspasar para llegar, así el jugador ve las sombras de las prendas. Se llega a `S` sin volver al plano normal, así que no hay caída. Las prendas son opcionales: se sale aunque el altar quede incompleto.
 
 ## Crear una sala nueva sin programar
 
@@ -276,7 +276,7 @@ Copia `salas/rio_01.json`, cámbiale el nombre y edítala:
 
 ```
 #  muro      .  suelo     ~  agua      =  puente
-v  vacío     E  salida    ^  lava
+v  vacío     S  salida    ^  lava
 ```
 
 - `jugador`: casilla inicial `[x, y]` (empezando en 0, desde la esquina de arriba a la izquierda).
@@ -289,8 +289,8 @@ v  vacío     E  salida    ^  lava
 - `exterior` (opcional): `true` dibuja el piso como pasto, para las salas al aire libre.
 - `estilo` (opcional): la estética del templo, por ejemplo `"tutorial"`. Cambia el muro, el piso y la salida por los de `TEX_ESTILO`; con `"tutorial"` también el sonido de salida (`puerta.ogg`) y la cortina entre salas (una puerta doble café que se cierra de golpe en el centro, `Cortina.puerta`; el golpe de `puerta.ogg` cae justo cuando chocan las hojas) en `sala.gd`; sin `estilo` se usan los del Templo del Río. Un templo nuevo agrega ahí su par de sprites.
 - `fin_templo` (opcional): nombre del templo que termina en esta sala, por ejemplo `"Tutorial"`. Al salir se muestran sus velas, tiempo y nota (`_fin_tutorial()`), y la cuenta vuelve a cero: el tutorial no cuenta en la nota del Templo del Río.
-- `salida_fija` (opcional): `true` convierte la `E` en una puerta del muro de afuera, que solo abre al girar la cámara hasta dejarla arriba (ver las reglas de la sala). Mira `tutorial_girar.json`.
-- `solucion`: una secuencia de teclas que la resuelve (U arriba, D abajo, L izquierda, R derecha, E empujar, P usar Traspasar, F usar Reflejo, `<` y `>` girar la cámara como Q y E). Las pruebas la usan para comprobar que la sala tiene solución.
+- `salida_fija` (opcional): `true` convierte la `S` en una puerta del muro de afuera, que solo abre al girar la cámara hasta dejarla arriba (ver las reglas de la sala). Mira `tutorial_girar.json`.
+- `solucion`: una secuencia de teclas que la resuelve: W arriba, S abajo, A izquierda, D derecha, P empujar, T usar Traspasar, R usar Reflejo, Q y E girar la cámara (antihorario y horario). Las pruebas la usan para comprobar que la sala tiene solución. Ojo: en el mapa la `S` es la salida; en la `solucion` es abajo.
 
 Después agrega la ruta del archivo a la lista `SALAS` en `scripts/main.gd`.
 

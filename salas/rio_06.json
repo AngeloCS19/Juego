@@ -3,7 +3,7 @@
 	"mapa": [
 		"####~######",
 		"#...~vv...#",
-		"#...~vv...E",
+		"#...~vv...S",
 		"#...~vv...#",
 		"#...~vv...#",
 		"#...~vv...#",
@@ -17,5 +17,5 @@
 		{ "pos": [2, 4], "fija": true }
 	],
 	"velas": 3,
-	"solucion": "RDFRDFPDRRRRUURR<R"
+	"solucion": "DSRDSRTSDDDDWWDDQD"
 }

@@ -3,7 +3,7 @@
 	"mapa": [
 		"#######",
 		"#.#####",
-		"#....E#",
+		"#....S#",
 		"#.#####",
 		"#.#####",
 		"#######"
@@ -17,5 +17,5 @@
 	],
 	"tutorial": { "glifo": "empujar" },
 	"ocultar": ["girar", "reiniciar", "usar"],
-	"solucion": "EERRRR"
+	"solucion": "PPDDDD"
 }

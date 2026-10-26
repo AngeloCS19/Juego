@@ -2,7 +2,7 @@
 	"nombre": "El reflejo no es piedra",
 	"mapa": [
 		"###########",
-		"######^..E#",
+		"######^..S#",
 		"#.....^...#",
 		"#vvvvv#####",
 		"#~~~~~~~~~#",
@@ -19,5 +19,5 @@
 		{ "pos": [4, 5] }
 	],
 	"velas": 3,
-	"solucion": "LEEFPULUUPREEERRURR"
+	"solucion": "APPRTWAWWTDPPPDDWDD"
 }

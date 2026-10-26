@@ -2,7 +2,7 @@
 	"nombre": "Cruzar el río",
 	"mapa": [
 		"#######",
-		"#..E..#",
+		"#..S..#",
 		"#.....#",
 		"~~~~~~~",
 		"#.....#",
@@ -16,5 +16,5 @@
 	"tutorial": { "habilidad": "traspasar", "aviso_usar": true },
 	"velas": 3,
 	"fin_templo": "Tutorial",
-	"solucion": "PUUUU"
+	"solucion": "TWWWW"
 }

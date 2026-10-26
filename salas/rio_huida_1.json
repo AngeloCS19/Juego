@@ -4,7 +4,7 @@
 	"mapa": [
 		"###########",
 		"#....~....#",
-		"#....~...E#",
+		"#....~...S#",
 		"#....~....#",
 		"###########"
 	],
@@ -17,5 +17,5 @@
 		{"quien": "narciso", "animo": "furioso", "texto": "¡Mi corona! ¡Sin ella este templo no se sostiene!"},
 		{"quien": "narciso", "animo": "furioso", "texto": "Si yo me hundo, te hundes conmigo."}
 	],
-	"solucion": "RRRPRRPRRR"
+	"solucion": "DDDTDDTDDD"
 }

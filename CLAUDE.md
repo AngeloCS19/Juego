@@ -34,6 +34,6 @@ Juego de puzzles cenital (tipo Zelda/Portal) para secundaria en Costa Rica (MEP,
 - Claude puede fusionar sus propios PRs (squash) tras probar. Angelo luego hace Pull en GitHub Desktop.
 - Pruebas con Godot 4.5: `godot --headless --import` (en una copia nueva) y luego `godot --headless --script res://tests/test_reflexion.gd`, que debe dar `Fallos: 0`.
 - No subas los `assets/sprites/*.svg.import`: Godot los regenera.
-- Para diseñar salas usa `tools/solver.py` (BFS con las reglas de `sala.gd`): la solución sale de ahí, y con letras prohibidas comprueba que la sala exija su idea (por ejemplo, que sin `F` no se resuelva). `tools/formatear.py` escribe el JSON con su `solucion`. Si cambias reglas en `sala.gd`, cámbialas también en el solver.
+- Para diseñar salas usa `tools/solver.py` (BFS con las reglas de `sala.gd`): la solución sale de ahí, y con letras prohibidas comprueba que la sala exija su idea (por ejemplo, que sin `R` (Reflejo) no se resuelva). `tools/formatear.py` escribe el JSON con su `solucion`. Si cambias reglas en `sala.gd`, cámbialas también en el solver.
 - Si cambias el jefe, regenera su `solucion` con `tools/gen_jefe.gd` (lo juega con el código real).
-- Angelo dibuja bocetos en pizarra: S salida, I inicio, negro vacío, azul río, rojo lava, círculo verde piedra.
+- Angelo dibuja bocetos en pizarra: S salida, I inicio, negro vacío, azul río, rojo lava, círculo verde piedra. En el JSON, la salida es `S` y la `solucion` usa W A S D, P empujar, T Traspasar, R Reflejo, Q y E girar.

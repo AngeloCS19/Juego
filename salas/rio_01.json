@@ -2,7 +2,7 @@
 	"nombre": "El paso celeste",
 	"mapa": [
 		"#######",
-		"#..E..#",
+		"#..S..#",
 		"#vvvvv#",
 		"~~~~~~~",
 		"#.....#",
@@ -16,5 +16,5 @@
 	],
 	"tutorial": { "habilidad": "reflejo", "piedra": [3, 4] },
 	"velas": 3,
-	"solucion": "RRUFPUUUU"
+	"solucion": "DDWRTWWWW"
 }
