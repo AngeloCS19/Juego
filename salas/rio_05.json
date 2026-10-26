@@ -2,7 +2,7 @@
 	"nombre": "Lejos del eje",
 	"mapa": [
 		"#########",
-		"##.#E...#",
+		"##.#S...#",
 		"#vvvvvvv#",
 		"#.......#",
 		"#.......#",
@@ -19,5 +19,5 @@
 	],
 	"prenda": { "nombre": "sandalias", "pos": [2, 1] },
 	"velas": 4,
-	"solucion": "RRRULEEULDEFUPUUUUUDDDDDDDLPREEUURPUUUUU"
+	"solucion": "DDDWAPPWASPRWTWWWWWSSSSSSSATDPPWWDTWWWWW"
 }

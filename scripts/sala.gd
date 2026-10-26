@@ -24,7 +24,7 @@ const TEX_CASILLA := {
 	"~": preload("res://assets/sprites/agua.svg"),
 	"=": preload("res://assets/sprites/puente.svg"),
 	"v": preload("res://assets/sprites/vacio.svg"),
-	"E": preload("res://assets/sprites/salida.svg"),
+	"S": preload("res://assets/sprites/salida.svg"),
 	"^": preload("res://assets/sprites/lava.svg"),
 }
 ## Rocas que se mueven: irregulares, con variantes para que no todas se vean iguales.
@@ -45,7 +45,7 @@ const TEX_ESTILO := {  # "estilo" de la sala: cada templo cambia su muro y su pi
 	"tutorial": {  # el espejo es de Narciso: fuera de su templo se sale por una puerta de madera
 		"#": preload("res://assets/sprites/muro_tutorial.svg"),
 		".": preload("res://assets/sprites/piso_tutorial.svg"),
-		"E": preload("res://assets/sprites/puerta_madera.svg"),
+		"S": preload("res://assets/sprites/puerta_madera.svg"),
 	},
 }
 const TEX_PRENDA := {
@@ -134,8 +134,8 @@ func _preparar() -> void:
 	mapa = datos["mapa"]
 	tamano = Vector2i(mapa[0].length(), mapa.size())
 	for y in tamano.y:
-		if "E" in mapa[y]:
-			salida = Vector2i(mapa[y].find("E"), y)
+		if "S" in mapa[y]:
+			salida = Vector2i(mapa[y].find("S"), y)
 	# "plano_espiritual" es una transformación o una lista de ellas (una por eje).
 	var plano = datos["plano_espiritual"]
 	transformaciones.clear()
@@ -236,7 +236,7 @@ func _avanzar(dir: Vector2i, paso := true) -> void:
 		_prenda_nombre = datos["prenda"]["nombre"]
 		_prenda_t = 0.0
 		Sonido.tocar("prenda")
-	if celda(jugador) == "E":
+	if celda(jugador) == "S":
 		_salida_t = 0.0  # main.gd espera DURACION_SALIDA para pasar de sala
 		if datos.get("estilo", "") != "tutorial":  # en el tutorial suena la puerta al cerrarse la cortina
 			Sonido.tocar("salida")
@@ -404,16 +404,16 @@ func transitable(c: Vector2i) -> bool:
 
 func _transitable_en_plano(c: Vector2i, en_espiritual: bool) -> bool:
 	var t := celda(c)
-	if t == "#" or (t == "E" and not puerta_abierta()):
+	if t == "#" or (t == "S" and not puerta_abierta()):
 		return false
 	if en_espiritual:
 		# Se atraviesan objetos y agua; el vacío solo se cruza sobre un reflejo.
 		# La lava nunca: solo se cruza en el plano normal, sobre una piedra hundida en ella.
-		return t != "^" and (imagen_en(c) or t in [".", "=", "E", "~"])
+		return t != "^" and (imagen_en(c) or t in [".", "=", "S", "~"])
 	var i := piedra_en(c)
 	if i >= 0:
 		return piedras[i]["flota"]
-	return t in [".", "=", "E"]
+	return t in [".", "=", "S"]
 
 
 func _empujar(i: int, dir: Vector2i) -> bool:
@@ -475,9 +475,9 @@ func _draw() -> void:
 			else:
 				var casillas: Dictionary = TEX_ESTILO.get(datos.get("estilo", ""), TEX_CASILLA)
 				var piso: Texture2D = TEX_PASTO if datos.get("exterior", false) else casillas["."]
-				if celda(c) == "E":
+				if celda(c) == "S":
 					draw_texture_rect(piso, _rect(c), false)  # el espejo de la salida es redondo: debajo va el piso
-				var puerta: bool = celda(c) == "E" and datos.get("salida_fija", false)  # el espejo está afuera: aquí solo hay piso
+				var puerta: bool = celda(c) == "S" and datos.get("salida_fija", false)  # el espejo está afuera: aquí solo hay piso
 				var tex: Texture2D = piso if celda(c) == "." or puerta else casillas.get(celda(c), TEX_CASILLA[celda(c)])
 				draw_texture_rect(tex, _rect(c), false)
 				if puerta:
@@ -663,7 +663,7 @@ func _dibujar_casilla_espiritual(c: Vector2i) -> void:
 			draw_rect(r, Color(CELESTE, 0.12))
 		"^":
 			draw_rect(r, Color(COLOR_LAVA, 0.25))
-		"E":
+		"S":
 			draw_arc(_centro(c), TAM * 0.32, 0.0, TAU, 32, Color(COLOR_SALIDA, 0.6), 2.0)
 	if celda(c) != "v":
 		draw_rect(r, Color(CELESTE, 0.25), false, 1.0)

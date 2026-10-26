@@ -3,7 +3,7 @@
 	"mapa": [
 		"#############",
 		"#..v....v...#",
-		"#.......v.E.#",
+		"#.......v.S.#",
 		"#.......v...#",
 		"#....########",
 		"~~~~~########",
@@ -20,5 +20,5 @@
 	],
 	"prenda": { "nombre": "tunica", "pos": [3, 1] },
 	"velas": 4,
-	"solucion": "ULLLLLLLLDELDREFUUURPUUUUUDDDDDDDDLPREEEEEUULLLUPUUUUURRRRRDR"
+	"solucion": "WAAAAAAAASPASDPRWWWDTWWWWWSSSSSSSSATDPPPPPWWAAAWTWWWWWDDDDDSD"
 }

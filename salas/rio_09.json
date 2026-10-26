@@ -2,7 +2,7 @@
 	"nombre": "El rincón",
 	"mapa": [
 		"###########",
-		"#...vE#####",
+		"#...vS#####",
 		"#...vv#####",
 		"#.....#####",
 		"#....~#####",
@@ -19,5 +19,5 @@
 		{ "pos": [5, 8] }
 	],
 	"velas": 3,
-	"solucion": "DDLLLLUREEEEDRUEEFLULLPULUULLUURR"
+	"solucion": "SSAAAAWDPPPPSDWPPRAWAATWAWWAAWWDD"
 }

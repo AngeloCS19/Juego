@@ -2,7 +2,7 @@
 	"nombre": "El río torcido",
 	"mapa": [
 		"###########",
-		"#~~.vv...E#",
+		"#~~.vv...S#",
 		"#~~~.vv...#",
 		"#.~~~.vv..#",
 		"#..~~~.vv.#",
@@ -20,5 +20,5 @@
 		{ "pos": [2, 5] }
 	],
 	"velas": 3,
-	"solucion": "UUURRULEFULFPUUURRRRRRR"
+	"solucion": "WWWDDWAPRWARTWWWDDDDDDD"
 }

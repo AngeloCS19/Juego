@@ -40,7 +40,7 @@ func _init() -> void:
 				_igual(_jugar(ruta, r.sala.datos["solucion"]).sala.velas_encendidas(), 2, "%s: velas tras su solución" % ruta)
 
 	# Velas: entrar al plano espiritual apaga una; volver no, y reiniciar no las vuelve a encender.
-	var velas := _jugar("rio_00.json", "UPP")
+	var velas := _jugar("rio_00.json", "WTT")
 	_igual(velas.sala.velas_encendidas(), 2, "volver al plano normal no apaga vela")
 	velas.sala.reiniciar()
 	_igual(velas.sala.velas_encendidas(), 2, "reiniciar no enciende las velas")
@@ -48,25 +48,25 @@ func _init() -> void:
 	_igual([main.nota(30, 30), main.nota(24, 30), main.nota(18, 30), main.nota(12, 30), main.nota(0, 30)], ["S", "A", "B", "C", "D"], "nota del templo")
 
 	# Templo tutorial: sin empujar no se pasa, y empujar la piedra recto la atasca frente a la puerta (hay que reiniciar).
-	_igual(_jugar("tutorial_empujar.json", "UUURRRR").completada, false, "sin empujar no se pasa")
-	_igual(_jugar("tutorial_reiniciar.json", "UEUUU").completada, false, "empujar recto atasca la piedra")
+	_igual(_jugar("tutorial_empujar.json", "WWWDDDD").completada, false, "sin empujar no se pasa")
+	_igual(_jugar("tutorial_reiniciar.json", "WPWWW").completada, false, "empujar recto atasca la piedra")
 	# Sin marcar la piedra con Reflejo no aparece su reflejo y no se cruza el vacío.
-	_igual(_jugar("rio_01.json", "RRUPUUUU").completada, false, "sin Reflejo no se cruza el vacío")
+	_igual(_jugar("rio_01.json", "DDWTWWWW").completada, false, "sin Reflejo no se cruza el vacío")
 	# Si no se aleja la piedra del eje, su reflejo cae en el piso y no sobre el vacío.
-	_igual(_jugar("rio_05.json", "UURRDFPUUUUU").completada, false, "sin alejar la piedra no se cruza el vacío")
+	_igual(_jugar("rio_05.json", "WWDDSRTWWWWW").completada, false, "sin alejar la piedra no se cruza el vacío")
 	# Con dos ríos, una piedra marcada se refleja en los dos ejes.
-	var dos := _jugar("rio_10.json", "RRDLEF")
+	var dos := _jugar("rio_10.json", "DDSAPR")
 	_igual(dos.sala.imagen_en(Vector2i(7, 2)), true, "reflejo respecto al río vertical")
 	_igual(dos.sala.imagen_en(Vector2i(1, 8)), true, "reflejo respecto al río horizontal")
 	# La lava no se sobrevuela en el plano espiritual; se cruza sobre una piedra hundida.
-	_igual(_jugar("rio_11.json", "PRRRR").sala.jugador, Vector2i(4, 1), "la lava bloquea en el plano espiritual")
-	_igual(_jugar("rio_11.json", "DDDREEE").sala.piedras[0]["flota"], true, "una piedra empujada a la lava flota")
+	_igual(_jugar("rio_11.json", "TDDDD").sala.jugador, Vector2i(4, 1), "la lava bloquea en el plano espiritual")
+	_igual(_jugar("rio_11.json", "SSSDPPP").sala.piedras[0]["flota"], true, "una piedra empujada a la lava flota")
 	# La prenda es opcional: la salida se abre sin ella. Solo se toma en el plano espiritual.
-	_igual(_jugar("rio_05.json", "UURRDEFUPUUUUU").completada, true, "sin la prenda también se sale")
+	_igual(_jugar("rio_05.json", "WWDDSPRWTWWWWW").completada, true, "sin la prenda también se sale")
 	# Salida fija: la puerta del muro solo abre cuando la cámara la deja frente al espejo.
-	_igual(_jugar("tutorial_girar.json", "RRRRR").completada, false, "sin girar la cámara la puerta no abre")
-	_igual(_jugar("tutorial_girar.json", ">>>RRRRR").completada, true, "tres giros a la derecha también la alinean")
-	var con_prenda := _jugar("rio_05.json", "RRRULEEULDEFUPUUUUU")
+	_igual(_jugar("tutorial_girar.json", "DDDDD").completada, false, "sin girar la cámara la puerta no abre")
+	_igual(_jugar("tutorial_girar.json", "EEEDDDDD").completada, true, "tres giros a la derecha también la alinean")
+	var con_prenda := _jugar("rio_05.json", "DDDWAPPWASPRWTWWWWW")
 	_igual(con_prenda.sala.prenda_tomada, true, "la prenda se recoge en el plano espiritual")
 	# Jefe: una piedra que cae encima quita un corazón, y solo hay dos piedras marcadas a la vez.
 	var jefe: SalaJefe = Sala.desde_archivo("res://salas/rio_jefe.json")
@@ -83,7 +83,7 @@ func _init() -> void:
 	_igual(jefe.piedras[jefe.piedra_en(Vector2i(6, 6))]["marcada"] and jefe.piedras[jefe.piedra_en(Vector2i(8, 6))]["marcada"], true, "al marcar una tercera se desmarca la más vieja")
 	creados.append(jefe)
 	# Huida: Narciso deja lava donde pasa, y si alcanza al jugador el tramo vuelve a empezar.
-	var huida := _jugar("rio_huida_1.json", "RRRPPPP")  # tres pasos y cuatro cambios de plano sin moverse
+	var huida := _jugar("rio_huida_1.json", "DDDTTTT")  # tres pasos y cuatro cambios de plano sin moverse
 	_igual(huida.sala.celda(Vector2i(1, 2)), "^", "Narciso deja lava a su paso")
 	var alcanzado := [false]
 	huida.sala.derrota.connect(func(): alcanzado[0] = true)
@@ -101,32 +101,32 @@ func _init() -> void:
 	_igual(chocado[0], true, "caminar hacia Narciso en tiempo real es perder")
 	creados.append(choque)
 	# Altar: con una prenda sin marcar el reflejo no está completo; las prendas no van al estanque.
-	_igual(_jugar("rio_altar.json", "UUUREEEFLLLDDREEDRUEFDRRRRRULEEEFRURRULEEULDEP").sala.en_paz, false, "el altar pide marcar todas las prendas")
-	_igual(_jugar("rio_altar.json", "UUUREEEFLLLDDREEDRUEFDRRRRRULEEEFRURRULEEULDEF").sala.en_paz, false, "marcadas pero sin Traspasar no hay descanso")
-	_igual(_jugar("rio_altar.json", "UUUREEEFLLLDDREEDRUEFDRRRRRULEEEFRURRULEEULDEFP").sala.en_paz, true, "con las cuatro prendas y Traspasar Narciso descansa")
+	_igual(_jugar("rio_altar.json", "WWWDPPPRAAASSDPPSDWPRSDDDDDWAPPPRDWDDWAPPWASPT").sala.en_paz, false, "el altar pide marcar todas las prendas")
+	_igual(_jugar("rio_altar.json", "WWWDPPPRAAASSDPPSDWPRSDDDDDWAPPPRDWDDWAPPWASPR").sala.en_paz, false, "marcadas pero sin Traspasar no hay descanso")
+	_igual(_jugar("rio_altar.json", "WWWDPPPRAAASSDPPSDWPRSDDDDDWAPPPRDWDDWAPPWASPRT").sala.en_paz, true, "con las cuatro prendas y Traspasar Narciso descansa")
 	# Prendas opcionales: en el altar solo aparecen las recogidas, y se puede salir sin completarlo.
 	var altar: SalaAltar = _jugar("rio_altar.json", "").sala
 	var solo: Array[String] = ["corona", "cinto"]
 	altar.usar_prendas(solo)
 	_igual(altar.piedras.filter(func(p): return p["prenda"] != "").size(), 2, "el altar solo trae las prendas recogidas")
-	_igual(_jugar("rio_altar.json", "UUUURRRRRRPRRR").completada, true, "del altar se sale sin completarlo (Traspasando el agua)")
-	_igual(_jugar("rio_altar.json", "UUUURRRRRRRRR").completada, false, "la salida del altar exige Traspasar")
-	_igual(_jugar("rio_altar.json", "RRRRRRRRUULDEE").sala.piedras[3]["pos"], Vector2i(8, 5), "una prenda no se empuja al estanque")
+	_igual(_jugar("rio_altar.json", "WWWWDDDDDDTDDD").completada, true, "del altar se sale sin completarlo (Traspasando el agua)")
+	_igual(_jugar("rio_altar.json", "WWWWDDDDDDDDD").completada, false, "la salida del altar exige Traspasar")
+	_igual(_jugar("rio_altar.json", "DDDDDDDDWWASPP").sala.piedras[3]["pos"], Vector2i(8, 5), "una prenda no se empuja al estanque")
 	# Marcar dos veces la desmarca.
-	_igual(_jugar("rio_01.json", "RRUFFPUUUU").completada, false, "Reflejo dos veces desmarca la piedra")
+	_igual(_jugar("rio_01.json", "DDWRRTWWWW").completada, false, "Reflejo dos veces desmarca la piedra")
 	# En la sala 1 Reflejo no está disponible.
-	_igual(_jugar("rio_00.json", "F").sala.piedras.size(), 0, "la sala 1 no tiene piedras")
+	_igual(_jugar("rio_00.json", "R").sala.piedras.size(), 0, "la sala 1 no tiene piedras")
 
 	# Chocar con una piedra solo gira al jugador; no la empuja ni avanza.
-	var g := _jugar("rio_03.json", "LUR")
+	var g := _jugar("rio_03.json", "AWD")
 	_igual(g.sala.jugador, Vector2i(1, 5), "chocar con una piedra no avanza")
 	_igual(g.sala.mirando, Vector2i.RIGHT, "chocar con una piedra gira al jugador hacia ella")
 	_igual(g.sala.piedras[0]["pos"], Vector2i(2, 5), "chocar con una piedra no la empuja")
-	_igual(_jugar("rio_03.json", "LURE").sala.piedras[0]["pos"], Vector2i(3, 5), "empujar mueve la piedra de enfrente")
-	_igual(_jugar("rio_02.json", "RRE").sala.jugador, Vector2i(3, 6), "una piedra fija no se empuja")
+	_igual(_jugar("rio_03.json", "AWDP").sala.piedras[0]["pos"], Vector2i(3, 5), "empujar mueve la piedra de enfrente")
+	_igual(_jugar("rio_02.json", "DDP").sala.jugador, Vector2i(3, 6), "una piedra fija no se empuja")
 
 	# Volver al plano normal sobre el vacío es caer y reiniciar la sala.
-	var r := _jugar("rio_01.json", "RRUFPUUU")  # termina parado sobre el reflejo, encima del vacío
+	var r := _jugar("rio_01.json", "DDWRTWWW")  # termina parado sobre el reflejo, encima del vacío
 	var cayo := [false]
 	r.sala.caida.connect(func(): cayo[0] = true)
 	r.barra.usar(r.sala)
@@ -154,8 +154,8 @@ func _init() -> void:
 	quit(1 if fallos else 0)
 
 
-## Juega una sala con una secuencia de teclas: U D L R mueven (o giran, contra una piedra),
-## E empuja la piedra de enfrente, P usa Traspasar, F usa Reflejo, < y > giran la cámara (Q y E del teclado).
+## Juega una sala con una secuencia de teclas: W A S D mueven (o giran, contra una piedra),
+## P empuja la piedra de enfrente, T usa Traspasar, R usa Reflejo, Q y E giran la cámara.
 ## Usa la barra de habilidades real, así que respeta qué habilidades tiene la sala.
 func _jugar(ruta: String, secuencia: String) -> Dictionary:
 	var sala := Sala.desde_archivo("res://salas/" + ruta)
@@ -164,19 +164,19 @@ func _jugar(ruta: String, secuencia: String) -> Dictionary:
 	barra.configurar(sala.datos.get("habilidades", ["traspasar", "reflejo"]))
 	var resultado := {"sala": sala, "barra": barra, "completada": false}
 	sala.completada.connect(func(): resultado["completada"] = true)
-	var pasos := {"U": Vector2i.UP, "D": Vector2i.DOWN, "L": Vector2i.LEFT, "R": Vector2i.RIGHT}
+	var pasos := {"W": Vector2i.UP, "S": Vector2i.DOWN, "A": Vector2i.LEFT, "D": Vector2i.RIGHT}
 	for letra in secuencia:
 		match letra:
-			"P":
+			"T":
 				if barra.elegir(0, sala):
 					barra.usar(sala)
-			"F":
+			"R":
 				if barra.elegir(1, sala):
 					barra.usar(sala)
-			"E":
+			"P":
 				sala.empujar_enfrente()
-			"<", ">":
-				sala.giro = posmod(sala.giro + (1 if letra == ">" else -1), 4)
+			"Q", "E":
+				sala.giro = posmod(sala.giro + (1 if letra == "E" else -1), 4)
 			_:
 				sala.mover(pasos[letra])
 	creados.append_array([sala, barra])

@@ -2,7 +2,7 @@
 	"nombre": "La otra orilla",
 	"mapa": [
 		"#############",
-		"##E#..~.....#",
+		"##S#..~.....#",
 		"##v#..~.....#",
 		"#.....~.....#",
 		"#..v..~.....#",
@@ -17,5 +17,5 @@
 	],
 	"prenda": { "nombre": "cinto", "pos": [3, 4] },
 	"velas": 5,
-	"solucion": "DDRRRPRRRRPUEFLULPLLLLRRRRRPEDRUEELLLPLLLLLUU"
+	"solucion": "SSDDDTDDDDTWPRAWATAAAADDDDDTPSDWPPAAATAAAAAWW"
 }

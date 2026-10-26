@@ -2,7 +2,7 @@
 	"nombre": "Elige el paso",
 	"mapa": [
 		"###########",
-		"#E.#...#..#",
+		"#S.#...#..#",
 		"#..#...#..#",
 		"#^^#^^^#^^#",
 		"#.........#",
@@ -14,5 +14,5 @@
 	"piedras": [
 		{ "pos": [5, 4] }
 	],
-	"solucion": "RULEEEDLUEUUUL"
+	"solucion": "DWAPPPSAWPWWWA"
 }

@@ -2,7 +2,7 @@
 	"nombre": "La isla",
 	"mapa": [
 		"#########",
-		"#...E...#",
+		"#...S...#",
 		"#^^^^^^^#",
 		"#.......#",
 		"#^^^^^^^#",
@@ -19,5 +19,5 @@
 		{ "pos": [4, 3] },
 		{ "pos": [2, 5] }
 	],
-	"solucion": "LLLUREEDRUEUEUU"
+	"solucion": "AAAWDPPSDWPWPWW"
 }

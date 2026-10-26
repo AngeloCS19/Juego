@@ -4,7 +4,7 @@
 	"exterior": true,
 	"mapa": [
 		"###########",
-		"#.......~~E",
+		"#.......~~S",
 		"#.........#",
 		"#.........#",
 		"#.........#",
@@ -35,5 +35,5 @@
 		{"quien": "narciso", "animo": "sereno", "texto": "Así me veía... entero, del otro lado del agua."},
 		{"quien": "narciso", "animo": "sereno", "texto": "Ya no necesito mirar. Gracias."}
 	],
-	"solucion": "UUUREEEFLLLDDREEDRUEFDRRRRRULEEEFRURRULEEULDEFPURRRR"
+	"solucion": "WWWDPPPRAAASSDPPSDWPRSDDDDDWAPPPRDWDDWAPPWASPRTWDDDD"
 }

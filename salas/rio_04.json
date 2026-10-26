@@ -2,7 +2,7 @@
 	"nombre": "Lo que toca el agua",
 	"mapa": [
 		"#########",
-		"#...E...#",
+		"#...S...#",
 		"#vvvvvvv#",
 		"#vvvvvvv#",
 		"~~~~~~~~~",
@@ -19,5 +19,5 @@
 		{ "pos": [6, 6] }
 	],
 	"velas": 3,
-	"solucion": "URUEDLLLUREEFDDRRRRULEEFPLUUUUU"
+	"solucion": "WDWPSAAAWDPPRSSDDDDWAPPRTAWWWWW"
 }
