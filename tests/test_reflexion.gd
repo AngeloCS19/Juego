@@ -36,6 +36,10 @@ func _init() -> void:
 		if ruta.ends_with(".json"):
 			var r := _jugar(ruta, "")
 			_igual(_jugar(ruta, r.sala.datos["solucion"]).completada, true, "%s se resuelve con su solución" % ruta)
+			if r.sala.datos.has("pasos"):  # "pasos" es el camino más corto, y el juego cuenta las acciones como el solver
+				var jugada: Sala = _jugar(ruta, r.sala.datos["solucion"]).sala
+				var corta: bool = r.sala.datos["solucion"].length() == r.sala.datos["pasos"]
+				_igual(jugada.pasos == r.sala.datos["pasos"] if corta else jugada.pasos >= r.sala.datos["pasos"], true, "%s: pasos de su solución" % ruta)
 			if r.sala.datos.has("velas"):  # la solución usa Traspasar lo mínimo: quedan las 2 velas de margen
 				_igual(_jugar(ruta, r.sala.datos["solucion"]).sala.velas_encendidas(), 2, "%s: velas tras su solución" % ruta)
 
@@ -44,8 +48,11 @@ func _init() -> void:
 	_igual(velas.sala.velas_encendidas(), 2, "volver al plano normal no apaga vela")
 	velas.sala.reiniciar()
 	_igual(velas.sala.velas_encendidas(), 2, "reiniciar no enciende las velas")
+	_igual(velas.sala.pasos, 0, "reiniciar borra los pasos")
+	_igual(_jugar("rio_03.json", "AWDDD").sala.pasos, 3, "chocar otra vez contra la piedra que ya mira no es un paso")
 	var main := load("res://scripts/main.gd")
 	_igual([main.nota(30, 30), main.nota(24, 30), main.nota(18, 30), main.nota(12, 30), main.nota(0, 30)], ["S", "A", "B", "C", "D"], "nota del templo")
+	_igual([[1.0, 1.0, 0.5], [1.0, 0.9, 0.8], [1.0, 0.5, 0.5], [0.5, 0.5, 0.5], []].map(main.marca_pasos), ["++", "+", "", "−", ""], "marca de pasos de la nota")
 
 	# Templo tutorial: sin empujar no se pasa, y empujar la piedra recto la atasca frente a la puerta (hay que reiniciar).
 	_igual(_jugar("tutorial_empujar.json", "WWWDDDD").completada, false, "sin empujar no se pasa")
@@ -176,7 +183,7 @@ func _jugar(ruta: String, secuencia: String) -> Dictionary:
 			"P":
 				sala.empujar_enfrente()
 			"Q", "E":
-				sala.giro = posmod(sala.giro + (1 if letra == "E" else -1), 4)
+				sala.girar(1 if letra == "E" else -1)
 			_:
 				sala.mover(pasos[letra])
 	creados.append_array([sala, barra])

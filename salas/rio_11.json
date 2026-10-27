@@ -14,5 +14,6 @@
 	"piedras": [
 		{ "pos": [2, 4] }
 	],
+	"pasos": 13,
 	"solucion": "SSSDPPPDDWDDD"
 }

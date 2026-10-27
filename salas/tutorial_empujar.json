@@ -17,5 +17,6 @@
 	],
 	"tutorial": { "glifo": "empujar" },
 	"ocultar": ["girar", "reiniciar", "usar"],
+	"pasos": 6,
 	"solucion": "PPDDDD"
 }

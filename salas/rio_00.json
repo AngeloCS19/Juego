@@ -16,5 +16,6 @@
 	"tutorial": { "habilidad": "traspasar", "aviso_usar": true },
 	"velas": 3,
 	"fin_templo": "Tutorial",
+	"pasos": 5,
 	"solucion": "TWWWW"
 }

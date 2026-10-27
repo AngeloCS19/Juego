@@ -16,5 +16,6 @@
 	],
 	"tutorial": { "habilidad": "reflejo", "piedra": [3, 4] },
 	"velas": 3,
+	"pasos": 8,
 	"solucion": "DDWRTWWWW"
 }
