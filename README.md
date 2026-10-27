@@ -84,6 +84,7 @@ assets/sonidos/           Efectos de sonido (.ogg), salen de tools/musica/efecto
 tests/test_reflexion.gd   Pruebas automáticas
 tools/solver.py           Buscador de soluciones para diseñar salas (Python)
 tools/formatear.py        Escribe una sala con su "solucion"
+tools/actualizar.py       Pone al día "solucion", "pasos" y "velas" de todas las salas
 tools/gen_jefe.gd         Genera la "solucion" del jefe
 tools/musica/             Bocetos de sonido (sonido.html) y los scripts que graban la música (render.js) y los efectos (efectos.js)
 ```
@@ -237,7 +238,7 @@ El Templo del Río está completo, de "Cruzar el río" al altar. Siguiente paso:
 
 1. Angelo suele mandar un boceto de pizarra (S salida, I inicio, negro vacío, azul río, rojo lava, círculo verde piedra).
 2. Se pasa a JSON y se resuelve con `python3 tools/solver.py sala.json`. Con letras prohibidas (`... sala.json R`) se comprueba que sin esa acción **no** haya solución: si la hay, la sala tiene un atajo y no enseña su idea.
-3. `python3 tools/formatear.py boceto.json salas/rio_nn.json` la escribe con su `solucion` y sus `velas` (`solver.py sala.json --velas` busca el menor número de traspasos), y se agrega a `SALAS`.
+3. `python tools/actualizar.py` pone su `solucion`, `pasos` y `velas` (y los de todas las salas que cambiaron), sin tocar lo demás del archivo; se corre cada vez que se crea o cambia una sala. La `solucion` es la más corta entre las que entran al plano espiritual lo mínimo; `pasos` es el camino más corto sin esa condición. Después la sala se agrega a `SALAS`. (`formatear.py boceto.json salas/rio_nn.json` hace lo mismo y además ordena el archivo, pero solo conoce los campos comunes.)
 4. Reglas de forma: la lava separada del agua y del vacío por muros; cada eje con al menos dos casillas de río o lava, para que se lea como una recta.
 
 ## El jefe: Narciso (`sala_jefe.gd`)
@@ -285,8 +286,8 @@ v  vacío     S  salida    ^  lava
 - `piedras`: posición de cada piedra; `"fija": true` si no se puede empujar.
 - `habilidades` (opcional): qué habilidades tiene el jugador en esa sala, por ejemplo `["traspasar"]`. Si no aparece, tiene todas.
 - `prenda` (opcional): una prenda de Narciso, `{ "nombre": "sandalias", "pos": [x, y] }`. Solo se ve y se recoge en el plano espiritual. Es opcional: la salida está abierta aunque no se recoja. Nombres: `sandalias`, `cinto`, `tunica`, `corona`.
-- `velas` (opcional): cuántas velas hay, el mínimo de traspasos más 2. La pone `formatear.py`; si la sala no necesita Traspasar, no lleva velas.
-- `pasos`: el largo del camino más corto, para la marca de pasos de la nota. Lo pone `formatear.py` (es el largo de lo que da `solver.py`).
+- `velas` (opcional): cuántas velas hay, el mínimo de traspasos más 2. La pone `actualizar.py`; si la sala no necesita Traspasar, no lleva velas.
+- `pasos`: el largo del camino más corto, para la marca de pasos de la nota. Lo pone `actualizar.py`.
 - `tipo` (opcional): `"jefe"`, `"huida"` o `"altar"` para las salas de Narciso; cada una tiene sus propias claves (ver arriba). Sin `tipo` es una sala de puzzle.
 - `exterior` (opcional): `true` dibuja el piso como pasto, para las salas al aire libre.
 - `estilo` (opcional): la estética del templo, por ejemplo `"tutorial"`. Cambia el muro, el piso y la salida por los de `TEX_ESTILO`; con `"tutorial"` también el sonido de salida (`puerta.ogg`) y la cortina entre salas (una puerta doble café que se cierra de golpe en el centro, `Cortina.puerta`; el golpe de `puerta.ogg` cae justo cuando chocan las hojas) en `sala.gd`; sin `estilo` se usan los del Templo del Río. Un templo nuevo agrega ahí su par de sprites.
