@@ -3,7 +3,7 @@
 # Con letras prohibidas (por ejemplo "R", Reflejo) comprueba que la sala NO se resuelva sin esa acción: así se cierran atajos.
 # Con "salida_fija", Q y E giran la cámara: la puerta S solo abre si queda arriba en la pantalla.
 # Si la sala tiene prenda, la solución la recoge (la prenda es opcional en el juego, pero la "solucion" la muestra).
-import json, sys
+import json, sys, heapq
 from collections import deque
 
 D = {"W": (0, -1), "S": (0, 1), "A": (-1, 0), "D": (1, 0)}
@@ -103,6 +103,25 @@ def min_traspasos(s):
             if c < dist.get(n, 1 << 30):
                 dist[n] = c; q.append(n) if c > dist[e] else q.appendleft(n)
     return None
+
+# La "solucion" que se guarda: la más corta entre las que entran al plano espiritual lo mínimo,
+# para que jugarla deje las 2 velas de margen. Devuelve (solución, entradas al plano espiritual).
+def ruta_con_velas(s):
+    ini, vecinos = grafo(s)
+    costo = {ini: (0, 0)}; prev = {ini: None}; cola = [(0, 0, 0, ini)]; orden = 1
+    while cola:
+        t, p, _, e = heapq.heappop(cola)
+        if (t, p) > costo[e]: continue
+        if e == "fin":
+            r = []; k = e
+            while prev[k]: k, a = prev[k]; r.append(a)
+            return "".join(reversed(r)), t
+        for a, n, gana in vecinos(e):
+            n = "fin" if gana else n
+            c = (t + (a == "T" and not e[3]), p + 1)
+            if c < costo.get(n, (1 << 30, 0)):
+                costo[n] = c; prev[n] = (e, a); heapq.heappush(cola, (*c, orden, n)); orden += 1
+    return None, None
 
 if __name__ == "__main__":
     s = json.load(open(sys.argv[1]))

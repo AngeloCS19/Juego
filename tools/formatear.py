@@ -1,8 +1,10 @@
 # Escribe una sala en el estilo del repo y le pone la solución de solver.py. Uso: python3 tools/formatear.py boceto.json salas/rio_nn.json
-import json, sys, subprocess, os
+import json, sys, os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from solver import resolver, ruta_con_velas
 s = json.load(open(sys.argv[1]))
-sol = subprocess.check_output(["python3", os.path.join(os.path.dirname(__file__), "solver.py"), sys.argv[1]], text=True).strip()
-assert sol != "None", "sin solución"
+sol, entradas = ruta_con_velas(s)
+assert sol is not None, "sin solución"
 def plano(t): return '{ "tipo": "%s", "eje": "%s", "valor": %d }' % (t["tipo"], t["eje"], t["valor"])
 pe = s["plano_espiritual"]
 pe = plano(pe) if isinstance(pe, dict) else "[\n\t\t" + ",\n\t\t".join(plano(t) for t in pe) + "\n\t]"
@@ -16,8 +18,7 @@ if s.get("salida_fija"): partes.append('\t"salida_fija": true')
 if "habilidades" in s: partes.append('\t"habilidades": ' + json.dumps(s["habilidades"]))
 if s.get("piedras"): partes.append('\t"piedras": [\n' + ",\n".join(piedra(p) for p in s["piedras"]) + "\n\t]")
 if "prenda" in s: partes.append('\t"prenda": { "nombre": "%s", "pos": [%d, %d] }' % (s["prenda"]["nombre"], *s["prenda"]["pos"]))
-velas = int(subprocess.check_output(["python3", os.path.join(os.path.dirname(__file__), "solver.py"), sys.argv[1], "--velas"], text=True))
-if velas > 2: partes.append('\t"velas": %d' % velas)  # sin traspasos no hay velas
-partes.append('\t"pasos": %d' % len(sol))  # el camino más corto: la marca de pasos de la nota
+if entradas: partes.append('\t"velas": %d' % (entradas + 2))  # sin traspasos no hay velas
+partes.append('\t"pasos": %d' % len(resolver(s)))  # el camino más corto: la marca de pasos de la nota
 partes.append('\t"solucion": "%s"' % sol)
 open(sys.argv[2], "w").write("{\n" + ",\n".join(partes) + "\n}\n")
