@@ -17,5 +17,6 @@
 	],
 	"prenda": { "nombre": "cinto", "pos": [3, 4] },
 	"velas": 5,
+	"pasos": 45,
 	"solucion": "SSDDDTDDDDTWPRAWATAAAADDDDDTPSDWPPAAATAAAAAWW"
 }

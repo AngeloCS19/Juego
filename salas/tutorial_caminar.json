@@ -14,5 +14,6 @@
 	"habilidades": [],
 	"tutorial": { "glifo": "mover" },
 	"ocultar": ["girar", "reiniciar", "usar"],
+	"pasos": 7,
 	"solucion": "DDWWWDD"
 }

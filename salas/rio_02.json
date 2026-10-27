@@ -18,5 +18,6 @@
 		{ "pos": [4, 6], "fija": true }
 	],
 	"velas": 3,
+	"pasos": 11,
 	"solucion": "DRWDRTWDWWW"
 }

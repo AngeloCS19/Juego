@@ -92,6 +92,7 @@ var prendas: Array[String] = []  # prendas de Narciso que el jugador ya sacó de
 var velas_encendidas := 0  # sumadas en las salas con velas, como mucho 2 por sala (el margen)
 var velas_posibles := 0  # 2 por sala con velas: lo que queda si se usa Traspasar lo mínimo
 var tiempos: Array[float] = []  # segundos en cada sala de puzzle (no el jefe, la huida ni el altar)
+var cercanias: Array[float] = []  # por sala con "pasos": el mínimo entre los pasos del último intento (1.0 = el camino más corto)
 
 @onready var pivote: Node2D = $Pivote
 
@@ -680,6 +681,7 @@ func _a_pantalla(dir_mundo: Vector2i) -> Vector2i:
 ## se detiene la animación anterior y se parte desde donde quedó.
 func _girar(sentido: int) -> void:
 	giro = posmod(giro + sentido, 4)
+	sala.girar(sentido)
 	if _tween_giro:
 		_tween_giro.kill()
 	var destino := pivote.rotation + wrapf(giro * PI / 2 - pivote.rotation, -PI, PI)  # por el camino más corto
@@ -747,6 +749,7 @@ func _nueva_partida() -> void:
 	velas_encendidas = 0
 	velas_posibles = 0
 	tiempos.clear()
+	cercanias.clear()
 	set_process_unhandled_input(true)  # por si ya se había terminado el templo
 	_cargar_sala()
 	_seguir()
@@ -819,6 +822,8 @@ func _on_sala_completada() -> void:
 		velas_posibles += 2
 	if not (sala is SalaJefe or sala is SalaHuida or sala is SalaAltar):
 		tiempos.append(sala.tiempo)
+	if sala.datos.has("pasos"):
+		cercanias.append(minf(1.0, float(sala.datos["pasos"]) / maxi(1, sala.pasos)))
 	indice += 1
 	if sala.datos.has("fin_templo"):
 		_fin_tutorial()
@@ -832,7 +837,7 @@ func _on_sala_completada() -> void:
 		var promedio := int(Array(tiempos).reduce(func(a, b): return a + b, 0.0) / maxi(1, tiempos.size()))
 		var total_prendas := Sala.TEX_PRENDA.size()
 		var puntos := velas_encendidas + 2 * prendas.size()
-		var texto := "Velas encendidas: %d de %d\nPrendas de Narciso: %d de %d\nTiempo promedio por sala: %d:%02d\nNota: %s" % [velas_encendidas, velas_posibles, prendas.size(), total_prendas, promedio / 60, promedio % 60, nota(puntos, velas_posibles + 2 * total_prendas)]
+		var texto := "Velas encendidas: %d de %d\nPrendas de Narciso: %d de %d\nTiempo promedio por sala: %d:%02d\n%s\nNota: %s" % [velas_encendidas, velas_posibles, prendas.size(), total_prendas, promedio / 60, promedio % 60, _texto_pasos(), nota(puntos, velas_posibles + 2 * total_prendas) + marca_pasos(cercanias)]
 		_abrir("Templo del Río completado", texto, [["Menú inicial", _menu_inicio]])
 
 
@@ -840,10 +845,11 @@ func _on_sala_completada() -> void:
 ## eran las velas. Después se borra: el tutorial no cuenta en la nota del Templo del Río.
 func _fin_tutorial() -> void:
 	var promedio := int(Array(tiempos).reduce(func(a, b): return a + b, 0.0) / maxi(1, tiempos.size()))
-	var texto := "Velas encendidas: %d de %d\nTiempo promedio por sala: %d:%02d\nNota: %s" % [velas_encendidas, velas_posibles, promedio / 60, promedio % 60, nota(velas_encendidas, velas_posibles)]
+	var texto := "Velas encendidas: %d de %d\nTiempo promedio por sala: %d:%02d\n%s\nNota: %s" % [velas_encendidas, velas_posibles, promedio / 60, promedio % 60, _texto_pasos(), nota(velas_encendidas, velas_posibles) + marca_pasos(cercanias)]
 	velas_encendidas = 0
 	velas_posibles = 0
 	tiempos.clear()
+	cercanias.clear()
 	_abrir(sala.datos["fin_templo"] + " completado", texto, [["Seguir", func(): _menu.hide(); _pasar_de_sala()]])
 
 
@@ -854,3 +860,18 @@ static func nota(encendidas: int, posibles: int) -> String:
 		if f >= corte[0]:
 			return corte[1]
 	return "D"
+
+
+## La marca de los pasos que acompaña a la nota: ++ si en más de la mitad de las salas se usó el camino
+## más corto; si no, +, nada o − según qué tan cerca estuvieron en promedio. Solo cuenta el último intento.
+static func marca_pasos(cerca: Array) -> String:
+	if cerca.is_empty():
+		return ""
+	if cerca.count(1.0) * 2 > cerca.size():
+		return "++"
+	var promedio: float = cerca.reduce(func(a, b): return a + b, 0.0) / cerca.size()
+	return "+" if promedio >= 0.85 else "" if promedio >= 0.6 else "−"
+
+
+func _texto_pasos() -> String:
+	return "Salas con el camino más corto: %d de %d" % [cercanias.count(1.0), cercanias.size()]

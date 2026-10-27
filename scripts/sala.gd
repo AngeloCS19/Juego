@@ -77,7 +77,7 @@ var tamano: Vector2i
 var transformaciones: Array[Transformacion] = []  # una por eje: el río y, si hay, la lava
 var jugador: Vector2i
 var piedras: Array[Dictionary] = []  # cada una: {"pos": Vector2i, "fija": bool, "flota": bool, "marcada": bool, "variante": int}
-var salida: Vector2i  # dónde está la E del mapa
+var salida: Vector2i  # dónde está la S del mapa
 var giro := 0  # cuartos de vuelta de la cámara; main.gd lo copia aquí para saber si la puerta calza
 var mirando := Vector2i.UP  # hacia dónde mira el jugador (la casilla que apuntan las habilidades)
 var espiritual := false
@@ -85,6 +85,7 @@ var tutorial_piedra := Vector2i(-1, -1)  # piedra que brilla para indicar dónde
 var prenda_tomada := true  # false mientras la sala tenga una prenda de Narciso sin recoger (es opcional)
 static var personaje := 0  # índice en TEX_PERSONAJES; static: lo comparten todas las salas
 var traspasos := 0  # veces que entró al plano espiritual; reiniciar no lo borra: las velas no se vuelven a encender
+var pasos := 0  # acciones en este intento (como las letras de la "solucion"); reiniciar las borra
 var tiempo := 0.0  # segundos jugados en la sala, con reinicios (la pausa no cuenta)
 var tiempo_real := false  # jefe y huida: los turnos los marca un reloj (las pruebas juegan por turnos)
 var _reloj: Timer
@@ -183,6 +184,7 @@ func velas_encendidas() -> int:
 func reiniciar() -> void:
 	jugador = _vec(datos["jugador"])
 	mirando = Vector2i.UP
+	pasos = 0
 	prenda_tomada = not datos.has("prenda")
 	_salida_t = DURACION_SALIDA
 	piedras.clear()
@@ -199,12 +201,21 @@ func reiniciar() -> void:
 func mover(dir: Vector2i) -> void:
 	if cayendo():
 		return
+	if mirando != dir or transitable(jugador + dir):
+		pasos += 1  # chocar otra vez contra lo que ya mira no cuenta: así se sostiene la dirección para empujar
 	mirando = dir
 	queue_redraw()
 	if transitable(jugador + dir):
 		_duracion_jugador = DURACION_PASO
 		_avanzar(dir)
 	_accion()
+
+
+## La cámara giró un cuarto de vuelta (sentido 1 horario, -1 antihorario).
+func girar(sentido: int) -> void:
+	giro = posmod(giro + sentido, 4)
+	if datos.get("salida_fija", false):
+		pasos += 1  # solo ahí girar es parte del camino; en las demás salas girar para mirar no cuenta
 
 
 ## ¿Hay enfrente una piedra que se pueda intentar empujar?
@@ -219,6 +230,7 @@ func empujar_enfrente() -> bool:
 		return false
 	_duracion_jugador = DURACION_EMPUJE  # el jugador avanza al paso de la piedra
 	Sonido.tocar("empujar")
+	pasos += 1
 	_avanzar(mirando, false)
 	_accion()
 	return true
@@ -271,6 +283,7 @@ func cambiar_plano() -> void:
 	_t_plano = 0.0  # al entrar, los reflejos viajan desde su piedra
 	_nueva_mancha()
 	plano_cambiado.emit(espiritual)
+	pasos += 1
 	queue_redraw()
 	_accion()
 
@@ -285,6 +298,7 @@ func marcar_enfrente() -> bool:
 	# Marcar: una nota cristalina. Desmarcar: la misma, más baja y suave.
 	Sonido.tocar("reflejo", 0.0 if piedras[i]["marcada"] else -8.0, 1.0 if piedras[i]["marcada"] else 0.84)
 	piedras[i]["t_marca"] = 0.0  # el anillo aparece con un salto y el reflejo viaja
+	pasos += 1
 	queue_redraw()
 	_accion()
 	return true

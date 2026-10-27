@@ -18,5 +18,6 @@ if s.get("piedras"): partes.append('\t"piedras": [\n' + ",\n".join(piedra(p) for
 if "prenda" in s: partes.append('\t"prenda": { "nombre": "%s", "pos": [%d, %d] }' % (s["prenda"]["nombre"], *s["prenda"]["pos"]))
 velas = int(subprocess.check_output(["python3", os.path.join(os.path.dirname(__file__), "solver.py"), sys.argv[1], "--velas"], text=True))
 if velas > 2: partes.append('\t"velas": %d' % velas)  # sin traspasos no hay velas
+partes.append('\t"pasos": %d' % len(sol))  # el camino más corto: la marca de pasos de la nota
 partes.append('\t"solucion": "%s"' % sol)
 open(sys.argv[2], "w").write("{\n" + ",\n".join(partes) + "\n}\n")

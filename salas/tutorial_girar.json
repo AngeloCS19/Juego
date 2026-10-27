@@ -16,5 +16,6 @@
 	"habilidades": [],
 	"tutorial": { "glifo": "girar" },
 	"ocultar": ["usar"],
+	"pasos": 6,
 	"solucion": "DDDDQD"
 }

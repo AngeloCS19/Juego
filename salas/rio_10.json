@@ -24,5 +24,6 @@
 	],
 	"prenda": { "nombre": "corona", "pos": [2, 8] },
 	"velas": 5,
+	"pasos": 48,
 	"solucion": "SSDWRSTSSSSWWWWWWDTAPDTDDDDDSSDDDDTWPRSTSSSSSAAA"
 }
