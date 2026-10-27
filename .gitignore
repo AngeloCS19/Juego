@@ -7,3 +7,4 @@
 # Juegos exportados (se generan con Proyecto > Exportar); no se suben
 exportar/*/*
 !exportar/*/.gitkeep
+__pycache__/
