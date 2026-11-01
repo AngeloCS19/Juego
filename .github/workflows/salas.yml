@@ -1,0 +1,44 @@
+# Cada vez que se sube algo a main: pone al día "solucion", "pasos" y "velas" de las salas
+# (tools/actualizar.py), lo guarda en un commit y después corre las pruebas con Godot.
+# Si una sala no tiene solución o una prueba falla, GitHub marca la ✗ roja y avisa por correo.
+name: Salas y pruebas
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # botón "Run workflow" en la pestaña Actions
+
+permissions:
+  contents: write  # para guardar el commit con las soluciones
+
+concurrency: salas  # si se suben dos cambios seguidos, se revisan uno tras otro
+
+jobs:
+  salas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Poner al día solucion, pasos y velas
+        run: python3 tools/actualizar.py
+
+      - name: Guardar los cambios
+        run: |
+          if git diff --quiet salas; then echo "Las salas ya estaban al día"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Salas: poner al día solucion, pasos y velas (automático)"
+          git pull --rebase origin main
+          git push origin HEAD:main
+
+      - name: Bajar Godot 4.5.1
+        run: |
+          curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          mv Godot_v4.5.1-stable_linux.x86_64 godot
+
+      - name: Pruebas
+        run: |
+          ./godot --headless --import > /dev/null 2>&1 || true
+          ./godot --headless --script res://tests/test_reflexion.gd 2>&1 | tee salida.txt
+          grep -q "Fallos: 0" salida.txt
