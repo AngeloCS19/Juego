@@ -18,9 +18,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # todo el historial, para saber qué salas cambiaron en este push
 
       - name: Poner al día solucion, pasos y velas
-        run: python3 tools/actualizar.py
+        # Solo las salas que cambiaron en este push. Todas si cambian las reglas del solver,
+        # si es la primera vez o si se corre a mano (Run workflow).
+        run: |
+          ANTES="${{ github.event.before }}"
+          if [ "${{ github.event_name }}" != push ] || ! git cat-file -e "$ANTES" 2>/dev/null; then
+            python3 tools/actualizar.py; exit $?
+          fi
+          CAMBIOS=$(git diff --name-only "$ANTES" HEAD)
+          if echo "$CAMBIOS" | grep -qE '^tools/(solver|actualizar)\.py$'; then
+            python3 tools/actualizar.py; exit $?
+          fi
+          SALAS=$(echo "$CAMBIOS" | grep -E '^salas/.*\.json$' | while read -r f; do [ ! -f "$f" ] || echo "$f"; done)
+          if [ -z "$SALAS" ]; then echo "No cambió ninguna sala"; exit 0; fi
+          python3 tools/actualizar.py $SALAS
 
       - name: Guardar los cambios
         run: |
