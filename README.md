@@ -338,3 +338,12 @@ godot --headless --script res://tests/test_reflexion.gd
 ```
 
 Revisa las fórmulas de la reflexión, que cada sala se resuelva con su `solucion` y las reglas de movimiento, empuje, caída y habilidades. Debe terminar con `Fallos: 0`.
+
+### En GitHub, automático (`.github/workflows/salas.yml`)
+
+Cada vez que se sube algo a `main`, GitHub (en la pestaña **Actions** del repo) hace esto solo:
+
+1. Corre `tools/actualizar.py`: pone `solucion`, `pasos` y `velas` en las salas que cambiaron. Si hubo cambios, los guarda en un commit propio ("automático"). Por eso, después de subir una sala, hay que hacer **Pull** antes de seguir editando.
+2. Baja Godot 4.5.1 y corre las pruebas.
+
+Si una sala no tiene solución o una prueba falla, aparece una ✗ roja junto al commit y GitHub manda un correo. Así basta con editar el mapa, las piedras o el jugador y subir: no hace falta Python en la computadora.

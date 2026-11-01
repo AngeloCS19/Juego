@@ -36,5 +36,6 @@ Juego de puzzles cenital (tipo Zelda/Portal) para secundaria en Costa Rica (MEP,
 - Pruebas con Godot 4.5: `godot --headless --import` (en una copia nueva) y luego `godot --headless --script res://tests/test_reflexion.gd`, que debe dar `Fallos: 0`.
 - No subas los `assets/sprites/*.svg.import`: Godot los regenera.
 - Para diseñar salas usa `tools/solver.py` (BFS con las reglas de `sala.gd`): la solución sale de ahí, y con letras prohibidas comprueba que la sala exija su idea (por ejemplo, que sin `R` (Reflejo) no se resuelva). Después de crear o cambiar salas corre `python tools/actualizar.py`: pone `solucion`, `pasos` y `velas` de todas. `tools/formatear.py` escribe un boceto nuevo ya ordenado. Si cambias reglas en `sala.gd`, cámbialas también en el solver.
+- En cada push a `main`, GitHub Actions (`.github/workflows/salas.yml`) corre `actualizar.py`, hace commit de lo que cambie y corre las pruebas. Angelo puede subir salas sin `solucion`/`pasos`/`velas`; después del push hay que hacer Pull.
 - Si cambias el jefe, regenera su `solucion` con `tools/gen_jefe.gd` (lo juega con el código real).
 - Angelo dibuja bocetos en pizarra: S salida, I inicio, negro vacío, azul río, rojo lava, círculo verde piedra. En el JSON, la salida es `S` y la `solucion` usa W A S D, P empujar, T Traspasar, R Reflejo, Q y E girar.
