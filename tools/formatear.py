@@ -5,7 +5,7 @@ from solver import resolver, ruta_con_velas
 s = json.load(open(sys.argv[1]))
 sol, entradas = ruta_con_velas(s)
 assert sol is not None, "sin solución"
-def plano(t): return '{ "tipo": "%s", "eje": "%s", "valor": %d }' % (t["tipo"], t["eje"], t["valor"])
+def plano(t): return "{ " + ", ".join('"%s": %s' % (k, json.dumps(v)) for k, v in t.items()) + " }"
 pe = s["plano_espiritual"]
 pe = plano(pe) if isinstance(pe, dict) else "[\n\t\t" + ",\n\t\t".join(plano(t) for t in pe) + "\n\t]"
 def piedra(p): return '\t\t{ "pos": [%d, %d]%s }' % (p["pos"][0], p["pos"][1], ', "fija": true' if p.get("fija") else "")

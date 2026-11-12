@@ -109,7 +109,7 @@ func _un_golpe() -> void:
 	if sala.piedra_en(destino) < 0:
 		return
 	var imagen := t.aplicar(destino)
-	if not sala.piedras[sala.piedra_en(destino)]["marcada"]:
+	if sala.piedras[sala.piedra_en(destino)]["marca"] == "":
 		act("R")
 	var dir_piedra := ""
 	for l: String in DIRS:

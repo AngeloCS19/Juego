@@ -4,6 +4,11 @@ extends RefCounted
 ## Cada templo agrega una subclase: hoy Reflexion; después Rotacion, Traslacion, Homotecia.
 
 
+## La marca que activa esta transformación: solo las piedras con esa marca tienen imagen.
+## Es el nombre de la habilidad que la pone ("reflejo" para la reflexión).
+var marca := ""
+
+
 ## Devuelve la casilla imagen de una casilla dada.
 func aplicar(celda: Vector2i) -> Vector2i:
 	return celda
@@ -12,6 +17,12 @@ func aplicar(celda: Vector2i) -> Vector2i:
 ## Dibuja el ancla visible de la transformación (eje, centro, vector...).
 func dibujar(_lienzo: CanvasItem, _tam: float, _tamano_sala: Vector2i, _color: Color) -> void:
 	pass
+
+
+## Dónde se dibuja la imagen mientras viaja desde su piedra ("origen") hasta su lugar ("destino"),
+## en píxeles; k va de 0 a 1. Por defecto en línea recta; una rotación viajará por su arco.
+func viaje(origen: Vector2, destino: Vector2, k: float) -> Vector2:
+	return origen.lerp(destino, k)
 
 
 ## Crea la transformación descrita en el JSON de una sala.

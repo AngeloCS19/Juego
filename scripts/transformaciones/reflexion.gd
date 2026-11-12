@@ -11,6 +11,7 @@ var valor: int
 
 
 func _init(p_eje: String, p_valor: int) -> void:
+	marca = "reflejo"
 	eje = p_eje
 	valor = p_valor
 

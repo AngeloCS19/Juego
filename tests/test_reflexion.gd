@@ -85,13 +85,13 @@ func _init() -> void:
 	jefe.mover(Vector2i.DOWN)  # contra el muro: solo gira, pero cuenta como turno
 	_igual(jefe.corazones, 2, "una piedra que cae encima quita un corazón")
 	for x in [5, 6, 8]:
-		jefe.piedras.append({"pos": Vector2i(x, 6), "fija": false, "flota": false, "marcada": false})
+		jefe.piedras.append({"pos": Vector2i(x, 6), "fija": false, "flota": false, "marca": ""})
 	for x in [5, 6, 8]:
 		jefe.jugador = Vector2i(x, 7)
 		jefe.mirando = Vector2i.UP
 		jefe.marcar_enfrente()
-	_igual(jefe.piedras.filter(func(p): return p["marcada"]).size(), 2, "el jefe solo permite dos piedras marcadas")
-	_igual(jefe.piedras[jefe.piedra_en(Vector2i(6, 6))]["marcada"] and jefe.piedras[jefe.piedra_en(Vector2i(8, 6))]["marcada"], true, "al marcar una tercera se desmarca la más vieja")
+	_igual(jefe.piedras.filter(func(p): return p["marca"] != "").size(), 2, "el jefe solo permite dos piedras marcadas")
+	_igual([jefe.piedras[jefe.piedra_en(Vector2i(6, 6))]["marca"], jefe.piedras[jefe.piedra_en(Vector2i(8, 6))]["marca"]], ["reflejo", "reflejo"], "al marcar una tercera se desmarca la más vieja")
 	creados.append(jefe)
 	# Huida: Narciso deja lava donde pasa, y si alcanza al jugador el tramo vuelve a empezar.
 	var huida := _jugar("rio_huida_1.json", "DDDTTTT")  # tres pasos y cuatro cambios de plano sin moverse
@@ -123,6 +123,12 @@ func _init() -> void:
 	_igual(_jugar("rio_altar.json", "WWWWDDDDDDTDDD").completada, true, "del altar se sale sin completarlo (Traspasando el agua)")
 	_igual(_jugar("rio_altar.json", "WWWWDDDDDDDDD").completada, false, "la salida del altar exige Traspasar")
 	_igual(_jugar("rio_altar.json", "DDDDDDDDWWASPP").sala.piedras[3]["pos"], Vector2i(8, 5), "una prenda no se empuja al estanque")
+	# Una transformación solo actúa sobre las piedras con su marca.
+	var otra := _jugar("rio_01.json", "DDWR")
+	otra.sala.piedras[0]["marca"] = "otra"
+	_igual(otra.sala.imagen_en(otra.sala.transformaciones[0].aplicar(otra.sala.piedras[0]["pos"])), false, "una piedra con otra marca no se refleja")
+	otra.sala.marcar_enfrente("reflejo")
+	_igual(otra.sala.piedras[0]["marca"], "reflejo", "marcar con otra habilidad cambia la marca")
 	# Marcar dos veces la desmarca.
 	_igual(_jugar("rio_01.json", "DDWRRTWWWW").completada, false, "Reflejo dos veces desmarca la piedra")
 	# En la sala 1 Reflejo no está disponible.

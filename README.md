@@ -321,7 +321,7 @@ El jugador tiene una hotbar de habilidades y solo una está activa a la vez (con
 - `Traspasar` es la primera: `usar()` llama a `sala.cambiar_plano()` y `en_curso()` responde si estás en el plano espiritual.
 - `BarraHabilidades` es un `HBoxContainer` (una fila de controles de interfaz) que crea por código un `Button` por cada habilidad, grande para el dedo. `elegir(i, sala)` aplica la regla de "una a la vez".
 - La lista de habilidades está en `_ready()` de `main.gd`. Cada sala decide cuáles están disponibles con la clave `habilidades` de su JSON; las demás aparecen bloqueadas.
-- `Reflejo` marca o desmarca la piedra que el jugador tiene enfrente (`sala.marcar_enfrente()`).
+- `Reflejo` marca o desmarca la piedra que el jugador tiene enfrente (`sala.marcar_enfrente("reflejo")`).
 
 Para agregar una habilidad nueva: crea un archivo en `scripts/habilidades/` que extienda `Habilidad`, implementa `usar()` (y `en_curso()` si dura en el tiempo) y agrégala a esa lista.
 
@@ -341,7 +341,12 @@ Para agregar un templo: un bloque nuevo en `templos.json` con sus salas. El plan
 
 ## Cómo crecerá a otros templos
 
-Para el templo de la rotación basta con crear `scripts/transformaciones/rotacion.gd` que extienda `Transformacion` e implemente `aplicar()` y `dibujar()`, y agregar un caso en `Transformacion.desde_datos()`. Las salas, el dibujo y las pruebas no cambian.
+Cada templo trae tres piezas: una **transformación**, una **habilidad** que marca piedras para ella y sus salas.
+
+- **Marcas.** Cada piedra lleva una sola marca, `"marca"`: vacía (`""`) o el nombre de la habilidad que la marcó (`"reflejo"`). Cada `Transformacion` dice en su variable `marca` cuál la activa, e `imagen_en()` solo cuenta las piedras con esa marca. Así, en una sala con río y altar, una piedra marcada con Reflejo se refleja pero no gira. Marcar con otra habilidad cambia la marca; marcar con la misma la quita (`marcar_enfrente(marca)` en `sala.gd`).
+- **Una transformación nueva** es un archivo en `scripts/transformaciones/` que extiende `Transformacion`: pone su `marca` e implementa `aplicar()` (dónde cae la imagen), `dibujar()` (su ancla en el plano espiritual) y, si la imagen no viaja en línea recta, `viaje()` (por dónde se ve llegar: una rotación viaja por su arco). Se agrega su caso en `Transformacion.desde_datos()`.
+- **Su habilidad** es un archivo en `scripts/habilidades/` que llama a `sala.marcar_enfrente("su_marca")`, más su anillo en `TEX_ANILLO` (`sala.gd`), su icono `icono_<nombre>.svg` y su sonido `<nombre>.ogg`.
+- **En el solver** (`tools/solver.py`) se agrega lo mismo: su fórmula en `imagen()`, su marca en `MARCA` y la letra de su habilidad en `LETRA`.
 
 ## Pruebas
 

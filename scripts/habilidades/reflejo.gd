@@ -9,4 +9,4 @@ func _init() -> void:
 
 
 func usar(sala: Sala) -> void:
-	sala.marcar_enfrente()
+	sala.marcar_enfrente("reflejo")
