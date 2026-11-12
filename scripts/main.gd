@@ -49,6 +49,7 @@ var _menu: Menu
 var _dialogo: Dialogo
 var _cortina: Cortina
 var musica := Musica.new()
+const PARTIDA := "user://partida.cfg"  # la partida guardada; user:// es la carpeta de datos del juego en cada aparato
 var _empezada := false  # si ya se tocó Jugar: el menú inicial ofrece Continuar
 const ICONO_GIRAR_IZQ := preload("res://assets/sprites/icono_girar_izq.svg")
 const ICONO_GIRAR_DER := preload("res://assets/sprites/icono_girar_der.svg")
@@ -85,6 +86,7 @@ func _ready() -> void:
 	_crear_controles_tactiles()
 	get_viewport().size_changed.connect(_centrar)
 	_centrar()
+	_leer_partida()
 	_cargar_sala()
 	_menu_inicio()
 
@@ -418,6 +420,7 @@ func _actualizar_espejo() -> void:
 
 
 func _cargar_sala() -> void:
+	_guardar_partida()
 	if sala:
 		sala.queue_free()
 	sala = Sala.desde_archivo(rutas[indice])
@@ -721,9 +724,41 @@ func _nueva_partida() -> void:
 	_seguir()
 
 
+## Guarda la partida en el aparato: en qué sala va el jugador y la cuenta de su templo (prendas, velas,
+## tiempos y pasos), más la dificultad y el personaje. Se llama al entrar a cada sala, así que al volver
+## a abrir el juego se empieza esa sala de nuevo. La sala se guarda por su nombre y no por su número,
+## para que agregar o mover salas en templos.json no desacomode una partida vieja.
+func _guardar_partida() -> void:
+	if indice >= rutas.size():
+		return  # juego terminado: se conserva lo último guardado
+	var c := ConfigFile.new()
+	for clave in ["prendas", "velas_encendidas", "velas_posibles", "tiempos", "cercanias", "dificil"]:
+		c.set_value("partida", clave, get(clave))
+	c.set_value("partida", "sala", rutas[indice])
+	c.set_value("partida", "personaje", Sala.personaje)
+	c.save(PARTIDA)
+
+
+## Lee la partida guardada, si hay. Si la sala guardada ya no existe, se empieza desde el inicio.
+func _leer_partida() -> void:
+	var c := ConfigFile.new()
+	if c.load(PARTIDA) != OK or not c.get_value("partida", "sala", "") in rutas:
+		return
+	indice = rutas.find(c.get_value("partida", "sala"))
+	prendas.assign(c.get_value("partida", "prendas", []))
+	tiempos.assign(c.get_value("partida", "tiempos", []))
+	cercanias.assign(c.get_value("partida", "cercanias", []))
+	velas_encendidas = c.get_value("partida", "velas_encendidas", 0)
+	velas_posibles = c.get_value("partida", "velas_posibles", 0)
+	dificil = c.get_value("partida", "dificil", false)
+	Sala.personaje = c.get_value("partida", "personaje", 0)
+	_empezada = indice > 0  # con avance guardado, el menú inicial ofrece Continuar
+
+
 ## Elige el personaje (niño, niña, espíritu) y redibuja la sala; el menú ya marcó el retrato.
 func _elegir_personaje(i: int) -> void:
 	Sala.personaje = i
+	_guardar_partida()
 	sala.queue_redraw()
 
 
@@ -736,6 +771,7 @@ func _texto_dificultad() -> String:
 func _cambiar_dificultad(volver: Callable) -> void:
 	dificil = not dificil
 	_derrotas = 0
+	_guardar_partida()
 	if sala.tiempo_real:
 		sala.usar_tiempo_real(true, _ritmo())
 	_elegir_musica()  # el jefe cambia a la grabación de la otra velocidad
