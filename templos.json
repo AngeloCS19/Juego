@@ -15,5 +15,11 @@
 			"rio_10", "rio_11", "rio_13", "rio_14", "rio_15", "rio_16", "rio_17", "rio_18",
 			"rio_jefe", "rio_huida_1", "rio_huida_2", "rio_huida_3", "rio_altar"
 		]
+	},
+	{
+		"nombre": "Templo de la Rueda",
+		"habilidades": ["traspasar", "reflejo", "giro"],
+		"capas_desde": [0],
+		"salas": ["rueda_01", "rueda_02", "rueda_03"]
 	}
 ]

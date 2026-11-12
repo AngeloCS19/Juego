@@ -24,10 +24,14 @@ def imagen(t, x, y):
         v = t["valor"]
         return {"horizontal": (x, 2*v-y), "vertical": (2*v-x, y),
                 "diagonal": (y-v, x+v), "antidiagonal": (v-y, v-x)}[t["eje"]]
+    if t["tipo"] == "rotacion":  # cuartos de vuelta horarios alrededor del centro; "y" crece hacia abajo
+        dx, dy = x - t["centro"][0], y - t["centro"][1]
+        for _ in range(t["cuartos"] % 4): dx, dy = -dy, dx
+        return (t["centro"][0] + dx, t["centro"][1] + dy)
     raise ValueError("transformación desconocida: %s" % t)
 
-MARCA = {"reflexion": "reflejo"}  # la marca (habilidad) que activa cada tipo de transformación
-LETRA = {"R": "reflejo"}  # la letra de la "solucion" de cada habilidad que marca
+MARCA = {"reflexion": "reflejo", "rotacion": "giro"}  # la marca (habilidad) que activa cada tipo de transformación
+LETRA = {"R": "reflejo", "G": "giro"}  # la letra de la "solucion" de cada habilidad que marca
 
 def grafo(s, prohibidas=""):
     m = s["mapa"]; W, H = len(m[0]), len(m)

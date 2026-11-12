@@ -77,7 +77,7 @@ func _ready() -> void:
 	_espejo_fijo.texture = Sala.TEX_CASILLA["S"]
 	_espejo_fijo.scale = Vector2.ONE * Sala.TAM / _espejo_fijo.texture.get_width()
 	add_child(_espejo_fijo)  # fuera de Pivote: no gira con la sala
-	var lista: Array[Habilidad] = [Traspasar.new(), Reflejo.new()]
+	var lista: Array[Habilidad] = [Traspasar.new(), Reflejo.new(), Giro.new()]
 	barra = BarraHabilidades.new(lista)
 	barra.pedida.connect(_elegir)
 	barra.nueva.connect(_anunciar)
@@ -485,7 +485,7 @@ func _vigilar_tutorial() -> void:
 	match t.get("glifo", t.get("habilidad")):
 		"traspasar":
 			hecho = sala.espiritual
-		"reflejo":
+		"reflejo", "giro":
 			var i := sala.piedra_en(Vector2i(t["piedra"][0], t["piedra"][1]))
 			hecho = i >= 0 and sala.piedras[i]["marca"] != ""
 		"mover":
