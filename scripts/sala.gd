@@ -6,6 +6,7 @@ extends Node2D
 ## Letras del mapa:
 ##   #  muro      .  suelo     ~  agua      =  puente
 ##   v  vacío     E  salida    ^  lava (refleja como el río, pero nunca se sobrevuela)
+##   O  altar (el centro de una rotación; bloquea siempre, como un muro)
 ##
 ## Con "salida_fija": true, la E va en el muro de afuera: es una puerta, y el espejo queda fijo
 ## arriba de la pantalla (lo dibuja main.gd). La puerta solo abre si la cámara la deja frente al espejo.
@@ -26,6 +27,7 @@ const TEX_CASILLA := {
 	"v": preload("res://assets/sprites/vacio.svg"),
 	"S": preload("res://assets/sprites/salida.svg"),
 	"^": preload("res://assets/sprites/lava.svg"),
+	"O": preload("res://assets/sprites/altar.svg"),
 }
 ## Rocas que se mueven: irregulares, con variantes para que no todas se vean iguales.
 const TEX_PIEDRAS := [
@@ -57,6 +59,7 @@ const TEX_PRENDA := {
 ## El anillo que lleva una piedra marcada, según su marca. Una habilidad nueva agrega aquí el suyo.
 const TEX_ANILLO := {
 	"reflejo": preload("res://assets/sprites/anillo_reflejo.svg"),
+	"giro": preload("res://assets/sprites/anillo_giro.svg"),
 }
 # Solo para dibujar la salida fantasma del plano espiritual.
 const COLOR_SALIDA := Color(0.85, 0.7, 0.3)
@@ -499,8 +502,8 @@ func _draw() -> void:
 			else:
 				var casillas: Dictionary = TEX_ESTILO.get(datos.get("estilo", ""), TEX_CASILLA)
 				var piso: Texture2D = TEX_PASTO if datos.get("exterior", false) else casillas["."]
-				if celda(c) == "S":
-					draw_texture_rect(piso, _rect(c), false)  # el espejo de la salida es redondo: debajo va el piso
+				if celda(c) in ["S", "O"]:
+					draw_texture_rect(piso, _rect(c), false)  # el espejo de la salida y el altar no llenan la casilla: debajo va el piso
 				var puerta: bool = celda(c) == "S" and datos.get("salida_fija", false)  # el espejo está afuera: aquí solo hay piso
 				var tex: Texture2D = piso if celda(c) == "." or puerta else casillas.get(celda(c), TEX_CASILLA[celda(c)])
 				draw_texture_rect(tex, _rect(c), false)
@@ -510,9 +513,11 @@ func _draw() -> void:
 					_animar_agua(c)
 				elif celda(c) == "^":
 					_animar_lava(c)
-	if espiritual:
-		for t in transformaciones:
+	for t in transformaciones:
+		if espiritual:
 			t.dibujar(self, TAM, tamano, CELESTE)
+		else:
+			t.dibujar_normal(self, TAM)
 	_dibujar_velas()
 	for p in piedras:
 		var centro: Vector2 = p.get("vis", _centro(p["pos"]))
@@ -683,7 +688,7 @@ func _dibujar_mancha() -> void:
 func _dibujar_casilla_espiritual(c: Vector2i) -> void:
 	var r := _rect(c)
 	match celda(c):
-		"#":
+		"#", "O":
 			draw_rect(r, Color(CELESTE, 0.08))
 		"~":
 			draw_rect(r, Color(CELESTE, 0.12))

@@ -1,0 +1,23 @@
+{
+	"nombre": "Contra el reloj",
+	"mapa": [
+		"#########",
+		"#...S...#",
+		"#vvvvvvv#",
+		"#.......#",
+		"#.......#",
+		"#...O...#",
+		"#.......#",
+		"#.......#",
+		"#########"
+	],
+	"jugador": [1, 7],
+	"plano_espiritual": { "tipo": "rotacion", "centro": [4, 5], "cuartos": -1 },
+	"piedras": [
+		{ "pos": [1, 5] },
+		{ "pos": [6, 5] }
+	],
+	"pasos": 16,
+	"velas": 3,
+	"solucion": "WDDDDWDPGWWAATWW"
+}

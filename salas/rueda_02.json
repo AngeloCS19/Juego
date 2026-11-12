@@ -1,0 +1,22 @@
+{
+	"nombre": "Igual de lejos",
+	"mapa": [
+		"#########",
+		"#...S...#",
+		"#vvvvvvv#",
+		"#.......#",
+		"#.......#",
+		"#...O...#",
+		"#.......#",
+		"#.......#",
+		"#########"
+	],
+	"jugador": [6, 7],
+	"plano_espiritual": { "tipo": "rotacion", "centro": [4, 5], "cuartos": 1 },
+	"piedras": [
+		{ "pos": [2, 5] }
+	],
+	"pasos": 15,
+	"velas": 3,
+	"solucion": "WAAAWAPGWWDDTWW"
+}

@@ -27,6 +27,9 @@ Todos son SVG de 64×64 (una casilla; en el juego se escalan a 48 px).
 | `jugador_nino.svg`, `jugador_nina.svg`, `jugador_espiritu.svg` | Los tres personajes que se eligen en el menú inicial, vistos desde arriba y **apuntando hacia arriba** (el juego los rota según `mirando`) | ambos planos |
 | `flor_corona.svg` | Una flor de narciso (pétalos crema, centro naranja) para contar los golpes de Narciso en su barra de vida; el código la pone N veces sobre `narciso_corona.svg` | barra del jefe |
 | `anillo_reflejo.svg` | Anillo celeste de una piedra marcada con Reflejo | encima de la piedra |
+| `anillo_giro.svg` | Anillo celeste abierto con punta de flecha, de una piedra marcada con Giro | encima de la piedra |
+| `altar.svg` | Altar de la rotación (casilla `O`): piedra redonda sobre base de ocho lados. Provisional, sin arte propio; el ángulo lo dibuja el código encima | plano normal |
+| `icono_giro.svg` | Icono de la habilidad Giro: un ángulo recto con su arco y flecha | barra de habilidades |
 | `icono_traspasar.svg` | Icono de la habilidad Traspasar | barra de habilidades |
 | `icono_reflejo.svg` | Icono de la habilidad Reflejo | barra de habilidades |
 | `icono_clic_izq.svg`, `icono_espacio.svg` | Mouse con el botón izquierdo marcado y la barra espaciadora (128×64) | aviso de la sala 1 en la PC |

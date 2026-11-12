@@ -21,6 +21,19 @@ func _init() -> void:
 		var p := Vector2i(7, -3)
 		_igual(r.aplicar(r.aplicar(p)), p, "%s: reflejar dos veces vuelve al inicio" % eje)
 
+	# Rotación: un cuarto de vuelta horario alrededor del altar (en pantalla, "y" crece hacia abajo).
+	var cuarto := Rotacion.new(Vector2i(4, 4), 1)
+	_igual(cuarto.aplicar(Vector2i(6, 4)), Vector2i(4, 6), "rotación: lo que está a la derecha del altar pasa abajo")
+	_igual(cuarto.aplicar(Vector2i(5, 2)), Vector2i(6, 5), "rotación: una piedra fuera de la fila y la columna del altar")
+	_igual(cuarto.aplicar(Vector2i(4, 4)), Vector2i(4, 4), "rotación: el centro no se mueve")
+	_igual(Rotacion.new(Vector2i(4, 4), -1).aplicar(Vector2i(6, 4)), Vector2i(4, 2), "rotación antihoraria")
+	_igual(Rotacion.new(Vector2i(4, 4), 2).aplicar(Vector2i(5, 2)), Vector2i(3, 6), "media vuelta: al otro lado del centro")
+	_igual(Rotacion.new(Vector2i(4, 4), 3).aplicar(Vector2i(5, 2)), Vector2i(2, 3), "tres cuartos horarios son un cuarto antihorario")
+	var vuelta := Vector2i(7, 1)
+	for i in 4:
+		vuelta = cuarto.aplicar(vuelta)
+	_igual(vuelta, Vector2i(7, 1), "cuatro cuartos de vuelta vuelven al inicio")
+
 	# Música: la pieza del templo se arma por capas, y cada capa tiene su versión de cada plano.
 	var rio: Dictionary = Templos.de("res://salas/rio_01.json")
 	_igual([0, 5, 99].map(func(i): return Musica.capas_en(rio["capas_desde"], i)), [1, 2, 3], "capas de la música por sala")
@@ -33,7 +46,7 @@ func _init() -> void:
 				_igual(load("res://assets/musica/%s_%s.ogg" % [capa, plano]) is AudioStreamOggVorbis, true, "música %s %s" % [capa, plano])
 
 	# Cada efecto que el código pide tiene su archivo.
-	for nombre in ["empujar", "prenda", "salida", "puerta", "paso_arenisca", "paso_madera", "paso_pasto", "caer", "traspasar", "volver", "reflejo", "lava", "silbido", "dano", "piedra_cae", "golpe_narciso", "boton", "voz_narciso_0", "voz_narciso_4"]:
+	for nombre in ["empujar", "prenda", "salida", "puerta", "paso_arenisca", "paso_madera", "paso_pasto", "caer", "traspasar", "volver", "reflejo", "giro", "lava", "silbido", "dano", "piedra_cae", "golpe_narciso", "boton", "voz_narciso_0", "voz_narciso_4"]:
 		_igual(load("res://assets/sonidos/%s.ogg" % nombre) is AudioStreamOggVorbis, true, "sonido " + nombre)
 
 	for ruta in DirAccess.get_files_at("res://salas"):
@@ -172,11 +185,11 @@ func _init() -> void:
 
 
 ## Juega una sala con una secuencia de teclas: W A S D mueven (o giran, contra una piedra),
-## P empuja la piedra de enfrente, T usa Traspasar, R usa Reflejo, Q y E giran la cámara.
+## P empuja la piedra de enfrente, T usa Traspasar, R usa Reflejo, G usa Giro, Q y E giran la cámara.
 ## Usa la barra de habilidades real, así que respeta qué habilidades tiene la sala.
 func _jugar(ruta: String, secuencia: String) -> Dictionary:
 	var sala := Sala.desde_archivo("res://salas/" + ruta)
-	var lista: Array[Habilidad] = [Traspasar.new(), Reflejo.new()]
+	var lista: Array[Habilidad] = [Traspasar.new(), Reflejo.new(), Giro.new()]
 	var barra := BarraHabilidades.new(lista)
 	barra.configurar(sala.habilidades())
 	var resultado := {"sala": sala, "barra": barra, "completada": false}
@@ -187,8 +200,8 @@ func _jugar(ruta: String, secuencia: String) -> Dictionary:
 			"T":
 				if barra.elegir(0, sala):
 					barra.usar(sala)
-			"R":
-				if barra.elegir(1, sala):
+			"R", "G":
+				if barra.elegir(1 if letra == "R" else 2, sala):
 					barra.usar(sala)
 			"P":
 				sala.empujar_enfrente()

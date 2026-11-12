@@ -1,0 +1,22 @@
+{
+	"nombre": "La rueda",
+	"mapa": [
+		"#########",
+		"#...S...#",
+		"#vvvvvvv#",
+		"#.......#",
+		"#...O...#",
+		"#.......#",
+		"#.......#",
+		"#########"
+	],
+	"jugador": [1, 6],
+	"plano_espiritual": { "tipo": "rotacion", "centro": [4, 4], "cuartos": 1 },
+	"piedras": [
+		{ "pos": [2, 4], "fija": true }
+	],
+	"tutorial": { "habilidad": "giro", "piedra": [2, 4] },
+	"pasos": 10,
+	"velas": 3,
+	"solucion": "DWGDWWDTWW"
+}
