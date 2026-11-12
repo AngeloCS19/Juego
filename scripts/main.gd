@@ -487,7 +487,7 @@ func _vigilar_tutorial() -> void:
 			hecho = sala.espiritual
 		"reflejo":
 			var i := sala.piedra_en(Vector2i(t["piedra"][0], t["piedra"][1]))
-			hecho = i >= 0 and sala.piedras[i]["marcada"]
+			hecho = i >= 0 and sala.piedras[i]["marca"] != ""
 		"mover":
 			hecho = sala.jugador != Vector2i(sala.datos["jugador"][0], sala.datos["jugador"][1])
 		"empujar":  # alguna piedra ya no está donde empezó

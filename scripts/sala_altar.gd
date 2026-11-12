@@ -35,7 +35,7 @@ func reiniciar() -> void:
 	var lista: Array = datos["piedras"]
 	for i in lista.size():
 		piedras[i]["prenda"] = lista[i].get("prenda", "")
-	piedras.append({"pos": _vec(datos["estatua"]), "fija": true, "flota": false, "marcada": false, "prenda": "", "estatua": true})
+	piedras.append({"pos": _vec(datos["estatua"]), "fija": true, "flota": false, "marca": "", "prenda": "", "estatua": true})
 
 
 ## Las prendas no se echan al estanque: solo se empujan sobre el pasto.
@@ -75,7 +75,7 @@ func _vestida() -> bool:
 	var destinos: Dictionary = datos["reflejo_vestido"]
 	var puestas := 0
 	for p in piedras:
-		if p["prenda"] != "" and p["marcada"] and transformaciones[0].aplicar(p["pos"]) == _vec(destinos[p["prenda"]]):
+		if p["prenda"] != "" and p["marca"] != "" and transformaciones[0].aplicar(p["pos"]) == _vec(destinos[p["prenda"]]):
 			puestas += 1
 	return puestas == destinos.size()
 

@@ -113,12 +113,12 @@ func _caer(c: Vector2i) -> void:
 		return
 	Sonido.tocar("piedra_cae")
 	if piedra_en(c) < 0 and celda(c) == ".":
-		piedras.append({"pos": c, "fija": false, "flota": false, "marcada": false, "variante": piedras.size()})
+		piedras.append({"pos": c, "fija": false, "flota": false, "marca": "", "variante": piedras.size()})
 
 
 ## Rompe las piedras que no están marcadas; después las vuelve a lanzar, porque hay espacio.
 func _romper() -> void:
-	var rotas := piedras.filter(func(p): return not p["marcada"])
+	var rotas := piedras.filter(func(p): return p["marca"] == "")
 	if rotas.is_empty():
 		return
 	for p in rotas:
@@ -137,7 +137,7 @@ func cambiar_plano() -> void:
 func _revisar_golpe(donde: Vector2i) -> void:
 	var acierto := false
 	for p in piedras.duplicate():
-		if p["marcada"] and _llega(p["pos"], donde):
+		if p["marca"] != "" and _llega(p["pos"], donde):
 			piedras.erase(p)  # la piedra que lo alcanzó se deshace
 			_marcadas.erase(p)
 			acierto = true
@@ -163,19 +163,19 @@ func _llega(c: Vector2i, donde: Vector2i) -> bool:
 
 
 ## Solo dos piedras marcadas a la vez: marcar una tercera desmarca la más vieja.
-func marcar_enfrente() -> bool:
+func marcar_enfrente(marca := "reflejo") -> bool:
 	var i := piedra_en(jugador + mirando)
 	if i < 0:
 		return false
 	var p := piedras[i]
-	if not p["marcada"] and _marcadas.size() == MAX_MARCADAS:
+	if p["marca"] == "" and _marcadas.size() == MAX_MARCADAS:
 		var vieja: Dictionary = _marcadas.pop_front()
-		vieja["marcada"] = false
-	if p["marcada"]:
+		vieja["marca"] = ""
+	if p["marca"] != "":
 		_marcadas.erase(p)
 	else:
 		_marcadas.append(p)
-	return super()
+	return super(marca)
 
 
 ## Pétalos que le quedan a la corona en todo el combate.

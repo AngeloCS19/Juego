@@ -54,8 +54,10 @@ const TEX_PRENDA := {
 	"tunica": preload("res://assets/sprites/prenda_tunica.svg"),
 	"corona": preload("res://assets/sprites/prenda_corona.svg"),
 }
-# shortcut: un solo anillo (reflexión); cuando haya más transformaciones, que cada una elija el suyo.
-const TEX_ANILLO_REFLEJO := preload("res://assets/sprites/anillo_reflejo.svg")
+## El anillo que lleva una piedra marcada, según su marca. Una habilidad nueva agrega aquí el suyo.
+const TEX_ANILLO := {
+	"reflejo": preload("res://assets/sprites/anillo_reflejo.svg"),
+}
 # Solo para dibujar la salida fantasma del plano espiritual.
 const COLOR_SALIDA := Color(0.85, 0.7, 0.3)
 const CELESTE := Color(0.55, 0.85, 1.0)
@@ -77,7 +79,7 @@ var mapa: Array = []
 var tamano: Vector2i
 var transformaciones: Array[Transformacion] = []  # una por eje: el río y, si hay, la lava
 var jugador: Vector2i
-var piedras: Array[Dictionary] = []  # cada una: {"pos": Vector2i, "fija": bool, "flota": bool, "marcada": bool, "variante": int}
+var piedras: Array[Dictionary] = []  # cada una: {"pos": Vector2i, "fija": bool, "flota": bool, "marca": String, "variante": int}; "marca" es "" o la habilidad que la marcó ("reflejo")
 var salida: Vector2i  # dónde está la S del mapa
 var giro := 0  # cuartos de vuelta de la cámara; main.gd lo copia aquí para saber si la puerta calza
 var mirando := Vector2i.UP  # hacia dónde mira el jugador (la casilla que apuntan las habilidades)
@@ -196,7 +198,7 @@ func reiniciar() -> void:
 	_salida_t = DURACION_SALIDA
 	piedras.clear()
 	for p in datos.get("piedras", []):
-		piedras.append({"pos": _vec(p["pos"]), "fija": p.get("fija", false), "flota": false, "marcada": false, "variante": piedras.size()})
+		piedras.append({"pos": _vec(p["pos"]), "fija": p.get("fija", false), "flota": false, "marca": "", "variante": piedras.size()})
 	if espiritual:
 		espiritual = false
 		plano_cambiado.emit(false)
@@ -295,15 +297,17 @@ func cambiar_plano() -> void:
 	_accion()
 
 
-## Marca (o desmarca) para la transformación la piedra que el jugador tiene enfrente.
-## Solo las piedras marcadas aparecen transformadas en el plano espiritual.
-func marcar_enfrente() -> bool:
+## Le pone a la piedra que el jugador tiene enfrente la marca de una habilidad ("reflejo").
+## Una piedra lleva una sola marca: si ya tenía esa, se la quita; si tenía otra, se cambia por la nueva.
+## Solo aparece transformada en el plano espiritual por las transformaciones de su marca.
+func marcar_enfrente(marca := "reflejo") -> bool:
 	var i := piedra_en(jugador + mirando)
 	if i < 0:
 		return false
-	piedras[i]["marcada"] = not piedras[i]["marcada"]
-	# Marcar: una nota cristalina. Desmarcar: la misma, más baja y suave.
-	Sonido.tocar("reflejo", 0.0 if piedras[i]["marcada"] else -8.0, 1.0 if piedras[i]["marcada"] else 0.84)
+	var puesta: bool = piedras[i]["marca"] != marca
+	piedras[i]["marca"] = marca if puesta else ""
+	# Marcar: una nota cristalina. Desmarcar: la misma, más baja y suave. El sonido se llama como la marca.
+	Sonido.tocar(marca, 0.0 if puesta else -8.0, 1.0 if puesta else 0.84)
 	piedras[i]["t_marca"] = 0.0  # el anillo aparece con un salto y el reflejo viaja
 	pasos += 1
 	queue_redraw()
@@ -404,10 +408,9 @@ func piedra_en(c: Vector2i) -> int:
 ## ¿Hay en esta casilla la imagen espiritual de alguna piedra?
 func imagen_en(c: Vector2i) -> bool:
 	for p in piedras:
-		if p["marcada"]:
-			for t in transformaciones:
-				if t.aplicar(p["pos"]) == c:
-					return true
+		for t in transformaciones:
+			if p["marca"] != "" and p["marca"] == t.marca and t.aplicar(p["pos"]) == c:
+				return true
 	return false
 
 
@@ -517,14 +520,16 @@ func _draw() -> void:
 			# Los objetos pasan a ser translúcidos y celestes: la silueta blanca del sprite, teñida.
 			var r_fantasma := Rect2(centro - Vector2.ONE * TAM * 0.5, Vector2.ONE * TAM)
 			draw_texture_rect(_silueta(_tex_piedra(p)), r_fantasma, false, Color(CELESTE, 0.3))
-			if p["marcada"]:
-				# El reflejo viaja en línea recta desde la piedra, cruzando el eje en ángulo recto.
+			if p["marca"] != "":
+				# El reflejo viaja en línea recta desde la piedra, cruzando el eje en ángulo recto (ver "viaje").
 				# Al traspasar, el viaje empieza cuando la mancha ya casi pasó, para que se vea bien.
 				var viaje := minf(_t_plano - DURACION_MANCHA * 0.8, p.get("t_marca", 9.0))
 				var k := ease(clampf(viaje / DURACION_REFLEJO, 0.0, 1.0), 0.4)  # sale rápido y frena al llegar
-				for t in transformaciones:  # un reflejo por cada eje
+				for t in transformaciones:  # una imagen por cada transformación de su marca (un reflejo por cada eje)
+					if t.marca != p["marca"]:
+						continue
 					var imagen := _centro(t.aplicar(p["pos"]))
-					var r_imagen := Rect2(centro.lerp(imagen, k) - Vector2.ONE * TAM * 0.5, Vector2.ONE * TAM)
+					var r_imagen := Rect2(t.viaje(centro, imagen, k) - Vector2.ONE * TAM * 0.5, Vector2.ONE * TAM)
 					draw_texture_rect(_silueta(_tex_piedra(p)), r_imagen, false, Color(CELESTE, 0.3 + 0.55 * k))
 			continue
 		var escala := 1.18 if p["flota"] else 1.0  # una piedra en el agua se ve un poco más grande
@@ -533,12 +538,12 @@ func _draw() -> void:
 		# Hundida en la lava se tiñe de rojo, como si se mezclara con ella.
 		var hundida: bool = p["flota"] and celda(p["pos"]) == "^"
 		draw_texture_rect(_tex_piedra(p), r, false, Color(1, 0.55, 0.4) if hundida else Color.WHITE)
-		if p["marcada"]:
+		if p["marca"] != "":
 			var salto := 1.0 + 0.35 * maxf(0.0, 1.0 - p.get("t_marca", 1.0) / 0.25)  # aparece grande y se asienta
-			draw_texture_rect(TEX_ANILLO_REFLEJO, Rect2(centro - r.size * salto * 0.5, r.size * salto), false)
+			draw_texture_rect(TEX_ANILLO[p["marca"]], Rect2(centro - r.size * salto * 0.5, r.size * salto), false)
 	if not espiritual and tutorial_piedra.x >= 0:
 		var i := piedra_en(tutorial_piedra)
-		if i >= 0 and not piedras[i]["marcada"]:
+		if i >= 0 and piedras[i]["marca"] == "":
 			var k := 0.5 + 0.5 * sin(_t * TAU / 1.1)  # pulso de tamaño y brillo
 			var c: Vector2 = piedras[i].get("vis", _centro(tutorial_piedra))
 			draw_circle(c, TAM * (0.55 + 0.2 * k), Color(1, 0.85, 0.4, 0.15 + 0.25 * k))

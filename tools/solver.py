@@ -18,14 +18,20 @@ def cargar(ruta):
             s.setdefault("habilidades", t["habilidades"])
     return s
 
-def refl(eje, v, x, y):
-    return {"horizontal": (x, 2*v-y), "vertical": (2*v-x, y),
-            "diagonal": (y-v, x+v), "antidiagonal": (v-y, v-x)}[eje]
+# Cada transformación del "plano_espiritual": dónde cae la imagen de (x, y), como aplicar() en el juego.
+def imagen(t, x, y):
+    if t["tipo"] == "reflexion":
+        v = t["valor"]
+        return {"horizontal": (x, 2*v-y), "vertical": (2*v-x, y),
+                "diagonal": (y-v, x+v), "antidiagonal": (v-y, v-x)}[t["eje"]]
+    raise ValueError("transformación desconocida: %s" % t)
+
+MARCA = {"reflexion": "reflejo"}  # la marca (habilidad) que activa cada tipo de transformación
+LETRA = {"R": "reflejo"}  # la letra de la "solucion" de cada habilidad que marca
 
 def grafo(s, prohibidas=""):
     m = s["mapa"]; W, H = len(m[0]), len(m)
     pe = s["plano_espiritual"]; pe = pe if isinstance(pe, list) else [pe]
-    ejes = [(t["eje"], t["valor"]) for t in pe]
     hab = s.get("habilidades", ["traspasar", "reflejo"])
     cel = lambda x, y: "#" if x < 0 or y < 0 or x >= W or y >= H else m[y][x]
     def en(st, x, y):
@@ -44,14 +50,14 @@ def grafo(s, prohibidas=""):
         if t == "#" or (t == "S" and not abierta(g)): return False
         if esp:
             if t == "^": return False
-            return any(p[4] and refl(e, v, p[0], p[1]) == (x, y) for p in st for e, v in ejes) or t in ".=S~"
+            return any(p[4] == MARCA[tr["tipo"]] and imagen(tr, p[0], p[1]) == (x, y) for p in st for tr in pe) or t in ".=S~"
         i = en(st, x, y)
         if i >= 0: return st[i][3]
         return t in ".=S"
-    st0 = tuple((p["pos"][0], p["pos"][1], p.get("fija", False), False, False) for p in s.get("piedras", []))
+    st0 = tuple((p["pos"][0], p["pos"][1], p.get("fija", False), False, "") for p in s.get("piedras", []))
     pr = tuple(s["prenda"]["pos"]) if "prenda" in s else None
     ini = (tuple(s["jugador"]), (0, -1), st0, False, pr is None, 0)
-    acc = [a for a in "WSADPTR" + ("QE" if fija else "") if a not in prohibidas]
+    acc = [a for a in "WSADPT" + "".join(LETRA) + ("QE" if fija else "") if a not in prohibidas]
     def vecinos(e):  # cada acción posible desde el estado e: (acción, estado nuevo, ¿llega a la salida?)
         (px, py), mir, st, esp, tom, g = e
         for a in acc:
@@ -75,11 +81,11 @@ def grafo(s, prohibidas=""):
                 if "traspasar" not in hab: continue
                 if esp and not trans(st, False, px, py, g): continue  # caer o no poder volver
                 n = ((px, py), mir, st, not esp, tom, g)
-            elif a == "R":
-                if "reflejo" not in hab or esp: continue
+            elif a in LETRA:  # una piedra lleva una sola marca: la misma la quita, otra la cambia
+                if LETRA[a] not in hab or esp: continue
                 i = en(st, px+mir[0], py+mir[1])
                 if i < 0: continue
-                l = list(st); p = l[i]; l[i] = p[:4] + (not p[4],)
+                l = list(st); p = l[i]; l[i] = p[:4] + ("" if p[4] == LETRA[a] else LETRA[a],)
                 n = ((px, py), mir, tuple(l), esp, tom, g)
             elif a in "QE":
                 n = ((px, py), mir, st, esp, tom, (g + (1 if a == "E" else -1)) % 4)
