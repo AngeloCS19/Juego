@@ -3,10 +3,20 @@
 # Con letras prohibidas (por ejemplo "R", Reflejo) comprueba que la sala NO se resuelva sin esa acción: así se cierran atajos.
 # Con "salida_fija", Q y E giran la cámara: la puerta S solo abre si queda arriba en la pantalla.
 # Si la sala tiene prenda, la solución la recoge (la prenda es opcional en el juego, pero la "solucion" la muestra).
-import json, sys, heapq
+import json, os, sys, heapq
 from collections import deque
 
 D = {"W": (0, -1), "S": (0, 1), "A": (-1, 0), "D": (1, 0)}
+
+# Lee una sala. Si no trae "habilidades", le pone las de su templo (templos.json), como hace sala.gd.
+def cargar(ruta):
+    s = json.load(open(ruta, encoding="utf-8"))
+    nombre = os.path.splitext(os.path.basename(ruta))[0]
+    templos = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "templos.json"), encoding="utf-8"))
+    for t in templos:
+        if nombre in t["salas"]:
+            s.setdefault("habilidades", t["habilidades"])
+    return s
 
 def refl(eje, v, x, y):
     return {"horizontal": (x, 2*v-y), "vertical": (2*v-x, y),
@@ -124,7 +134,7 @@ def ruta_con_velas(s):
     return None, None
 
 if __name__ == "__main__":
-    s = json.load(open(sys.argv[1]))
+    s = cargar(sys.argv[1])
     if sys.argv[2:] == ["--velas"]:
         print(min_traspasos(s) + 2)
     else:

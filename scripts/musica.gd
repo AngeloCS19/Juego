@@ -15,8 +15,6 @@ const PIEZAS := {
 	"jefe_dificil": ["jefe_dificil_base", "jefe_dificil_ocarina", "jefe_dificil_fase3"],
 	"altar": ["altar"],  # el arpegio de la ocarina del jefe, lento y en calma
 }
-## Índice de SALAS (main.gd) desde el que suena cada capa: la pieza se arma a lo largo del templo.
-const DESDE := [0, 10, 16]  # índices de SALAS: las 5 primeras son del templo tutorial
 const SALIDA := 1.5  # segundos que tarda en apagarse una pieza al cambiar a otra
 const CRUCE := 0.6  # segundos que tarda la música en pasar de un plano al otro
 const ENTRADA := 3.0  # segundos que tarda una capa nueva en entrar
@@ -47,9 +45,10 @@ func _crear(ruta: String) -> AudioStreamPlayer:
 	return p
 
 
-## Cuántas capas suenan en la sala "indice" (0 en las salas sin esta música).
-static func capas_en(indice: int) -> int:
-	return DESDE.filter(func(desde): return indice >= desde).size()
+## Cuántas capas suenan en la sala número "posicion" de su templo: la pieza se arma a lo largo del templo.
+## "desde" dice en qué sala entra cada capa ("capas_desde" en templos.json).
+static func capas_en(desde: Array, posicion: int) -> int:
+	return desde.filter(func(d): return posicion >= d).size()
 
 
 ## Toca una pieza de PIEZAS ("" = silencio) con sus primeras "capas" capas.
