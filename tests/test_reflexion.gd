@@ -22,7 +22,11 @@ func _init() -> void:
 		_igual(r.aplicar(r.aplicar(p)), p, "%s: reflejar dos veces vuelve al inicio" % eje)
 
 	# Música: la pieza del templo se arma por capas, y cada capa tiene su versión de cada plano.
-	_igual([Musica.capas_en(0), Musica.capas_en(Musica.DESDE[1]), Musica.capas_en(99)], [1, 2, 3], "capas de la música por sala")
+	var rio: Dictionary = Templos.de("res://salas/rio_01.json")
+	_igual([0, 5, 99].map(func(i): return Musica.capas_en(rio["capas_desde"], i)), [1, 2, 3], "capas de la música por sala")
+	# Templos: cada sala de salas/ está en un templo, y una sala sin "habilidades" tiene las de su templo.
+	_igual(Templos.rutas().size(), DirAccess.get_files_at("res://salas").size(), "todas las salas están en templos.json")
+	_igual(Sala.desde_archivo(Templos.rutas()[5]).habilidades(), ["traspasar", "reflejo"], "habilidades del templo")
 	for pieza in Musica.PIEZAS:
 		for capa in Musica.PIEZAS[pieza]:
 			for plano in ["normal", "espiritual"]:
@@ -168,7 +172,7 @@ func _jugar(ruta: String, secuencia: String) -> Dictionary:
 	var sala := Sala.desde_archivo("res://salas/" + ruta)
 	var lista: Array[Habilidad] = [Traspasar.new(), Reflejo.new()]
 	var barra := BarraHabilidades.new(lista)
-	barra.configurar(sala.datos.get("habilidades", ["traspasar", "reflejo"]))
+	barra.configurar(sala.habilidades())
 	var resultado := {"sala": sala, "barra": barra, "completada": false}
 	sala.completada.connect(func(): resultado["completada"] = true)
 	var pasos := {"W": Vector2i.UP, "S": Vector2i.DOWN, "A": Vector2i.LEFT, "D": Vector2i.RIGHT}

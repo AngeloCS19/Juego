@@ -1,36 +1,7 @@
 extends Node2D
 ## Punto de entrada: carga las salas en orden, lee los controles y gira la cámara.
 
-const SALAS := [
-	"res://salas/tutorial_caminar.json",  # templo tutorial: un control por sala
-	"res://salas/tutorial_empujar.json",
-	"res://salas/tutorial_reiniciar.json",
-	"res://salas/tutorial_girar.json",
-	"res://salas/rio_00.json",
-	"res://salas/rio_01.json",
-	"res://salas/rio_02.json",
-	"res://salas/rio_03.json",
-	"res://salas/rio_04.json",
-	"res://salas/rio_05.json",
-	"res://salas/rio_06.json",
-	"res://salas/rio_07.json",
-	"res://salas/rio_08.json",
-	"res://salas/rio_12.json",
-	"res://salas/rio_09.json",
-	"res://salas/rio_10.json",
-	"res://salas/rio_11.json",
-	"res://salas/rio_13.json",
-	"res://salas/rio_14.json",
-	"res://salas/rio_15.json",
-	"res://salas/rio_16.json",
-	"res://salas/rio_17.json",
-	"res://salas/rio_18.json",
-	"res://salas/rio_jefe.json",
-	"res://salas/rio_huida_1.json",
-	"res://salas/rio_huida_2.json",
-	"res://salas/rio_huida_3.json",
-	"res://salas/rio_altar.json",
-]
+var rutas := Templos.rutas()  # todas las salas en orden; el orden lo da templos.json
 const FONDO_NORMAL := Color(0.11, 0.08, 0.06)
 const RETRATOS_PERSONAJE := [  # mismo orden que Sala.TEX_PERSONAJES
 	preload("res://assets/retratos/personaje_nino.svg"),
@@ -186,7 +157,7 @@ func _crear_controles_tactiles() -> void:
 func _glifo() -> String:
 	var t: Dictionary = sala.datos.get("tutorial", {})
 	var g: String = "usar" if t.get("aviso_usar", false) else t.get("glifo", "")
-	if g == "" or _tutorial_hecho.has(SALAS[indice]) or _menu.visible or _dialogo.visible:
+	if g == "" or _tutorial_hecho.has(rutas[indice]) or _menu.visible or _dialogo.visible:
 		return ""
 	match g:
 		"empujar":
@@ -307,8 +278,8 @@ func _crear_menu_debug() -> MenuButton:
 	lista.add_check_item("Botones táctiles", ID_TACTIL)
 	lista.set_item_checked(lista.get_item_index(ID_TACTIL), _tactil)
 	lista.add_separator()
-	for i in SALAS.size():
-		var datos: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SALAS[i]))
+	for i in rutas.size():
+		var datos: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(rutas[i]))
 		lista.add_item("Sala %d · %s" % [i + 1, datos["nombre"]], i)
 	lista.id_pressed.connect(_on_menu_debug.bind(lista))
 	return menu
@@ -449,7 +420,7 @@ func _actualizar_espejo() -> void:
 func _cargar_sala() -> void:
 	if sala:
 		sala.queue_free()
-	sala = Sala.desde_archivo(SALAS[indice])
+	sala = Sala.desde_archivo(rutas[indice])
 	sala.position = -Vector2(sala.tamano) * Sala.TAM / 2  # centra la sala en el pivote
 	if sala.datos.get("salida_fija", false):  # la sala empieza como se diseñó: la puerta no calza todavía
 		if _tween_giro:
@@ -473,8 +444,7 @@ func _cargar_sala() -> void:
 	if sala is SalaAltar:
 		sala.usar_prendas(prendas)
 		sala.descanso.connect(func(): _hablar(sala.datos.get("dialogo_final", [])))
-	var todas := ["traspasar", "reflejo"]
-	barra.configurar(todas if _todas_habilidades else sala.datos.get("habilidades", todas))
+	barra.configurar(barra.habilidades.map(func(h): return h.nombre.to_lower()) if _todas_habilidades else sala.habilidades())
 	_iniciar_tutorial()
 	_mostrar_botones()
 	_elegir_musica()
@@ -491,7 +461,7 @@ func _elegir_musica() -> void:
 	elif sala is SalaAltar:
 		musica.tocar("altar")
 	else:
-		musica.tocar("templo", Musica.capas_en(indice))
+		musica.tocar("templo", Musica.capas_en(Templos.de(rutas[indice])["capas_desde"], Templos.posicion(rutas[indice])))
 
 
 ## Tutorial solo visual: la sala dice en "tutorial" qué habilidad brilla (y, si hace falta, en qué piedra).
@@ -500,7 +470,7 @@ func _iniciar_tutorial() -> void:
 	for h in barra.habilidades:
 		barra.pulsar(h.nombre, false)
 	var t: Dictionary = sala.datos.get("tutorial", {})
-	if not t.has("habilidad") or _tutorial_hecho.has(SALAS[indice]):
+	if not t.has("habilidad") or _tutorial_hecho.has(rutas[indice]):
 		return
 	barra.pulsar(t["habilidad"], true)
 	if t.has("piedra"):
@@ -509,7 +479,7 @@ func _iniciar_tutorial() -> void:
 
 func _vigilar_tutorial() -> void:
 	var t: Dictionary = sala.datos.get("tutorial", {})
-	if t.is_empty() or _tutorial_hecho.has(SALAS[indice]):
+	if t.is_empty() or _tutorial_hecho.has(rutas[indice]):
 		return
 	var hecho := false
 	match t.get("glifo", t.get("habilidad")):
@@ -523,7 +493,7 @@ func _vigilar_tutorial() -> void:
 		"empujar":  # alguna piedra ya no está donde empezó
 			hecho = range(sala.piedras.size()).any(func(i): return sala.piedras[i]["pos"] != Vector2i(sala.datos["piedras"][i]["pos"][0], sala.datos["piedras"][i]["pos"][1]))
 	if hecho:
-		_tutorial_hecho[SALAS[indice]] = true
+		_tutorial_hecho[rutas[indice]] = true
 		if t.has("habilidad"):
 			barra.pulsar(t["habilidad"], false)
 		sala.tutorial_piedra = Vector2i(-1, -1)
@@ -711,7 +681,7 @@ func _seguir() -> void:
 
 func _menu_inicio() -> void:
 	var opciones := []
-	if indice >= SALAS.size():  # templo terminado: no hay sala a la cual volver
+	if indice >= rutas.size():  # templo terminado: no hay sala a la cual volver
 		opciones.append(["Empezar de nuevo", _nueva_partida])
 	elif _empezada:
 		opciones.append(["Continuar", _seguir])
@@ -745,11 +715,7 @@ func _menu_derrota(motivo: String) -> void:
 
 func _nueva_partida() -> void:
 	indice = 0
-	prendas.clear()
-	velas_encendidas = 0
-	velas_posibles = 0
-	tiempos.clear()
-	cercanias.clear()
+	_borrar_cuenta()
 	set_process_unhandled_input(true)  # por si ya se había terminado el templo
 	_cargar_sala()
 	_seguir()
@@ -824,33 +790,45 @@ func _on_sala_completada() -> void:
 		tiempos.append(sala.tiempo)
 	if sala.datos.has("pasos"):
 		cercanias.append(minf(1.0, float(sala.datos["pasos"]) / maxi(1, sala.pasos)))
+	var templo := Templos.de(rutas[indice])
 	indice += 1
-	if sala.datos.has("fin_templo"):
-		_fin_tutorial()
-	elif indice < SALAS.size():
-		_pasar_de_sala()
+	if indice >= rutas.size() or Templos.de(rutas[indice]) != templo:
+		_fin_templo(templo)
 	else:
-		# Fin del templo: velas, prendas, tiempo y nota. La nota sale de las velas y las prendas
-		# (cada prenda vale como una sala perfecta: sin liberar a Narciso no hay S). El tiempo se
-		# muestra, pero no baja la nota, para no castigar al que se detiene a pensar.
-		set_process_unhandled_input(false)
-		var promedio := int(Array(tiempos).reduce(func(a, b): return a + b, 0.0) / maxi(1, tiempos.size()))
-		var total_prendas := Sala.TEX_PRENDA.size()
-		var puntos := velas_encendidas + 2 * prendas.size()
-		var texto := "Velas encendidas: %d de %d\nPrendas de Narciso: %d de %d\nTiempo promedio por sala: %d:%02d\n%s\nNota: %s" % [velas_encendidas, velas_posibles, prendas.size(), total_prendas, promedio / 60, promedio % 60, _texto_pasos(), nota(puntos, velas_posibles + 2 * total_prendas) + marca_pasos(cercanias)]
-		_abrir("Templo del Río completado", texto, [["Menú inicial", _menu_inicio]])
+		_pasar_de_sala()
 
 
-## Fin del templo tutorial: la misma cuenta que al final del río, para que el jugador vea para qué
-## eran las velas. Después se borra: el tutorial no cuenta en la nota del Templo del Río.
-func _fin_tutorial() -> void:
+## Fin de un templo: velas, coleccionables, tiempo y nota. La nota sale de las velas y de los
+## coleccionables (cada prenda vale como una sala perfecta: sin liberar a Narciso no hay S). El tiempo
+## se muestra, pero no baja la nota, para no castigar al que se detiene a pensar.
+## Después la cuenta vuelve a cero: cada templo tiene su propia nota.
+func _fin_templo(templo: Dictionary) -> void:
 	var promedio := int(Array(tiempos).reduce(func(a, b): return a + b, 0.0) / maxi(1, tiempos.size()))
-	var texto := "Velas encendidas: %d de %d\nTiempo promedio por sala: %d:%02d\n%s\nNota: %s" % [velas_encendidas, velas_posibles, promedio / 60, promedio % 60, _texto_pasos(), nota(velas_encendidas, velas_posibles) + marca_pasos(cercanias)]
+	var lineas := ["Velas encendidas: %d de %d" % [velas_encendidas, velas_posibles]]
+	var puntos := velas_encendidas
+	var posibles := velas_posibles
+	if templo.has("coleccionables"):
+		var total := Sala.TEX_PRENDA.size()
+		lineas.append("%s: %d de %d" % [templo["coleccionables"], prendas.size(), total])
+		puntos += 2 * prendas.size()
+		posibles += 2 * total
+	lineas.append("Tiempo promedio por sala: %d:%02d" % [promedio / 60, promedio % 60])
+	lineas.append(_texto_pasos())
+	lineas.append("Nota: " + nota(puntos, posibles) + marca_pasos(cercanias))
+	_borrar_cuenta()
+	var opciones := [["Seguir", func(): _menu.hide(); _pasar_de_sala()]]
+	if indice >= rutas.size():  # era el último templo: no hay sala a la cual seguir
+		set_process_unhandled_input(false)
+		opciones = [["Menú inicial", _menu_inicio]]
+	_abrir(templo["nombre"] + " completado", "\n".join(lineas), opciones)
+
+
+func _borrar_cuenta() -> void:
+	prendas.clear()
 	velas_encendidas = 0
 	velas_posibles = 0
 	tiempos.clear()
 	cercanias.clear()
-	_abrir(sala.datos["fin_templo"] + " completado", texto, [["Seguir", func(): _menu.hide(); _pasar_de_sala()]])
 
 
 ## La nota del templo, tipo Cuphead: S si en todas las salas se usó Traspasar lo mínimo y se recogieron las prendas.

@@ -1,0 +1,19 @@
+[
+	{
+		"nombre": "Tutorial",
+		"habilidades": ["traspasar"],
+		"capas_desde": [0],
+		"salas": ["tutorial_caminar", "tutorial_empujar", "tutorial_reiniciar", "tutorial_girar", "rio_00"]
+	},
+	{
+		"nombre": "Templo del Río",
+		"habilidades": ["traspasar", "reflejo"],
+		"coleccionables": "Prendas de Narciso",
+		"capas_desde": [0, 5, 11],
+		"salas": [
+			"rio_01", "rio_02", "rio_03", "rio_04", "rio_05", "rio_06", "rio_07", "rio_08", "rio_12", "rio_09",
+			"rio_10", "rio_11", "rio_13", "rio_14", "rio_15", "rio_16", "rio_17", "rio_18",
+			"rio_jefe", "rio_huida_1", "rio_huida_2", "rio_huida_3", "rio_altar"
+		]
+	}
+]

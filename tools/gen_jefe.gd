@@ -13,7 +13,7 @@ func _init() -> void:
 	sala = Sala.desde_archivo(ruta)
 	var lista: Array[Habilidad] = [Traspasar.new(), Reflejo.new()]
 	barra = BarraHabilidades.new(lista)
-	barra.configurar(["traspasar", "reflejo"])
+	barra.configurar(sala.habilidades())
 	sala.completada.connect(func(): fin = true)
 	sala.derrota.connect(func(): printerr("DERROTA en ", letras))
 	var vueltas := 0

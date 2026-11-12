@@ -72,6 +72,7 @@ const DURACION_MANCHA := 0.5  # la mancha de tinta que se expande al Traspasar
 const DURACION_HUMO := 1.2  # el humo de la vela que se acaba de apagar
 
 var datos: Dictionary
+var ruta := ""  # el archivo de la sala: dice de qué templo es
 var mapa: Array = []
 var tamano: Vector2i
 var transformaciones: Array[Transformacion] = []  # una por eje: el río y, si hay, la lava
@@ -121,6 +122,7 @@ static func desde_archivo(ruta: String) -> Sala:
 			nueva = SalaAltar.new()
 		_:
 			nueva = Sala.new()
+	nueva.ruta = ruta
 	nueva.cargar(ruta)
 	return nueva
 
@@ -128,6 +130,11 @@ static func desde_archivo(ruta: String) -> Sala:
 func cargar(ruta: String) -> void:
 	datos = JSON.parse_string(FileAccess.get_file_as_string(ruta))
 	_preparar()
+
+
+## Las habilidades que el jugador tiene en esta sala: las de su templo, salvo que la sala diga otras.
+func habilidades() -> Array:
+	return datos.get("habilidades", Templos.de(ruta)["habilidades"])
 
 
 ## Lee de "datos" el mapa y los ejes, y deja la sala en su estado inicial.

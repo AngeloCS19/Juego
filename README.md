@@ -1,6 +1,6 @@
 # Juego Didáctico
 
-Juego de puzzles con vista cenital donde se aprende matemática sin darse cuenta. El jugador cambia entre el plano normal y un plano espiritual que transforma los objetos sagrados. Cada templo enseña una transformación del plano (programa del MEP, 8.º año). El juego se llama **Espejismo**. El primero es el **Templo del Río**: reflexión respecto a un eje.
+Juego de puzzles con vista cenital donde se aprende matemática sin darse cuenta. El jugador cambia entre el plano normal y un plano espiritual que transforma los objetos sagrados. Cada templo enseña una transformación del plano (programa del MEP: la homotecia es de 8.º año; la reflexión, la rotación, la traslación y sus combinaciones, de 11.º). El juego se llama **Espejismo**. El primero es el **Templo del Río**: reflexión respecto a un eje.
 
 ## Cómo abrirlo
 
@@ -57,7 +57,9 @@ Al jugar desde el editor (F5) aparece arriba a la derecha un botón rojo **Debug
 
 ```
 main.tscn                 Escena principal (los nodos)
-scripts/main.gd           Controles (teclado y táctiles), cámara y orden de las salas
+templos.json              Los templos: sus salas en orden, habilidades y música
+scripts/templos.gd        Lee templos.json
+scripts/main.gd           Controles (teclado y táctiles), cámara y paso de una sala a otra
 scripts/sala.gd           Reglas de una sala y cómo se dibuja
 scripts/sala_jefe.gd      Narciso, el jefe (extiende Sala)
 scripts/sala_huida.gd     Los tramos de la huida (extiende Sala)
@@ -163,7 +165,7 @@ Las reglas cambian al instante; las animaciones solo cambian el **dibujo**. Así
 
 La música del Templo del Río es de ocarina y marimba, con tres motivos que se alternan (unos 65 s antes de repetirse). Las decisiones de Angelo están en `docs/arte.md`.
 
-- **Capas.** La pieza viene separada en marimba, bajo y ocarina, y se arma a lo largo del templo: al inicio solo suena la marimba, el bajo entra en la sala 11 y la ocarina en la 17 (las 5 primeras son del templo tutorial) (`Musica.DESDE`, índices de `SALAS`). Una capa nueva entra despacio (`ENTRADA`, 3 s).
+- **Capas.** La pieza viene separada en marimba, bajo y ocarina, y se arma a lo largo del templo: al inicio solo suena la marimba, el bajo entra en la sala 6 del Templo del Río y la ocarina en la 12 (`capas_desde` en `templos.json`, contando desde 0 dentro de cada templo). Una capa nueva entra despacio (`ENTRADA`, 3 s).
 - **Los dos planos.** Cada capa está grabada dos veces, con el mismo largo: plano normal y plano espiritual (filtrada, con más eco y un brillo cristalino). Los seis `AudioStreamPlayer` empiezan juntos y suenan siempre en sincronía; `musica.gd` solo cambia cuáles se oyen. Al Traspasar se cruza de una versión a la otra en `CRUCE` (0,6 s), así la música no se corta. El cruce mueve el volumen lineal, no los dB, para que a mitad de camino no baje.
 - **Bus de audio.** La música va por su propio bus, `Musica`, y los efectos por `Efectos` (en Godot, un bus es un canal de la mezcla con su propio volumen). Los botones **Música** y **Efectos** del menú pasan cada uno por Alta, Media y Apagada (`Sonido.cambiar_volumen()`).
 - **La huida** tiene su pieza (`PIEZAS["huida"]`): las cuatro melodías que Angelo grabó en flauta dulce (principal y tres variantes, una tras otra, 18 compases a 100 pulsos por minuto), tocadas por la ocarina sobre arpegios y tambor. Cada nota se ataca y solo la anacrusa va ligada. Como los tres tramos piden la misma pieza, `tocar()` no la vuelve a empezar al pasar de un tramo a otro. Al cambiar de pieza, la anterior se apaga en `SALIDA` (1,5 s).
@@ -199,7 +201,7 @@ El eje pasa por el centro de una fila o columna de casillas. Con un eje horizont
 
 Regla de diseño: **una mecánica nueva por sala**, presentada sin texto de tutorial; las salas siguientes la combinan. Nada de "plataformas" visuales que regalen la respuesta: el jugador debe razonar dónde cae el reflejo.
 
-La tabla sigue el orden del juego, que lo decide la lista `SALAS` de `main.gd` y no el número del archivo.
+La tabla sigue el orden del juego, que lo decide `templos.json` y no el número del archivo.
 
 | Sala | Archivo | Qué enseña |
 |---|---|---|
@@ -208,7 +210,7 @@ La tabla sigue el orden del juego, que lo decide la lista `SALAS` de `main.gd` y
 | La piedra en el camino | `tutorial_empujar.json` | Empujar: mirar la piedra y sostener la dirección. |
 | Volver a empezar | `tutorial_reiniciar.json` | Reiniciar: si se empuja la piedra recto, queda atascada frente al espejo. |
 | La puerta que gira | `tutorial_girar.json` | Girar la cámara (Q / E) hasta que la puerta calce con el espejo. |
-| Cruzar el río | `rio_00.json` | Solo Traspasar: en el plano espiritual el agua se cruza. Al traspasar se apaga una vela. Cierra el templo tutorial con su cuenta de velas y nota (`fin_templo`). |
+| Cruzar el río | `rio_00.json` | Solo Traspasar: en el plano espiritual el agua se cruza. Al traspasar se apaga una vela. Cierra el templo tutorial con su cuenta de velas y nota. |
 | **Templo del Río** | | |
 | El paso celeste | `rio_01.json` | El vacío solo se cruza sobre un reflejo: marcar una piedra fija con Reflejo. |
 | Dos piedras | `rio_02.json` | Reflejar más de una piedra para armar el camino. |
@@ -238,7 +240,7 @@ El Templo del Río está completo, de "Cruzar el río" al altar. Siguiente paso:
 
 1. Angelo suele mandar un boceto de pizarra (S salida, I inicio, negro vacío, azul río, rojo lava, círculo verde piedra).
 2. Se pasa a JSON y se resuelve con `python3 tools/solver.py sala.json`. Con letras prohibidas (`... sala.json R`) se comprueba que sin esa acción **no** haya solución: si la hay, la sala tiene un atajo y no enseña su idea.
-3. `python tools/actualizar.py` pone su `solucion`, `pasos` y `velas` (y los de todas las salas que cambiaron), sin tocar lo demás del archivo; se corre cada vez que se crea o cambia una sala. La `solucion` es la más corta entre las que entran al plano espiritual lo mínimo; `pasos` es el camino más corto sin esa condición. Después la sala se agrega a `SALAS`. (`formatear.py boceto.json salas/rio_nn.json` hace lo mismo y además ordena el archivo, pero solo conoce los campos comunes.)
+3. `python tools/actualizar.py` pone su `solucion`, `pasos` y `velas` (y los de todas las salas que cambiaron), sin tocar lo demás del archivo; se corre cada vez que se crea o cambia una sala. La `solucion` es la más corta entre las que entran al plano espiritual lo mínimo; `pasos` es el camino más corto sin esa condición. Después la sala se agrega a su templo en `templos.json`. (`formatear.py boceto.json salas/rio_nn.json` hace lo mismo y además ordena el archivo, pero solo conoce los campos comunes.)
 4. Reglas de forma: la lava separada del agua y del vacío por muros; cada eje con al menos dos casillas de río o lava, para que se lea como una recta.
 
 ## El jefe: Narciso (`sala_jefe.gd`)
@@ -284,18 +286,17 @@ v  vacío     S  salida    ^  lava
 - `jugador`: casilla inicial `[x, y]` (empezando en 0, desde la esquina de arriba a la izquierda).
 - `plano_espiritual`: qué transformación aplica. Por ahora `"tipo": "reflexion"` con `"eje"` (`horizontal`, `vertical`, `diagonal`, `antidiagonal`) y `"valor"`. Si la sala tiene dos ejes, va una lista con una transformación por eje (mira `rio_10.json`).
 - `piedras`: posición de cada piedra; `"fija": true` si no se puede empujar.
-- `habilidades` (opcional): qué habilidades tiene el jugador en esa sala, por ejemplo `["traspasar"]`. Si no aparece, tiene todas.
+- `habilidades` (opcional): qué habilidades tiene el jugador en esa sala, por ejemplo `["traspasar"]`. Si no aparece, tiene las de su templo (`habilidades` en `templos.json`).
 - `prenda` (opcional): una prenda de Narciso, `{ "nombre": "sandalias", "pos": [x, y] }`. Solo se ve y se recoge en el plano espiritual. Es opcional: la salida está abierta aunque no se recoja. Nombres: `sandalias`, `cinto`, `tunica`, `corona`.
 - `velas` (opcional): cuántas velas hay, el mínimo de traspasos más 2. La pone `actualizar.py`; si la sala no necesita Traspasar, no lleva velas.
 - `pasos`: el largo del camino más corto, para la marca de pasos de la nota. Lo pone `actualizar.py`.
 - `tipo` (opcional): `"jefe"`, `"huida"` o `"altar"` para las salas de Narciso; cada una tiene sus propias claves (ver arriba). Sin `tipo` es una sala de puzzle.
 - `exterior` (opcional): `true` dibuja el piso como pasto, para las salas al aire libre.
 - `estilo` (opcional): la estética del templo, por ejemplo `"tutorial"`. Cambia el muro, el piso y la salida por los de `TEX_ESTILO`; con `"tutorial"` también el sonido de salida (`puerta.ogg`) y la cortina entre salas (una puerta doble café que se cierra de golpe en el centro, `Cortina.puerta`; el golpe de `puerta.ogg` cae justo cuando chocan las hojas) en `sala.gd`; sin `estilo` se usan los del Templo del Río. Un templo nuevo agrega ahí su par de sprites.
-- `fin_templo` (opcional): nombre del templo que termina en esta sala, por ejemplo `"Tutorial"`. Al salir se muestran sus velas, tiempo y nota (`_fin_tutorial()`), y la cuenta vuelve a cero: el tutorial no cuenta en la nota del Templo del Río.
 - `salida_fija` (opcional): `true` convierte la `S` en una puerta del muro de afuera, que solo abre al girar la cámara hasta dejarla arriba (ver las reglas de la sala). Mira `tutorial_girar.json`.
 - `solucion`: una secuencia de teclas que la resuelve: W arriba, S abajo, A izquierda, D derecha, P empujar, T usar Traspasar, R usar Reflejo, Q y E girar la cámara (antihorario y horario). Las pruebas la usan para comprobar que la sala tiene solución. Ojo: en el mapa la `S` es la salida; en la `solucion` es abajo.
 
-Después agrega la ruta del archivo a la lista `SALAS` en `scripts/main.gd`.
+Después agrega el nombre del archivo (sin `.json`) a la lista `salas` de su templo en `templos.json`.
 
 ## Controles táctiles (en `main.gd`)
 
@@ -323,6 +324,20 @@ El jugador tiene una hotbar de habilidades y solo una está activa a la vez (con
 - `Reflejo` marca o desmarca la piedra que el jugador tiene enfrente (`sala.marcar_enfrente()`).
 
 Para agregar una habilidad nueva: crea un archivo en `scripts/habilidades/` que extienda `Habilidad`, implementa `usar()` (y `en_curso()` si dura en el tiempo) y agrégala a esa lista.
+
+## Los templos (`templos.json`)
+
+El juego es una lista de templos, y cada templo una lista de salas. `templos.json` (en la raíz del proyecto) lo dice todo; `scripts/templos.gd` lo lee:
+
+- `nombre`: el título de la ventana que aparece al terminarlo ("Templo del Río completado").
+- `salas`: sus salas en orden, con el nombre del archivo de `salas/` sin `.json`.
+- `habilidades`: las que el jugador tiene en las salas de ese templo. Así una habilidad de un templo nuevo no aparece en los anteriores.
+- `capas_desde`: en qué sala del templo entra cada capa de la música (la primera sala es la 0).
+- `coleccionables` (opcional): cómo se llaman sus objetos opcionales ("Prendas de Narciso"). Si está, cuentan en la nota.
+
+Al salir de la última sala de un templo, `_fin_templo()` en `main.gd` muestra sus velas, coleccionables, tiempo y nota, y pone la cuenta en cero: cada templo tiene su propia nota. Si hay otro templo, el botón es **Seguir**; si era el último, **Menú inicial**.
+
+Para agregar un templo: un bloque nuevo en `templos.json` con sus salas. El plan de los templos que siguen (rotación, traslación, homotecia y uno final que las combina) está en el [plan de expansión](https://claude.ai/artifact/R3JdN6KveyBxDeQYqTj6oA).
 
 ## Cómo crecerá a otros templos
 

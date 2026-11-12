@@ -4,7 +4,7 @@
 # Correrlo después de crear o cambiar una sala. El jefe, la huida y el altar no se tocan (su solución sale de gen_jefe.gd).
 import glob, json, os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from solver import resolver, ruta_con_velas
+from solver import cargar, resolver, ruta_con_velas
 
 def poner(texto, campo, valor):  # cambia el campo si está; si no, lo agrega antes de "solucion" (o al final)
     linea = '\t"%s": %s' % (campo, valor)
@@ -21,7 +21,7 @@ errores = 0
 for ruta in sys.argv[1:] or sorted(glob.glob(os.path.join(os.path.dirname(__file__), "..", "salas", "*.json"))):
     nombre = os.path.basename(ruta)
     texto = open(ruta, encoding="utf-8").read()
-    sala = json.loads(texto)
+    sala = cargar(ruta)
     if "tipo" in sala:
         continue
     sol, entradas = ruta_con_velas(sala)
