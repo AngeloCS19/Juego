@@ -49,6 +49,12 @@ const TEX_ESTILO := {  # "estilo" de la sala: cada templo cambia su muro y su pi
 		".": preload("res://assets/sprites/piso_tutorial.svg"),
 		"S": preload("res://assets/sprites/puerta_madera.svg"),
 	},
+	"trapiche": {  # el taller de carretas: cal con zócalo añil, ladrillo, y la bocina de la rueda como altar
+		"#": preload("res://assets/sprites/muro_trapiche.svg"),
+		".": preload("res://assets/sprites/piso_trapiche.svg"),
+		"S": preload("res://assets/sprites/puerta_madera.svg"),
+		"O": preload("res://assets/sprites/bocina.svg"),
+	},
 }
 const TEX_PRENDA := {
 	"sandalias": preload("res://assets/sprites/prenda_sandalias.svg"),
@@ -496,23 +502,22 @@ func _tex_piedra(p: Dictionary) -> Texture2D:
 func _draw() -> void:
 	for y in tamano.y:
 		for x in tamano.x:
-			var c := Vector2i(x, y)
-			if espiritual:
-				_dibujar_casilla_espiritual(c)
-			else:
-				var casillas: Dictionary = TEX_ESTILO.get(datos.get("estilo", ""), TEX_CASILLA)
-				var piso: Texture2D = TEX_PASTO if datos.get("exterior", false) else casillas["."]
-				if celda(c) in ["S", "O"]:
-					draw_texture_rect(piso, _rect(c), false)  # el espejo de la salida y el altar no llenan la casilla: debajo va el piso
-				var puerta: bool = celda(c) == "S" and datos.get("salida_fija", false)  # el espejo está afuera: aquí solo hay piso
-				var tex: Texture2D = piso if celda(c) == "." or puerta else casillas.get(celda(c), TEX_CASILLA[celda(c)])
-				draw_texture_rect(tex, _rect(c), false)
-				if puerta:
-					draw_rect(_rect(c), Color(COLOR_SALIDA, 0.3) if puerta_abierta() else Color(0, 0, 0, 0.55))
-				if celda(c) == "~":
-					_animar_agua(c)
-				elif celda(c) == "^":
-					_animar_lava(c)
+			_dibujar_casilla(Vector2i(x, y))
+	# Lo que una transformación pinta en el piso (la rueda del trapiche) va encima del piso y debajo
+	# de todo lo demás: por eso después se vuelven a dibujar las casillas que no son piso.
+	var pintado := false
+	for t in transformaciones:
+		var marcada := piedras.any(func(p): return p["marca"] == t.marca)
+		if t.dibujar_piso(self, TAM, _avance_viaje() if espiritual and marcada else 0.0, espiritual):
+			pintado = true
+	if pintado:
+		for y in tamano.y:
+			for x in tamano.x:
+				var c := Vector2i(x, y)
+				if celda(c) != ".":
+					if espiritual:  # aquí las casillas son transparentes: primero se tapa la pintura con el fondo
+						draw_rect(_rect(c), RenderingServer.get_default_clear_color())
+					_dibujar_casilla(c, false)
 	for t in transformaciones:
 		if espiritual:
 			t.dibujar(self, TAM, tamano, CELESTE)
@@ -528,8 +533,7 @@ func _draw() -> void:
 			if p["marca"] != "":
 				# El reflejo viaja en línea recta desde la piedra, cruzando el eje en ángulo recto (ver "viaje").
 				# Al traspasar, el viaje empieza cuando la mancha ya casi pasó, para que se vea bien.
-				var viaje := minf(_t_plano - DURACION_MANCHA * 0.8, p.get("t_marca", 9.0))
-				var k := ease(clampf(viaje / DURACION_REFLEJO, 0.0, 1.0), 0.4)  # sale rápido y frena al llegar
+				var k := _avance_viaje(p.get("t_marca", 9.0))
 				for t in transformaciones:  # una imagen por cada transformación de su marca (un reflejo por cada eje)
 					if t.marca != p["marca"]:
 						continue
@@ -682,6 +686,34 @@ func _dibujar_mancha() -> void:
 	draw_colored_polygon(borde, Color(color, 0.55 * alfa))
 	borde.append(borde[0])
 	draw_polyline(borde, Color(color.lightened(0.5), 0.9 * alfa), 5.0)
+
+
+## Cuánto han avanzado las imágenes en su viaje al entrar al plano espiritual, de 0 a 1.
+## Empieza cuando la mancha ya casi pasó, para que se vea bien; sale rápido y frena al llegar.
+func _avance_viaje(t_marca := 9.0) -> float:
+	var viaje := minf(_t_plano - DURACION_MANCHA * 0.8, t_marca)
+	return ease(clampf(viaje / DURACION_REFLEJO, 0.0, 1.0), 0.4)
+
+
+## con_piso: el espejo de la salida y el altar no llenan su casilla, y debajo va el piso. La segunda
+## pasada (ver _draw) lo omite para no tapar la rueda pintada.
+func _dibujar_casilla(c: Vector2i, con_piso := true) -> void:
+	if espiritual:
+		_dibujar_casilla_espiritual(c)
+		return
+	var casillas: Dictionary = TEX_ESTILO.get(datos.get("estilo", ""), TEX_CASILLA)
+	var piso: Texture2D = TEX_PASTO if datos.get("exterior", false) else casillas["."]
+	if con_piso and celda(c) in ["S", "O"]:
+		draw_texture_rect(piso, _rect(c), false)
+	var puerta: bool = celda(c) == "S" and datos.get("salida_fija", false)  # el espejo está afuera: aquí solo hay piso
+	var tex: Texture2D = piso if celda(c) == "." or puerta else casillas.get(celda(c), TEX_CASILLA[celda(c)])
+	draw_texture_rect(tex, _rect(c), false)
+	if puerta:
+		draw_rect(_rect(c), Color(COLOR_SALIDA, 0.3) if puerta_abierta() else Color(0, 0, 0, 0.55))
+	if celda(c) == "~":
+		_animar_agua(c)
+	elif celda(c) == "^":
+		_animar_lava(c)
 
 
 ## En el plano espiritual el piso se desvanece y solo queda la cuadrícula.

@@ -5,8 +5,11 @@ extends Transformacion
 ##   "cuartos": cuartos de vuelta en sentido horario (1 = 90°, 2 = 180°, 3 = 270°); negativo, antihorario
 ## En la cuadrícula solo caben cuartos de vuelta: con otro ángulo la imagen no caería en una casilla.
 
+const TEX_RUEDA := preload("res://assets/sprites/rueda_piso.svg")
+
 var centro: Vector2i
 var cuartos: int
+var radio := 0.0  # casillas que mide la rueda pintada en el piso, del centro al borde; 0 = sin rueda
 
 
 func _init(p_centro: Vector2i, p_cuartos: int) -> void:
@@ -28,6 +31,19 @@ func aplicar(c: Vector2i) -> Vector2i:
 func viaje(origen: Vector2, _destino: Vector2, k: float) -> Vector2:
 	var c := (Vector2(centro) + Vector2(0.5, 0.5)) * Sala.TAM
 	return c + (origen - c).rotated(k * cuartos * PI / 2)
+
+
+## La rueda pintada en el piso gira junto con las imágenes: el mismo ángulo, al mismo tiempo.
+## Tiene 16 puntas iguales, así que después de un cuarto de vuelta se ve idéntica.
+## draw_set_transform mueve y gira "la hoja" sobre la que se dibuja; al final se devuelve a su lugar.
+func dibujar_piso(lienzo: CanvasItem, tam: float, k: float, espiritual: bool) -> bool:
+	if radio <= 0.0:
+		return false
+	var r := radio * tam
+	lienzo.draw_set_transform((Vector2(centro) + Vector2(0.5, 0.5)) * tam, k * cuartos * PI / 2)
+	lienzo.draw_texture_rect(TEX_RUEDA, Rect2(-r, -r, r * 2, r * 2), false, Color(0.55, 0.85, 1.0, 0.3) if espiritual else Color(1, 1, 1, 0.6))
+	lienzo.draw_set_transform(Vector2.ZERO)
+	return true
 
 
 ## En el plano espiritual: el ángulo en grande, alrededor del altar.
