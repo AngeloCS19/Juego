@@ -203,7 +203,7 @@ El eje pasa por el centro de una fila o columna de casillas. Con un eje horizont
 
 ### La rotación (`rotacion.gd`)
 
-El centro es la casilla del altar. Si una piedra está `(dx, dy)` casillas a la derecha y abajo del altar, un cuarto de vuelta horario la lleva a `(−dy, dx)`: lo que estaba a la derecha pasa abajo. La distancia al altar no cambia. En la cuadrícula solo caben cuartos de vuelta (90°, 180°, 270°). El altar bloquea siempre, como un muro, y muestra su ángulo tallado como se dibuja en geometría: dos rayos y un arco con flecha (`_angulo()`); en el plano espiritual el mismo dibujo aparece grande y celeste. La imagen no viaja en línea recta sino por el arco (`viaje()`), para que se vea el giro.
+El centro es la casilla del altar. Si una piedra está `(dx, dy)` casillas a la derecha y abajo del altar, un cuarto de vuelta horario la lleva a `(−dy, dx)`: lo que estaba a la derecha pasa abajo. La distancia al altar no cambia. En la cuadrícula solo caben cuartos de vuelta (90°, 180°, 270°). El altar bloquea siempre, como un muro, y muestra su ángulo tallado como se dibuja en geometría: dos rayos y un arco con flecha (`_angulo()`); en el plano espiritual el mismo dibujo aparece grande y celeste. La imagen no viaja en línea recta sino por el arco (`viaje()`), para que se vea el giro. Con `"radio"` (en casillas) la sala lleva además una **rueda de carreta pintada en el piso** alrededor del altar (`rueda_piso.svg`, al estilo de Sarchí): no bloquea, y al Traspasar gira junto con las imágenes, el mismo ángulo y al mismo tiempo (`dibujar_piso()` en `rotacion.gd`). `sala.gd` la pinta encima del piso y vuelve a dibujar después los muros, el vacío y el agua, para que la rueda solo se vea sobre el piso.
 
 ## Diseño de las salas
 
@@ -241,7 +241,7 @@ La tabla sigue el orden del juego, que lo decide `templos.json` y no el número 
 | Narciso (jefe) | `rio_jefe.json` | El jefe del templo: hay que hacer que el reflejo de sus propias piedras caiga donde él está. Tres fases: alinear la columna, ajustar la distancia al eje y un eje vertical. |
 | Huida: el río, el vacío, la lava | `rio_huida_1.json` a `rio_huida_3.json` | Fase 4 del jefe: el templo se derrumba y Narciso persigue al jugador dejando lava. Tres tramos cortos con mecánicas ya conocidas (cruzar agua, cruzar el vacío sobre un reflejo, hundir una piedra en la lava). Cada tramo es un punto de control. |
 | El altar de Narciso | `rio_altar.json` | Afuera, junto a un estanque. El reflejo de la estatua aparece vestido; hay que empujar cada prenda y marcarla para que su reflejo caiga donde el reflejo vestido la muestra. Lo de arriba queda abajo en el reflejo: la corona va arriba de la estatua aunque en el estanque se vea abajo. |
-| **Templo de la Rueda** (en construcción, sin arte propio) | | Rotación alrededor de un altar. |
+| **El Trapiche** (Templo de la Rueda, en construcción) | | Rotación alrededor de la bocina de una rueda de carreta pintada en el piso. Es un taller de carretas de Sarchí. |
 | La rueda | `rueda_01.json` | Giro: marcar una piedra fija. Su imagen aparece a un cuarto de vuelta del altar y tapa el vacío. |
 | Igual de lejos | `rueda_02.json` | La distancia al altar se conserva: hay que alejar la piedra para que su imagen llegue al vacío. |
 | Contra el reloj | `rueda_03.json` | El altar gira hacia el otro lado. La piedra de la izquierda, que antes servía, ahora manda su imagen hacia abajo. |
@@ -297,7 +297,7 @@ O  altar (centro de una rotación)
 ```
 
 - `jugador`: casilla inicial `[x, y]` (empezando en 0, desde la esquina de arriba a la izquierda).
-- `plano_espiritual`: qué transformación aplica. Por ahora `"tipo": "reflexion"` con `"eje"` (`horizontal`, `vertical`, `diagonal`, `antidiagonal`) y `"valor"`. Si la sala tiene dos ejes, va una lista con una transformación por eje (mira `rio_10.json`). Para una rotación: `"tipo": "rotacion"`, `"centro": [x, y]` (la casilla del altar, que en el mapa es una `O`) y `"cuartos"` (cuartos de vuelta en sentido horario: 1, 2 o 3; negativo para antihorario).
+- `plano_espiritual`: qué transformación aplica. Por ahora `"tipo": "reflexion"` con `"eje"` (`horizontal`, `vertical`, `diagonal`, `antidiagonal`) y `"valor"`. Si la sala tiene dos ejes, va una lista con una transformación por eje (mira `rio_10.json`). Para una rotación: `"tipo": "rotacion"`, `"centro": [x, y]` (la casilla del altar, que en el mapa es una `O`) y `"cuartos"` (cuartos de vuelta en sentido horario: 1, 2 o 3; negativo para antihorario) y, opcional, `"radio"` (casillas que mide la rueda pintada en el piso; sin él no hay rueda).
 - `piedras`: posición de cada piedra; `"fija": true` si no se puede empujar.
 - `habilidades` (opcional): qué habilidades tiene el jugador en esa sala, por ejemplo `["traspasar"]`. Si no aparece, tiene las de su templo (`habilidades` en `templos.json`).
 - `prenda` (opcional): una prenda de Narciso, `{ "nombre": "sandalias", "pos": [x, y] }`. Solo se ve y se recoge en el plano espiritual. Es opcional: la salida está abierta aunque no se recoja. Nombres: `sandalias`, `cinto`, `tunica`, `corona`.
@@ -305,7 +305,7 @@ O  altar (centro de una rotación)
 - `pasos`: el largo del camino más corto, para la marca de pasos de la nota. Lo pone `actualizar.py`.
 - `tipo` (opcional): `"jefe"`, `"huida"` o `"altar"` para las salas de Narciso; cada una tiene sus propias claves (ver arriba). Sin `tipo` es una sala de puzzle.
 - `exterior` (opcional): `true` dibuja el piso como pasto, para las salas al aire libre.
-- `estilo` (opcional): la estética del templo, por ejemplo `"tutorial"`. Cambia el muro, el piso y la salida por los de `TEX_ESTILO`; con `"tutorial"` también el sonido de salida (`puerta.ogg`) y la cortina entre salas (una puerta doble café que se cierra de golpe en el centro, `Cortina.puerta`; el golpe de `puerta.ogg` cae justo cuando chocan las hojas) en `sala.gd`; sin `estilo` se usan los del Templo del Río. Un templo nuevo agrega ahí su par de sprites.
+- `estilo` (opcional): la estética del templo, por ejemplo `"tutorial"`. Cambia el muro, el piso y la salida por los de `TEX_ESTILO`; con `"tutorial"` también el sonido de salida (`puerta.ogg`) y la cortina entre salas (una puerta doble café que se cierra de golpe en el centro, `Cortina.puerta`; el golpe de `puerta.ogg` cae justo cuando chocan las hojas) en `sala.gd`; sin `estilo` se usan los del Templo del Río. Un templo nuevo agrega ahí su par de sprites. `"trapiche"` es el taller de carretas de la rotación: muro encalado con zócalo añil, piso de ladrillo, puerta de madera y la bocina de la rueda como altar.
 - `salida_fija` (opcional): `true` convierte la `S` en una puerta del muro de afuera, que solo abre al girar la cámara hasta dejarla arriba (ver las reglas de la sala). Mira `tutorial_girar.json`.
 - `solucion`: una secuencia de teclas que la resuelve: W arriba, S abajo, A izquierda, D derecha, P empujar, T usar Traspasar, R usar Reflejo, G usar Giro, Q y E girar la cámara (antihorario y horario). Las pruebas la usan para comprobar que la sala tiene solución. Ojo: en el mapa la `S` es la salida; en la `solucion` es abajo.
 

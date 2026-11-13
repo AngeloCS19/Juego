@@ -25,6 +25,13 @@ func dibujar_normal(_lienzo: CanvasItem, _tam: float) -> void:
 	pass
 
 
+## Lo que el ancla pinta en el piso, debajo de piedras y jugador (la rueda de la rotación).
+## k es el avance del viaje de las imágenes, de 0 a 1; vale 0 si no hay ninguna piedra con su marca.
+## Devuelve true si pintó algo, para que la sala vuelva a dibujar encima muros, vacío y agua.
+func dibujar_piso(_lienzo: CanvasItem, _tam: float, _k: float, _espiritual: bool) -> bool:
+	return false
+
+
 ## Dónde se dibuja la imagen mientras viaja desde su piedra ("origen") hasta su lugar ("destino"),
 ## en píxeles; k va de 0 a 1. Por defecto en línea recta; una rotación viajará por su arco.
 func viaje(origen: Vector2, destino: Vector2, k: float) -> Vector2:
@@ -37,6 +44,8 @@ static func desde_datos(datos: Dictionary) -> Transformacion:
 		"reflexion":
 			return Reflexion.new(datos["eje"], int(datos["valor"]))
 		"rotacion":
-			return Rotacion.new(Vector2i(int(datos["centro"][0]), int(datos["centro"][1])), int(datos["cuartos"]))
+			var rotacion := Rotacion.new(Vector2i(int(datos["centro"][0]), int(datos["centro"][1])), int(datos["cuartos"]))
+			rotacion.radio = float(datos.get("radio", 0))
+			return rotacion
 	push_error("Transformación desconocida: %s" % datos)
 	return Transformacion.new()
