@@ -13,7 +13,7 @@
 		"#########"
 	],
 	"jugador": [6, 7],
-	"plano_espiritual": { "tipo": "rotacion", "centro": [4, 5], "cuartos": 1, "radio": 3.5 },
+	"plano_espiritual": { "tipo": "rotacion", "centro": [4, 5], "cuartos": 1, "radio": 2.9, "desde": 1, "flecha": true },
 	"piedras": [
 		{ "pos": [2, 5] }
 	],
