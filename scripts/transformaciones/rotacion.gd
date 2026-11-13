@@ -41,7 +41,7 @@ func dibujar_piso(lienzo: CanvasItem, tam: float, k: float, espiritual: bool) ->
 		return false
 	var r := radio * tam
 	lienzo.draw_set_transform((Vector2(centro) + Vector2(0.5, 0.5)) * tam, k * cuartos * PI / 2)
-	lienzo.draw_texture_rect(TEX_RUEDA, Rect2(-r, -r, r * 2, r * 2), false, Color(0.55, 0.85, 1.0, 0.3) if espiritual else Color(1, 1, 1, 0.6))
+	lienzo.draw_texture_rect(TEX_RUEDA, Rect2(-r, -r, r * 2, r * 2), false, Color(0.55, 0.85, 1.0, 0.22) if espiritual else Color(1, 1, 1, 0.4))
 	lienzo.draw_set_transform(Vector2.ZERO)
 	return true
 
