@@ -98,13 +98,16 @@ var prenda_tomada := true  # false mientras la sala tenga una prenda de Narciso 
 static var personaje := 0  # índice en TEX_PERSONAJES; static: lo comparten todas las salas
 var traspasos := 0  # veces que entró al plano espiritual; reiniciar no lo borra: las velas no se vuelven a encender
 var pasos := 0  # acciones en este intento (como las letras de la "solucion"); reiniciar las borra
+const ESPERA_APOYO := 90.0  # segundos en una sala antes de ofrecer la flecha de apoyo
+static var lentas_seguidas := 0  # salas con rueda seguidas en las que hizo falta el apoyo; static: pasa de sala en sala
+var _lenta := false  # en esta sala ya se pasó de ESPERA_APOYO
 var tiempo := 0.0  # segundos jugados en la sala, con reinicios (la pausa no cuenta)
 var tiempo_real := false  # jefe y huida: los turnos los marca un reloj (las pruebas juegan por turnos)
 var _reloj: Timer
 var _t := 0.0  # reloj de las animaciones
 var _vis := {}  # posiciones dibujadas (en píxeles); siguen a las reales con suavidad (ver _seguir)
 var _angulo := 0.0  # ángulo dibujado del jugador
-var _t_plano := 0.0  # tiempo desde que se entró al plano espiritual
+var _t_plano := 9.0  # tiempo desde el último cambio de plano (empieza alto: nada está viajando)
 var _duracion_jugador := DURACION_PASO  # DURACION_EMPUJE mientras camina detrás de una piedra
 var _caida_t := DURACION_CAIDA  # tiempo desde la última caída (DURACION_CAIDA o más: no está cayendo)
 var _caida_en := Vector2.ZERO
@@ -270,6 +273,8 @@ func _avanzar(dir: Vector2i, paso := true) -> void:
 		_salida_t = 0.0  # main.gd espera DURACION_SALIDA para pasar de sala
 		if datos.get("estilo", "") != "tutorial":  # en el tutorial suena la puerta al cerrarse la cortina
 			Sonido.tocar("salida")
+		if not _lenta and transformaciones.any(func(t): return t is Rotacion):
+			lentas_seguidas = 0
 		completada.emit()
 
 
@@ -339,6 +344,7 @@ func _process(delta: float) -> void:
 	_mancha_t += delta
 	_humo_t += delta
 	tiempo += delta
+	_contar_lenta()
 	_seguir("jugador", _centro(jugador), delta, _duracion_jugador)
 	_angulo = lerp_angle(_angulo, Vector2(mirando).angle() + PI / 2, minf(1.0, delta * 20.0))
 	for p in piedras:
@@ -351,6 +357,18 @@ func _process(delta: float) -> void:
 
 ## Acerca la posición dibujada "clave" a la real, a una casilla cada "duracion" segundos.
 ## Si está lejos (la sala se reinició), salta de una vez.
+## Si el jugador lleva mucho en una sala con rueda, aparece la flecha de apoyo. Con dos salas
+## lentas seguidas la flecha sale desde el principio en las siguientes, hasta que resuelva una a tiempo.
+func _contar_lenta() -> void:
+	if not _lenta and tiempo > ESPERA_APOYO and transformaciones.any(func(t): return t is Rotacion):
+		_lenta = true
+		lentas_seguidas += 1
+
+
+func guia_visible(t: Transformacion) -> bool:
+	return t.guia_siempre or _lenta or lentas_seguidas >= 2
+
+
 func _seguir(clave: String, destino: Vector2, delta: float, duracion := DURACION_PASO) -> void:
 	var v: Vector2 = _vis.get(clave, destino)
 	_vis[clave] = destino if v.distance_to(destino) > TAM * 2.5 else v.move_toward(destino, TAM * delta / duracion)
@@ -507,8 +525,12 @@ func _draw() -> void:
 	# de todo lo demás: por eso después se vuelven a dibujar las casillas que no son piso.
 	var pintado := false
 	for t in transformaciones:
-		var marcada := piedras.any(func(p): return p["marca"] == t.marca)
-		if t.dibujar_piso(self, TAM, _avance_viaje() if espiritual and marcada else 0.0, espiritual):
+		# Con una piedra marcada, lo pintado gira con las imágenes al entrar y regresa al volver.
+		var giro_piso := 0.0
+		if piedras.any(func(p): return p["marca"] == t.marca):
+			giro_piso = _avance_viaje() if espiritual else 1.0 - _avance_viaje()
+		t.guia = _t if guia_visible(t) else -1.0
+		if t.dibujar_piso(self, TAM, giro_piso, espiritual):
 			pintado = true
 	if pintado:
 		for y in tamano.y:
@@ -521,8 +543,6 @@ func _draw() -> void:
 	for t in transformaciones:
 		if espiritual:
 			t.dibujar(self, TAM, tamano, CELESTE)
-		else:
-			t.dibujar_normal(self, TAM)
 	_dibujar_velas()
 	for p in piedras:
 		var centro: Vector2 = p.get("vis", _centro(p["pos"]))

@@ -8,6 +8,12 @@ extends RefCounted
 ## Es el nombre de la habilidad que la pone ("reflejo" para la reflexión).
 var marca := ""
 
+## Apoyo animado para quien no entiende el ancla (la flecha de la rueda). La sala lo maneja:
+## guia_siempre viene del JSON ("flecha": true, en las primeras salas); guia es el reloj de la
+## animación en segundos, o -1 si no hay que mostrarla.
+var guia_siempre := false
+var guia := -1.0
+
 
 ## Devuelve la casilla imagen de una casilla dada.
 func aplicar(celda: Vector2i) -> Vector2i:
@@ -16,12 +22,6 @@ func aplicar(celda: Vector2i) -> Vector2i:
 
 ## Dibuja el ancla visible de la transformación (eje, centro, vector...).
 func dibujar(_lienzo: CanvasItem, _tam: float, _tamano_sala: Vector2i, _color: Color) -> void:
-	pass
-
-
-## Lo que el ancla muestra en el plano normal, encima de su casilla (el ángulo tallado en el altar).
-## El río no necesita nada: se ve solo.
-func dibujar_normal(_lienzo: CanvasItem, _tam: float) -> void:
 	pass
 
 
@@ -46,6 +46,8 @@ static func desde_datos(datos: Dictionary) -> Transformacion:
 		"rotacion":
 			var rotacion := Rotacion.new(Vector2i(int(datos["centro"][0]), int(datos["centro"][1])), int(datos["cuartos"]))
 			rotacion.radio = float(datos.get("radio", 0))
+			rotacion.desde = int(datos.get("desde", 0))
+			rotacion.guia_siempre = datos.get("flecha", false)
 			return rotacion
 	push_error("Transformación desconocida: %s" % datos)
 	return Transformacion.new()

@@ -34,6 +34,21 @@ func _init() -> void:
 		vuelta = cuarto.aplicar(vuelta)
 	_igual(vuelta, Vector2i(7, 1), "cuatro cuartos de vuelta vuelven al inicio")
 
+	# La flecha de apoyo de la rueda: aparece si el jugador tarda mucho en la sala.
+	var lenta := Sala.desde_archivo("res://salas/rueda_01.json")
+	var rueda: Transformacion = lenta.transformaciones[0]
+	rueda.guia_siempre = false  # como en una sala avanzada, sin "flecha" en su JSON
+	Sala.lentas_seguidas = 0
+	_igual(lenta.guia_visible(rueda), false, "apoyo: al entrar a la sala no hay flecha")
+	lenta.tiempo = Sala.ESPERA_APOYO + 1.0
+	lenta._contar_lenta()
+	lenta._contar_lenta()
+	_igual(lenta.guia_visible(rueda), true, "apoyo: tras mucho tiempo aparece la flecha")
+	_igual(Sala.lentas_seguidas, 1, "apoyo: una sala lenta se cuenta una sola vez")
+	Sala.lentas_seguidas = 2
+	_igual(Sala.desde_archivo("res://salas/rueda_02.json").guia_visible(rueda), true, "apoyo: tras dos salas lentas la flecha sale desde el inicio")
+	Sala.lentas_seguidas = 0
+
 	# Música: la pieza del templo se arma por capas, y cada capa tiene su versión de cada plano.
 	var rio: Dictionary = Templos.de("res://salas/rio_01.json")
 	_igual([0, 5, 99].map(func(i): return Musica.capas_en(rio["capas_desde"], i)), [1, 2, 3], "capas de la música por sala")

@@ -31,7 +31,7 @@ Todos son SVG de 64×64 (una casilla; en el juego se escalan a 48 px).
 | `rueda_piso.svg` | Rueda de carreta de Sarchí (512×512) pintada en el piso del trapiche: estrella de 16 puntas sobre naranja y flor de 8 pétalos en añil. Tiene simetría de cuarto de vuelta, así que al girar con la imagen queda igual | salas con `"radio"` en su rotación |
 | `bocina.svg` | El centro de la rueda (casilla `O` con `"estilo": "trapiche"`): lo único que bloquea | plano normal |
 | `muro_trapiche.svg`, `piso_trapiche.svg` | Muro encalado con zócalo añil y piso de ladrillo de barro (`"estilo": "trapiche"`) | plano normal |
-| `altar.svg` | Altar de la rotación (casilla `O`): piedra redonda sobre base de ocho lados. Provisional, sin arte propio; el ángulo lo dibuja el código encima | plano normal |
+| `altar.svg` | Altar de la rotación (casilla `O`): piedra redonda sobre base de ocho lados. Provisional, sin arte propio | plano normal |
 | `icono_giro.svg` | Icono de la habilidad Giro: un ángulo recto con su arco y flecha | barra de habilidades |
 | `icono_traspasar.svg` | Icono de la habilidad Traspasar | barra de habilidades |
 | `icono_reflejo.svg` | Icono de la habilidad Reflejo | barra de habilidades |
